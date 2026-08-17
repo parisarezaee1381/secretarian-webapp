@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 
 enum ButtonType { primary, secondary, tertiary }
 
-/// رنگ‌های پیش‌فرض یک نوع دکمه.
 @immutable
 class _ButtonTypeColors {
   const _ButtonTypeColors({
@@ -35,35 +34,7 @@ const Map<ButtonType, _ButtonTypeColors> _kDefaultColors = {
   ),
 };
 
-/// یک دکمه‌ی سفارشی با سه نوع ظاهری (primary/secondary/tertiary)، پشتیبانی
-/// از hover، press، غیرفعال، بارگذاری (loading) و آیکون کنار متن.
-///
-/// تغییرات نسبت به نسخه‌ی قبلی:
-/// * **رفع باگ کوچک‌شدن اندازه هنگام press**: قبلاً هنگام press، عرض
-///   (۲۰۴ → ۱۹۶) و ارتفاع (۶۴ → ۶۰) واقعی دکمه کم می‌شد. اگر این دکمه
-///   کنار ویجت‌های دیگری در یک `Row`/`Column` قرار می‌گرفت، این تغییر
-///   اندازه باعث جابه‌جایی آن‌ها هم می‌شد. الان اندازه‌ی بیرونی همیشه
-///   ثابت است و فیدبک press فقط با یک `AnimatedScale` ظریف روی محتوای
-///   داخلی داده می‌شود.
-/// * **رفع باگ نادیده گرفتن `width`/`height` سفارشی در حالت غیرفعال**:
-///   قبلاً وقتی `isDisabled: true` بود، حتی اگر `width`/`height` سفارشی
-///   داده بودید، دکمه به‌جای آن مقدار، به اندازه‌ی پیش‌فرض (۲۰۴×۶۴)
-///   برمی‌گشت. الان `width`/`height` سفارشی همیشه اولویت دارند.
-/// * **رفع باگ نادیده گرفتن `borderColor` سفارشی برای primary/secondary**:
-///   قبلاً ضخامت border فقط بر اساس نوع دکمه (`tertiary`) تعیین می‌شد؛
-///   یعنی اگر برای یک دکمه‌ی primary مقدار `borderColor` می‌دادید، چون
-///   ضخامت border صفر بود، اصلاً دیده نمی‌شد. الان دادن `borderColor`
-///   سفارشی به‌تنهایی هم border را قابل‌مشاهده می‌کند.
-/// * **حالت `isLoading`**: در زمان انجام یک عملیات ناهمگام، دکمه یک
-///   spinner نشان می‌دهد و از تعامل مجدد جلوگیری می‌کند (بدون نیاز به
-///   `isDisabled` دستی).
-/// * **آیکون اختیاری** کنار برچسب دکمه.
-/// * **دسترس‌پذیری**: قابل فوکوس با کیبورد و فعال‌سازی با Space/Enter،
-///   به‌همراه `Semantics(button: true)`.
-/// * `onPressed == null` یعنی دکمه به‌صورت خودکار غیرفعال است (مشابه
-///   دکمه‌های استاندارد فلاتر)، بدون نیاز به ست کردن `isDisabled` جداگانه.
-/// * منطق رنگ‌ها ساده‌تر شده: به‌جای سه متد جدا با سه `switch` تکراری،
-///   رنگ‌های هر نوع دکمه در یک جدول (`_kDefaultColors`) نگه داشته می‌شوند.
+
 class CustomButton extends StatefulWidget {
   const CustomButton({
     super.key,
@@ -123,8 +94,6 @@ class _CustomButtonState extends State<CustomButton> {
 
   _ButtonTypeColors get _typeColors => _kDefaultColors[widget.type]!;
 
-  /// border فقط وقتی رسم می‌شود که نوع دکمه tertiary باشد یا کاربر
-  /// صراحتاً `borderColor` سفارشی داده باشد.
   bool get _hasVisibleBorder =>
       widget.type == ButtonType.tertiary || widget.borderColor != null;
 

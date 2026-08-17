@@ -5,10 +5,10 @@ import 'back_icon.dart';
 @immutable
 class AppHeaderColors {
   const AppHeaderColors({
-    this.background = const Color(0xFFBBBBC0), // Neutral
-    this.title = const Color(0xFF101018), // Text
-    this.icon = const Color(0xFF3863A8), // Primary
-    this.hover = const Color(0xFF828288), // Secondary
+    this.background = const Color(0xFFBBBBC0),
+    this.title = const Color(0xFF101018),
+    this.icon = const Color(0xFF3863A8),
+    this.hover = const Color(0xFF828288),
     this.hoverOpacity = 0.5,
   });
 
@@ -19,40 +19,19 @@ class AppHeaderColors {
   final double hoverOpacity;
 }
 
-/// نوع آیتم سمت leading هدر (در فارسی: سمت راست چون RTL پیش‌فرض است، اما
-/// از نظر layout همان سمت «شروع» صفحه محسوب می‌شود).
-enum HeaderLeading { back, settings, none }
+/// نوع آیتم سمت leading هدر.
+enum HeaderLeading {
+  back,
+  settings,
+  none,
+}
 
-/// ویجت هدر استاندارد برنامه.
-///
-/// شامل:
-/// - عنوان صفحه (همیشه واقعاً در مرکز هدر، بدون همپوشانی با لوگو یا آیکون)
-/// - دکمه بازگشت یا تنظیمات در سمت leading
-/// - لوگو در سمت trailing (اجباری)
-///
-/// تغییرات نسبت به نسخه‌ی قبلی:
-/// * **رفع باگ آیکون تنظیمات**: قبلاً وقتی `showSettings: true` بود، از
-///   همان `AppBackButton` (که آیکون فلش بازگشت است) استفاده می‌شد و در
-///   عمل یک فلش بازگشت به‌جای آیکون تنظیمات نمایش داده می‌شد. حالا یک
-///   دکمه‌ی آیکون‌دار عمومی (`_HeaderIconButton`) با همان استایل hover/press
-///   ساخته شده که می‌تواند هر `IconData` ای (از جمله تنظیمات) را نشان دهد.
-/// * **جلوگیری از همپوشانی عنوان**: قبلاً عنوان با `Center` روی کل عرض
-///   Container قرار می‌گرفت و اگر متن بلند بود می‌توانست زیر لوگو یا آیکون
-///   برود. حالا با محاسبه‌ی فضای رزرو‌شده در دو طرف (بر اساس بیشترین عرض
-///   بین آیکون leading و لوگو)، عنوان همیشه در فضای امن قرار می‌گیرد و در
-///   صورت طولانی بودن با `ellipsis` کوتاه می‌شود.
-/// * **enum به‌جای دو فلگ بولی**: `showBackButton` و `showSettings` قبلاً
-///   می‌توانستند هم‌زمان true باشند (که رفتار مبهم داشت چون بازگشت اولویت
-///   داشت). حالا `HeaderLeading` این حالت را از نظر نوع داده غیرممکن می‌کند.
-/// * رنگ‌ها در `AppHeaderColors` جمع شده‌اند تا قابل شخصی‌سازی از بیرون
-///   باشند (به‌جای static const ثابت).
-/// * `Semantics(header: true)` برای دسترس‌پذیری بهتر اضافه شده.
-/// * پارامترهای اختیاری برای ارتفاع، padding افقی و استایل عنوان.
-class AppHeader extends StatelessWidget implements PreferredSizeWidget {
+/// هدر استاندارد برنامه.
+class AppHeader extends StatelessWidget
+    implements PreferredSizeWidget {
   const AppHeader({
     super.key,
     required this.title,
-    required this.logo,
     this.leading = HeaderLeading.back,
     this.onLeadingPressed,
     this.logoWidth = 120,
@@ -64,9 +43,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   });
 
   final String title;
-  final Widget logo;
 
-  /// نوع آیتم سمت leading. برای مخفی کردنش [HeaderLeading.none] بدهید.
   final HeaderLeading leading;
   final VoidCallback? onLeadingPressed;
 
@@ -74,6 +51,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final double logoHeight;
   final double height;
   final double horizontalPadding;
+
   final TextStyle? titleStyle;
   final AppHeaderColors colors;
 
@@ -84,13 +62,15 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     switch (leading) {
       case HeaderLeading.back:
         return AppBackButton(
-          onPressed: onLeadingPressed ?? () => Navigator.of(context).pop(),
+          onPressed: onLeadingPressed ??
+              () => Navigator.of(context).pop(),
           iconColor: colors.icon,
           size: 32,
           hoverBackgroundColor: colors.hover,
           hoverBackgroundOpacity: colors.hoverOpacity,
           borderRadius: 10,
         );
+
       case HeaderLeading.settings:
         return _HeaderIconButton(
           icon: Icons.settings_outlined,
@@ -100,6 +80,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
           hoverOpacity: colors.hoverOpacity,
           semanticLabel: 'تنظیمات',
         );
+
       case HeaderLeading.none:
         return const SizedBox(width: 32);
     }
@@ -107,9 +88,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    // بیشترین عرض بین آیتم leading و لوگو، برای اینکه عنوان همیشه در فضای
-    // امن و واقعاً در مرکز باقی بماند.
-    final sideReserved = (logoWidth > 48.0 ? logoWidth : 48.0) + 16;
+    final sideReserved =
+        (logoWidth > 48.0 ? logoWidth : 48.0) + 16;
 
     return Semantics(
       header: true,
@@ -117,16 +97,23 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
         height: height,
         width: double.infinity,
         color: colors.background,
-        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+        padding: EdgeInsets.symmetric(
+          horizontal: horizontalPadding,
+        ),
         child: Stack(
           alignment: Alignment.center,
           children: [
+            // دکمه‌ی Back یا Settings
             Positioned(
               left: 0,
               child: _buildLeading(context),
             ),
+
+            // عنوان
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: sideReserved),
+              padding: EdgeInsets.symmetric(
+                horizontal: sideReserved,
+              ),
               child: Text(
                 title,
                 style: titleStyle ??
@@ -141,12 +128,17 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+
+            // لوگوی ثابت برنامه
             Positioned(
               right: 0,
               child: SizedBox(
                 width: logoWidth,
                 height: logoHeight,
-                child: logo,
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           ],
@@ -156,8 +148,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-/// دکمه‌ی آیکون‌دار عمومی برای سمت leading هدر (مثلاً تنظیمات)، با همان
-/// استایل hover/press که [AppBackButton] دارد.
+/// دکمه‌ی آیکون‌دار عمومی برای سمت leading هدر.
 class _HeaderIconButton extends StatefulWidget {
   const _HeaderIconButton({
     required this.icon,
@@ -178,10 +169,13 @@ class _HeaderIconButton extends StatefulWidget {
   final String? semanticLabel;
 
   @override
-  State<_HeaderIconButton> createState() => _HeaderIconButtonState();
+  State<_HeaderIconButton> createState() {
+    return _HeaderIconButtonState();
+  }
 }
 
-class _HeaderIconButtonState extends State<_HeaderIconButton> {
+class _HeaderIconButtonState
+    extends State<_HeaderIconButton> {
   bool _isHovered = false;
 
   @override
@@ -191,8 +185,16 @@ class _HeaderIconButtonState extends State<_HeaderIconButton> {
       label: widget.semanticLabel,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
+        onEnter: (_) {
+          setState(() {
+            _isHovered = true;
+          });
+        },
+        onExit: (_) {
+          setState(() {
+            _isHovered = false;
+          });
+        },
         child: GestureDetector(
           onTap: widget.onPressed,
           child: AnimatedContainer(
@@ -201,7 +203,9 @@ class _HeaderIconButtonState extends State<_HeaderIconButton> {
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: _isHovered
-                  ? widget.hoverColor.withValues(alpha: widget.hoverOpacity)
+                  ? widget.hoverColor.withValues(
+                      alpha: widget.hoverOpacity,
+                    )
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(10),
             ),

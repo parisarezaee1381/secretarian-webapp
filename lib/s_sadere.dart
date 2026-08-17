@@ -2,81 +2,22 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:shamsi_date/shamsi_date.dart';
 
 import 'widgets.dart/switch_button.dart';
 import 'widgets.dart/buttons.dart';
+import 'widgets.dart/text_input.dart';
+import 'widgets.dart/dropdown_menu.dart';
+import 'widgets.dart/header.dart';
+import 'widgets.dart/hoverablecontainer.dart';
 
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      scaffoldMessengerKey: rootScaffoldMessengerKey,
-      home: const Directionality(
-        textDirection: TextDirection.rtl,
-        child: LetterFormPage(),
-      ),
-    );
-  }
-}
-
-
-void _showOfflineModal(BuildContext context, {required Color backgroundColor}) {
-  showDialog(
-    context: context,
-    barrierDismissible: true,
-    builder: (context) => AlertDialog(
-      backgroundColor: backgroundColor,
-      title: const Text(
-        'خطای اتصال',
-        style: TextStyle(fontFamily: 'Estedad', fontWeight: FontWeight.bold),
-      ),
-      content: const Text(
-        'اتصال به اینترنت برقرار نیست. لطفاً اتصال خود را بررسی کرده و دوباره تلاش کنید.',
-        style: TextStyle(fontFamily: 'Estedad'),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('باشه', style: TextStyle(fontFamily: 'Estedad')),
-        ),
-      ],
-    ),
-  );
-}
-
-class CustomSwitch extends StatelessWidget {
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const CustomSwitch({
-    super.key,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AppSwitch(
-      value: value,
-      onChanged: onChanged,
-    );
-  }
-}
 
 class PrimaryButton extends StatelessWidget {
   final String label;
   final IconData? icon;
   final VoidCallback onPressed;
-  final bool isOffline;
   final Color primaryColor;
   final Color backgroundColor;
 
@@ -85,7 +26,6 @@ class PrimaryButton extends StatelessWidget {
     required this.label,
     this.icon,
     required this.onPressed,
-    this.isOffline = false,
     this.primaryColor = const Color(0xFF3863A8),
     this.backgroundColor = const Color(0xFFF3F3F7),
   });
@@ -98,12 +38,7 @@ class PrimaryButton extends StatelessWidget {
       icon: icon != null ? Icon(icon) : null,
       backgroundColor: primaryColor,
       textColor: backgroundColor,
-      onPressed: isOffline
-          ? () => _showOfflineModal(
-                context,
-                backgroundColor: backgroundColor,
-              )
-          : onPressed,
+      onPressed: onPressed,
     );
   }
 }
@@ -112,14 +47,12 @@ class SecondaryButton extends StatelessWidget {
   final String label;
   final IconData? icon;
   final VoidCallback onPressed;
-  final bool isOffline;
 
   const SecondaryButton({
     super.key,
     required this.label,
     this.icon,
     required this.onPressed,
-    this.isOffline = false,
   });
 
   @override
@@ -128,12 +61,7 @@ class SecondaryButton extends StatelessWidget {
       label: label,
       type: ButtonType.secondary,
       icon: icon != null ? Icon(icon) : null,
-      onPressed: isOffline
-          ? () => _showOfflineModal(
-                context,
-                backgroundColor: const Color(0xFFF3F3F7),
-              )
-          : onPressed,
+      onPressed: onPressed,
     );
   }
 }
@@ -142,7 +70,6 @@ class TertiaryButton extends StatelessWidget {
   final String label;
   final IconData? icon;
   final VoidCallback onPressed;
-  final bool isOffline;
   final Color backgroundColor;
 
   const TertiaryButton({
@@ -150,7 +77,6 @@ class TertiaryButton extends StatelessWidget {
     required this.label,
     this.icon,
     required this.onPressed,
-    this.isOffline = false,
     this.backgroundColor = const Color(0xFFF3F3F7),
   });
 
@@ -161,12 +87,7 @@ class TertiaryButton extends StatelessWidget {
       type: ButtonType.tertiary,
       icon: icon != null ? Icon(icon) : null,
       backgroundColor: backgroundColor,
-      onPressed: isOffline
-          ? () => _showOfflineModal(
-                context,
-                backgroundColor: backgroundColor,
-              )
-          : onPressed,
+      onPressed: onPressed,
     );
   }
 }
@@ -191,6 +112,7 @@ class SmartDateField extends StatefulWidget {
   final String label;
   final bool isReadOnly;
   final double fieldWidth;
+  final double labelWidth;
 
   const SmartDateField({
     super.key,
@@ -198,6 +120,7 @@ class SmartDateField extends StatefulWidget {
     required this.label,
     this.isReadOnly = false,
     this.fieldWidth = 548,
+    this.labelWidth = 150,
   });
 
   @override
@@ -205,68 +128,54 @@ class SmartDateField extends StatefulWidget {
 }
 
 class _SmartDateFieldState extends State<SmartDateField> {
-  bool _isHovered = false;
-  bool _isFocused = false;
-
   late final TextEditingController _displayController;
-  bool _isUpdating = false;
+  late final FocusNode _focusNode;
 
-  // true تا وقتی که مقدار فیلد همون تاریخ پیش‌فرض (امروز) باشه و کاربر هنوز چیزی تایپ نکرده باشه
+  bool _isUpdating = false;
   bool _isDefaultUntouched = false;
 
-  // دریافت تاریخ جاری شمسی
-  Map<String, int> _getCurrentDate() {
-    final now = DateTime.now();
-    final year = now.year - 621;
-    var month = now.month;
-    final day = now.day;
-
-    month = month > 6 ? month - 6 : month + 6;
-
-    return {'year': year, 'month': month, 'day': day};
-  }
-
-  int _getMaxDaysInMonth(int month) {
-    if ([1, 2, 3, 7, 8, 9, 10, 11, 12].contains(month)) return 31;
-    if ([4, 5, 6].contains(month)) return 30;
-    return 29;
-  }
-
+  // تاریخ امروز شمسی
   String _getTodayDigits() {
-    final currentDate = _getCurrentDate();
-    final year = currentDate['year']!;
-    final month = currentDate['month']!;
-    final day = currentDate['day']!;
-    return '${year.toString().padLeft(4, '0')}${month.toString().padLeft(2, '0')}${day.toString().padLeft(2, '0')}';
+    final today = Jalali.now();
+
+    return '${today.year.toString().padLeft(4, '0')}'
+        '${today.month.toString().padLeft(2, '0')}'
+        '${today.day.toString().padLeft(2, '0')}';
   }
 
-  // نمایش با فرمت YYYY/MM/DD
+  // تبدیل 14050827 به 1405/08/27
   String _displayDate(String digits) {
     if (digits.isEmpty) return '';
+
     final padded = digits.padRight(8, '_');
+
     final year = padded.substring(0, 4).replaceAll('_', '');
     final month = padded.substring(4, 6).replaceAll('_', '');
     final day = padded.substring(6, 8).replaceAll('_', '');
 
-    final displayYear = year.isNotEmpty ? year.padRight(4, '_') : '____';
-    final displayMonth = month.isNotEmpty ? month.padRight(2, '_') : '__';
-    final displayDay = day.isNotEmpty ? day.padRight(2, '_') : '__';
+    final displayYear =
+        year.isNotEmpty ? year.padRight(4, '_') : '____';
+
+    final displayMonth =
+        month.isNotEmpty ? month.padRight(2, '_') : '__';
+
+    final displayDay =
+        day.isNotEmpty ? day.padRight(2, '_') : '__';
 
     return '$displayYear/$displayMonth/$displayDay';
   }
 
+  // بررسی و اصلاح تاریخ واردشده
   String _processFinalDate(String input) {
     final cleaned = input.replaceAll(RegExp(r'[^0-9]'), '');
+
     if (cleaned.isEmpty) return '';
 
-    final currentDate = _getCurrentDate();
-    final currentYear = currentDate['year']!;
-    final currentMonth = currentDate['month']!;
-    final currentDay = currentDate['day']!;
+    final today = Jalali.now();
 
-    var day = currentDay;
-    var month = currentMonth;
-    var year = currentYear;
+    int day = today.day;
+    int month = today.month;
+    int year = today.year;
 
     if (cleaned.length == 1) {
       day = int.parse(cleaned);
@@ -278,6 +187,7 @@ class _SmartDateFieldState extends State<SmartDateField> {
     } else if (cleaned.length == 6) {
       day = int.parse(cleaned.substring(0, 2));
       month = int.parse(cleaned.substring(2, 4));
+
       final shortYear = int.parse(cleaned.substring(4, 6));
       year = 1400 + shortYear;
     } else if (cleaned.length >= 8) {
@@ -286,39 +196,61 @@ class _SmartDateFieldState extends State<SmartDateField> {
       year = int.parse(cleaned.substring(4, 8));
     }
 
-    final maxDay = _getMaxDaysInMonth(month);
-    if (day == 0) day = 1;
-    if (day > maxDay) day = maxDay;
-    if (month == 0) month = 1;
+    // محدود کردن ماه
+    if (month < 1) month = 1;
     if (month > 12) month = 12;
-    if (year == 0) year = currentYear;
-    if (year >= 0 && year <= 99) year = 1400 + year;
-    if (year < 1000) year = 1400 + year;
 
-    return '${year.toString().padLeft(4, '0')}${month.toString().padLeft(2, '0')}${day.toString().padLeft(2, '0')}';
+    // محدود کردن روز بر اساس تعداد واقعی روزهای همان ماه
+    final maxDay = Jalali(year, month, 1).monthLength;
+
+    if (day < 1) day = 1;
+    if (day > maxDay) day = maxDay;
+
+    // ساخت تاریخ معتبر شمسی
+    final date = Jalali(year, month, day);
+
+    return '${date.year.toString().padLeft(4, '0')}'
+        '${date.month.toString().padLeft(2, '0')}'
+        '${date.day.toString().padLeft(2, '0')}';
   }
 
   void _updateDisplay(String value) {
     var digits = value.replaceAll(RegExp(r'[^0-9]'), '');
+
     if (digits.length > 8) {
       digits = digits.substring(0, 8);
     }
 
-    String day, month, year;
+    String day;
+    String month;
+    String year;
 
     if (digits.isNotEmpty) {
       final dayLength = digits.length >= 2 ? 2 : digits.length;
-      day = digits.substring(0, dayLength).padLeft(2, '0');
+
+      day = digits
+          .substring(0, dayLength)
+          .padLeft(2, '0');
 
       if (digits.length > 2) {
         const monthStart = 2;
-        final monthLength = digits.length >= 4 ? 2 : digits.length - 2;
-        month = digits.substring(monthStart, monthStart + monthLength).padLeft(2, '0');
+
+        final monthLength =
+            digits.length >= 4 ? 2 : digits.length - 2;
+
+        month = digits
+            .substring(monthStart, monthStart + monthLength)
+            .padLeft(2, '0');
 
         if (digits.length > 4) {
           const yearStart = 4;
-          final yearLength = digits.length >= 8 ? 4 : digits.length - 4;
-          year = digits.substring(yearStart, yearStart + yearLength).padLeft(4, '0');
+
+          final yearLength =
+              digits.length >= 8 ? 4 : digits.length - 4;
+
+          year = digits
+              .substring(yearStart, yearStart + yearLength)
+              .padLeft(4, '0');
         } else {
           year = '0000';
         }
@@ -333,129 +265,118 @@ class _SmartDateFieldState extends State<SmartDateField> {
     }
 
     widget.controller.text = '$year$month$day';
+
+    _isDefaultUntouched = false;
   }
 
   void _onFocusLost() {
     if (widget.controller.text.isNotEmpty) {
-      widget.controller.text = _processFinalDate(widget.controller.text);
+      widget.controller.text =
+          _processFinalDate(widget.controller.text);
     }
-  }
-
-  Color _getFillColor() {
-    if (widget.isReadOnly) return const Color(0xFFF3F3F7);
-    if (_isFocused) return const Color(0xFF3863A8);
-    if (_isHovered) return const Color(0xFFBBBBC0);
-    return const Color(0xFF828288);
   }
 
   @override
   void initState() {
     super.initState();
+
+    _focusNode = FocusNode();
+
     if (widget.controller.text.isEmpty) {
       widget.controller.text = _getTodayDigits();
-      // چون مقدار اولیه توسط خود ویجت (نه کاربر) پر شده، این‌جا علامت می‌زنیم
-      // که تا وقتی کاربر شروع به تایپ نکرده، این مقدار "پیش‌فرض" حساب بشه
       _isDefaultUntouched = true;
     }
-    _displayController = TextEditingController(text: _displayDate(widget.controller.text));
+
+    _displayController = TextEditingController(
+      text: _displayDate(widget.controller.text),
+    );
+
     widget.controller.addListener(_syncDisplayController);
+    _focusNode.addListener(_handleFocusChange);
+  }
+
+  void _handleFocusChange() {
+    if (_focusNode.hasFocus) {
+      if (_isDefaultUntouched && !widget.isReadOnly) {
+        _displayController.selection = TextSelection(
+          baseOffset: 0,
+          extentOffset: _displayController.text.length,
+        );
+      }
+    } else if (!widget.isReadOnly) {
+      _onFocusLost();
+    }
   }
 
   void _syncDisplayController() {
     if (_isUpdating) return;
+
     _isUpdating = true;
-    _displayController.text = _displayDate(widget.controller.text);
-    _displayController.selection = TextSelection.collapsed(offset: _displayController.text.length);
+
+    _displayController.text =
+        _displayDate(widget.controller.text);
+
+    _displayController.selection =
+        TextSelection.collapsed(
+      offset: _displayController.text.length,
+    );
+
     _isUpdating = false;
   }
 
   @override
-  void didUpdateWidget(covariant SmartDateField oldWidget) {
+  void didUpdateWidget(
+    covariant SmartDateField oldWidget,
+  ) {
     super.didUpdateWidget(oldWidget);
+
     if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_syncDisplayController);
-      widget.controller.addListener(_syncDisplayController);
+      oldWidget.controller
+          .removeListener(_syncDisplayController);
+
+      widget.controller
+          .addListener(_syncDisplayController);
+
       _syncDisplayController();
     }
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_syncDisplayController);
+    widget.controller
+        .removeListener(_syncDisplayController);
+
+    _focusNode
+        .removeListener(_handleFocusChange);
+
+    _focusNode.dispose();
     _displayController.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: 150,
-          child: Text(
-            widget.label,
-            style: const TextStyle(
-              color: Color(0xFF101018),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              fontFamily: 'Estedad',
-            ),
-          ),
-        ),
-        MouseRegion(
-          onEnter: (_) => setState(() => _isHovered = true),
-          onExit: (_) => setState(() => _isHovered = false),
-          child: Focus(
-            onFocusChange: (hasFocus) {
-              setState(() => _isFocused = hasFocus);
+    final colors = widget.isReadOnly
+        ? const AppTextFieldColors(
+            disabled: Color(0xFFF3F3F7),
+            text: Color(0xFF101018),
+          )
+        : const AppTextFieldColors();
 
-              if (hasFocus) {
-                // اگر مقدار فعلی همون تاریخ پیش‌فرضه و کاربر هنوز دستکاریش نکرده،
-                // کل متن رو انتخاب می‌کنیم تا اولین کاراکتری که تایپ می‌شه
-                // جای کل تاریخ پیش‌فرض رو بگیره، نه این‌که به وسطش اضافه بشه.
-                if (_isDefaultUntouched && !widget.isReadOnly) {
-                  _displayController.selection = TextSelection(
-                    baseOffset: 0,
-                    extentOffset: _displayController.text.length,
-                  );
-                }
-              } else if (!widget.isReadOnly) {
-                _onFocusLost();
-              }
-            },
-            child: SizedBox(
-              width: widget.fieldWidth,
-              height: 64,
-              child: TextField(
-                controller: _displayController,
-                enabled: !widget.isReadOnly,
-                style: TextStyle(
-                  color: widget.isReadOnly ? const Color(0xFF101018) : const Color(0xFFF3F3F7),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Estedad',
-                ),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: _getFillColor(),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  counterText: '',
-                ),
-                onChanged: (value) {
-                  if (!widget.isReadOnly) {
-                    _updateDisplay(value);
-                  }
-                },
-              ),
-            ),
-          ),
-        ),
-      ],
+    return AppTextField(
+      controller: _displayController,
+      focusNode: _focusNode,
+      labelText: widget.label,
+      labelWidth: widget.labelWidth,
+      labelSpacing: 0,
+      width: widget.fieldWidth,
+      height: 64,
+      enabled: !widget.isReadOnly,
+      keyboardType: TextInputType.number,
+      onChanged:
+          widget.isReadOnly ? null : _updateDisplay,
+      colors: colors,
     );
   }
 }
@@ -472,16 +393,10 @@ class _CustomModalState extends State<CustomModal> {
   final _dateController = TextEditingController();
   final _followUpByController = TextEditingController();
 
-  // عرض هر یک از دو تکست‌اینپوت «تاریخ پیگیری» و «پیگیری توسط»
-  // (این دو باید دقیقاً هم‌عرض باشن)
   static const double _modalFieldWidth = 308;
 
-  // عرض لیبل‌ها. SmartDateField داخلی‌اش لیبل رو با عرض ثابت 150 رسم می‌کنه،
-  // پس برای اینکه اینپوت «پیگیری توسط» هم دقیقاً از همون نقطه شروع بشه،
-  // لیبل «پیگیری توسط» هم باید همین عرض (150) رو داشته باشه.
   static const double _modalLabelWidth = 150;
 
-  // خطاهای اعتبارسنجی
   String? _dateError;
   String? _followUpByError;
 
@@ -498,7 +413,6 @@ class _CustomModalState extends State<CustomModal> {
   bool _validate() {
     bool valid = true;
     setState(() {
-      // تاریخ پیگیری: کنترلر ارقام خام ذخیره می‌کند؛ اگر خالی یا فقط صفر بود، خطا بده
       final dateDigits = _dateController.text.replaceAll(RegExp(r'[^0-9]'), '');
       if (dateDigits.isEmpty || int.tryParse(dateDigits) == 0) {
         _dateError = 'لطفا این فیلد را پر کنید';
@@ -506,7 +420,6 @@ class _CustomModalState extends State<CustomModal> {
       } else {
         _dateError = null;
       }
-      // پیگیری توسط
       if (_followUpByController.text.trim().isEmpty) {
         _followUpByError = 'لطفا این فیلد را پر کنید';
         valid = false;
@@ -532,7 +445,6 @@ class _CustomModalState extends State<CustomModal> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // هدر: عنوان وسط، دکمه‌ی بستن راست
             Directionality(
               textDirection: TextDirection.rtl,
               child: Stack(
@@ -551,9 +463,12 @@ class _CustomModalState extends State<CustomModal> {
                   ),
                   Positioned(
                     left: 0,
-                    child: IconButton(
-                      icon: const Icon(Icons.close, color: Color(0xFF101018)),
-                      onPressed: () => Navigator.of(context).pop(),
+                    child: HoverableContainer(
+                      width: 44,
+                      height: 44,
+                      hoverColor: const Color(0xFFBBBBC0),
+                      onTap: () => Navigator.of(context).pop(),
+                      child: const Icon(Icons.close, color: Color(0xFF101018)),
                     ),
                   ),
                 ],
@@ -562,7 +477,7 @@ class _CustomModalState extends State<CustomModal> {
             const SizedBox(height: 8),
             const Divider(color: Color(0xFFBBBBC0)),
             const SizedBox(height: 24),
-            // ردیف تاریخ پیگیری (RTL لیبل + LTR فیلد) + خطا
+            // ردیف تاریخ پیگیری + خطا
             Directionality(
               textDirection: TextDirection.rtl,
               child: Column(
@@ -572,51 +487,57 @@ class _CustomModalState extends State<CustomModal> {
                     controller: _dateController,
                     label: 'تاریخ پیگیری:',
                     fieldWidth: _modalFieldWidth,
+                    labelWidth: _modalLabelWidth,
                   ),
                   if (_dateError != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 4, right: _modalLabelWidth),
                       child: Text(
                         _dateError!,
-                        style: const TextStyle(
-                          color: _errorColor,
-                          fontSize: 12,
-                          fontFamily: 'Estedad',
-                        ),
+                        style: const TextStyle(color: _errorColor, fontSize: 12, fontFamily: 'Estedad'),
                       ),
                     ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
-            // نام سازمان/شرکت (بدون اعتبارسنجی)
-            const SizedBox(height: 20),
-            // پیگیری توسط (الزامی) + خطا
             Directionality(
               textDirection: TextDirection.rtl,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildTextField('پیگیری توسط:', _followUpByController),
+                  AppTextField(
+                    controller: _followUpByController,
+                    labelText: 'پیگیری توسط:',
+                    labelWidth: _modalLabelWidth,
+                    labelSpacing: 0,
+                    width: _modalFieldWidth,
+                    height: 64,
+                    errorText: _followUpByError,
+                    labelStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Estedad',
+                    ),
+                  ),
                   if (_followUpByError != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 4, right: _modalLabelWidth),
                       child: Text(
                         _followUpByError!,
-                        style: const TextStyle(
-                          color: _errorColor,
-                          fontSize: 12,
-                          fontFamily: 'Estedad',
-                        ),
+                        style: const TextStyle(color: _errorColor, fontSize: 12, fontFamily: 'Estedad'),
                       ),
                     ),
                 ],
               ),
             ),
             const SizedBox(height: 32),
-            // دکمه ثبت وسط
             Center(
-              child: ElevatedButton(
+              child: CustomButton(
+                label: 'تایید',
+                type: ButtonType.primary,
+                width: 204,
+                height: 64,
                 onPressed: () {
                   if (_validate()) {
                     Navigator.of(context).pop({
@@ -626,18 +547,6 @@ class _CustomModalState extends State<CustomModal> {
                     });
                   }
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3863A8),
-                  foregroundColor: const Color(0xFFF3F3F7),
-                  minimumSize: const Size(204 , 64),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  textStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Estedad',
-                  ),
-                ),
-                child: const Text('تایید'),
               ),
             ),
           ],
@@ -645,44 +554,16 @@ class _CustomModalState extends State<CustomModal> {
       ),
     );
   }
-
-  // لیبل راست‌چین، اینپوت چپ‌چین
-  // عرض لیبل و عرض اینپوت با SmartDateField یکسان شده تا هر دو فیلد
-  // (تاریخ پیگیری و پیگیری توسط) دقیقاً هم‌اندازه باشن و از یک نقطه شروع بشن.
-  Widget _buildTextField(String label, TextEditingController controller) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: _modalLabelWidth,
-          child: Text(
-            label,
-            textDirection: TextDirection.rtl,
-            style: const TextStyle(
-              color: Color(0xFF101018),
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              fontFamily: 'Estedad',
-            ),
-          ),
-        ),
-        Directionality(
-          textDirection: TextDirection.ltr,
-          child: HoverTextField(controller: controller, width: _modalFieldWidth),
-        ),
-      ],
-    );
-  }
 }
 
-class LetterFormPage extends StatefulWidget {
-  const LetterFormPage({super.key});
+class OutgoingLetterFormPage extends StatefulWidget {
+  const OutgoingLetterFormPage({super.key});
 
   @override
-  State<LetterFormPage> createState() => _LetterFormPageState();
+  State<OutgoingLetterFormPage> createState() => _OutgoingLetterFormPageState();
 }
 
-class _LetterFormPageState extends State<LetterFormPage> {
+class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
   final letterNumberController = TextEditingController();
   final dateController = TextEditingController();
   final registrationDateController = TextEditingController();
@@ -694,23 +575,15 @@ class _LetterFormPageState extends State<LetterFormPage> {
   final registrationNumberController = TextEditingController();
   final archiveFolderController = TextEditingController();
 
-  // ============================================================
-  // FocusNode ها — ترتیب Tab/Enter در فرم
-  // ترتیب: شماره نامه → عنوان → به سازمان → گیرنده → امضا → اقدام
-  //        → شماره ثبت → پوشه → اولویت → نحوه ارسال
-  // ============================================================
-  final _fnLetterNumber      = FocusNode();
-  final _fnSubject           = FocusNode();
-  final _fnOrganization      = FocusNode();
-  final _fnRecipient         = FocusNode();
-  final _fnSigner            = FocusNode();
-  final _fnActionBy          = FocusNode();
+  final _fnLetterNumber = FocusNode();
+  final _fnSubject = FocusNode();
+  final _fnOrganization = FocusNode();
+  final _fnRecipient = FocusNode();
+  final _fnSigner = FocusNode();
+  final _fnActionBy = FocusNode();
   final _fnRegistrationNumber = FocusNode();
-  final _fnArchiveFolder     = FocusNode();
-  final _fnPriority          = FocusNode();
-  final _fnSendMethod        = FocusNode();
+  final _fnArchiveFolder = FocusNode();
 
-  // خطاهای اعتبارسنجی — کلید: نام فیلد
   final Map<String, String?> _errors = {
     'letterNumber': null,
     'subject': null,
@@ -727,23 +600,17 @@ class _LetterFormPageState extends State<LetterFormPage> {
 
   List<String> tags = [];
   final _tagInputController = TextEditingController();
-  bool _isTagHovered = false;
-  bool _isTagFocused = false;
 
   bool _isSwitchOn = false;
   bool _isFileSwitchOn = false;
   String? _selectedFilePath;
 
-  // ============================================================
-  // پیوست‌ها (اسکن سند / افزودن پیوست)
-  // ============================================================
   final List<AttachedItem> _attachedItems = [];
 
-  // اندازه‌ی A4 تقریبی به پیکسل (در ۹۶ dpi) و یک‌چهارمِ اون برای پیش‌نمایش
   static const double _a4Width = 793.7;
   static const double _a4Height = 1122.5;
-  static const double _thumbnailWidth = _a4Width / 4; // ~198
-  static const double _thumbnailHeight = _a4Height / 4; // ~280
+  static const double _thumbnailWidth = _a4Width / 4;
+  static const double _thumbnailHeight = _a4Height / 4;
 
   Map<String, int> _getCurrentDate() {
     final now = DateTime.now();
@@ -786,8 +653,6 @@ class _LetterFormPageState extends State<LetterFormPage> {
     _fnActionBy.dispose();
     _fnRegistrationNumber.dispose();
     _fnArchiveFolder.dispose();
-    _fnPriority.dispose();
-    _fnSendMethod.dispose();
     super.dispose();
   }
 
@@ -803,12 +668,6 @@ class _LetterFormPageState extends State<LetterFormPage> {
 
   void _removeTag(int index) {
     setState(() => tags.removeAt(index));
-  }
-
-  Color _getTagFillColor() {
-    if (_isTagFocused) return const Color(0xFF3863A8);
-    if (_isTagHovered) return const Color(0xFFBBBBC0);
-    return const Color(0xFF828288);
   }
 
   void _showModal() {
@@ -839,7 +698,6 @@ class _LetterFormPageState extends State<LetterFormPage> {
       );
       if (result != null) {
         final fileName = result.split(Platform.pathSeparator).last;
-        // سوییچ فقط بعد از انتخاب موفق مسیر ذخیره‌سازی روشن می‌شود
         setState(() {
           _selectedFilePath = fileName;
           _isFileSwitchOn = true;
@@ -858,16 +716,13 @@ class _LetterFormPageState extends State<LetterFormPage> {
     }
   }
 
-  // ============================================================
-  // + افزودن پیوست: باز کردن دیالوگ انتخاب فایل و اضافه کردن به لیست
-  // ============================================================
   Future<void> _pickAttachment() async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
         allowMultiple: false,
-        withData: true, // برای در دسترس بودن بایت‌های فایل (مثلاً روی وب)
+        withData: true,
       );
       if (result != null) {
         final file = result.files.first;
@@ -882,16 +737,6 @@ class _LetterFormPageState extends State<LetterFormPage> {
     }
   }
 
-  // ============================================================
-  // اسکن سند: نقطه‌ی اتصال به اسکنر/پرینتر
-  //
-  // توجه مهم: اتصال مستقیم به یک اسکنر فیزیکی از طریق درایور سیستم‌عامل
-  // (مثل WIA در ویندوز یا SANE در لینوکس) بخشی از Flutter استاندارد نیست
-  // و نیازمند یک پکیج/پلاگین نیتیو مخصوص همون پلتفرمه. این متد فقط محل
-  // اتصال (hook) رو آماده کرده؛ وقتی نتیجه‌ی اسکن به‌صورت بایت تصویر آماده
-  // شد، کافیه _onScanComplete رو با اون بایت‌ها صدا بزنی تا دقیقاً مثل یک
-  // پیوست معمولی به لیست اضافه بشه.
-  // ============================================================
   Future<void> _scanDocument() async {
     rootScaffoldMessengerKey.currentState?.showSnackBar(
       const SnackBar(
@@ -904,8 +749,6 @@ class _LetterFormPageState extends State<LetterFormPage> {
     );
   }
 
-  // بعد از این‌که نتیجه‌ی اسکن (بایت تصویر) از درایور/پکیج اسکنر رسید،
-  // این متد رو با اون بایت‌ها صدا بزن.
   // ignore: unused_element
   void _onScanComplete(Uint8List imageBytes, String fileName) {
     setState(() => _attachedItems.add(AttachedItem(name: fileName, bytes: imageBytes)));
@@ -915,31 +758,24 @@ class _LetterFormPageState extends State<LetterFormPage> {
     setState(() => _attachedItems.removeAt(index));
   }
 
-  // ============================================================
-  // اعتبارسنجی فرم — همه‌ی فیلدهای اجباری را بررسی می‌کند
-  // ============================================================
   bool _validateForm() {
     final newErrors = <String, String?>{
-      'letterNumber':       letterNumberController.text.trim().isEmpty ? 'لطفا این فیلد را پر کنید' : null,
-      'subject':            subjectController.text.trim().isEmpty      ? 'لطفا این فیلد را پر کنید' : null,
-      'organization':       organizationController.text.trim().isEmpty  ? 'لطفا این فیلد را پر کنید' : null,
-      'recipient':          recipientController.text.trim().isEmpty     ? 'لطفا این فیلد را پر کنید' : null,
-      'signer':             signerController.text.trim().isEmpty        ? 'لطفا این فیلد را پر کنید' : null,
-      'actionBy':           actionByController.text.trim().isEmpty      ? 'لطفا این فیلد را پر کنید' : null,
+      'letterNumber': letterNumberController.text.trim().isEmpty ? 'لطفا این فیلد را پر کنید' : null,
+      'subject': subjectController.text.trim().isEmpty ? 'لطفا این فیلد را پر کنید' : null,
+      'organization': organizationController.text.trim().isEmpty ? 'لطفا این فیلد را پر کنید' : null,
+      'recipient': recipientController.text.trim().isEmpty ? 'لطفا این فیلد را پر کنید' : null,
+      'signer': signerController.text.trim().isEmpty ? 'لطفا این فیلد را پر کنید' : null,
+      'actionBy': actionByController.text.trim().isEmpty ? 'لطفا این فیلد را پر کنید' : null,
       'registrationNumber': registrationNumberController.text.trim().isEmpty ? 'لطفا این فیلد را پر کنید' : null,
-      'archiveFolder':      archiveFolderController.text.trim().isEmpty ? 'لطفا این فیلد را پر کنید' : null,
+      'archiveFolder': archiveFolderController.text.trim().isEmpty ? 'لطفا این فیلد را پر کنید' : null,
     };
     setState(() => _errors.addAll(newErrors));
     return newErrors.values.every((e) => e == null);
   }
 
-  // ============================================================
-  // منطق دکمه‌های نهایی فرم
-  // ============================================================
   void _submitForm() {
     if (!_validateForm()) return;
 
-    // بعد از ثبت، سوییچ «نیاز به پیگیری» روشن می‌شود و مودال پیگیری باز می‌شود
     setState(() => _isSwitchOn = true);
     _showModal();
 
@@ -949,7 +785,6 @@ class _LetterFormPageState extends State<LetterFormPage> {
   }
 
   void _cancelForm() {
-  
     rootScaffoldMessengerKey.currentState?.showSnackBar(
       const SnackBar(content: Text('عملیات لغو شد'), backgroundColor: Color(0xFF828288)),
     );
@@ -987,6 +822,8 @@ class _LetterFormPageState extends State<LetterFormPage> {
       preview = _buildFileIconPlaceholder(item.name);
     }
 
+    // دکمه‌ی حذف پیوست حالا روی HoverableContainer سوار شده تا هاورش با
+    // بقیه‌ی اپ هماهنگ باشه.
     return Container(
       width: _thumbnailWidth,
       height: _thumbnailHeight,
@@ -996,11 +833,7 @@ class _LetterFormPageState extends State<LetterFormPage> {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFFBBBBC0)),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 2)),
         ],
       ),
       child: Stack(
@@ -1012,14 +845,15 @@ class _LetterFormPageState extends State<LetterFormPage> {
           Positioned(
             top: 6,
             left: 6,
-            child: GestureDetector(
+            child: HoverableContainer(
+              width: 24,
+              height: 24,
+              borderRadius: 12,
+              normalColor: const Color(0xFFA85838),
+              hoverColor: const Color(0xFFA85838),
+              hoverOpacity: 0.8,
               onTap: () => _removeAttachedItem(index),
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: const BoxDecoration(color: Color(0xFFA85838), shape: BoxShape.circle),
-                child: const Icon(Icons.close, size: 16, color: Color(0xFFF3F3F7)),
-              ),
+              child: const Icon(Icons.close, size: 16, color: Color(0xFFF3F3F7)),
             ),
           ),
         ],
@@ -1037,29 +871,18 @@ class _LetterFormPageState extends State<LetterFormPage> {
             alignment: WrapAlignment.center,
             spacing: 16,
             runSpacing: 16,
-            children: List.generate(
-              _attachedItems.length,
-              (i) => _buildThumbnail(_attachedItems[i], i),
-            ),
+            children: List.generate(_attachedItems.length, (i) => _buildThumbnail(_attachedItems[i], i)),
           ),
           const SizedBox(height: 16),
         ],
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SecondaryButton(
-              label: 'اسکن سند',
-              icon: Icons.print_outlined,
-              onPressed: _scanDocument,
-            ),
+            SecondaryButton(label: 'اسکن سند', icon: Icons.print_outlined, onPressed: _scanDocument),
             const SizedBox(width: 16),
-            SecondaryButton(
-              label: '+ افزودن پیوست',
-              onPressed: _pickAttachment,
-            ),
+            SecondaryButton(label: '+ افزودن پیوست', onPressed: _pickAttachment),
           ],
         ),
-        // فاصله‌ی ۶۴ پیکسلی زیر دکمه‌های ثانویه (اسکن/پیوست) تا دکمه‌های نهایی فرم
         const SizedBox(height: 64),
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -1095,27 +918,39 @@ class _LetterFormPageState extends State<LetterFormPage> {
     FocusNode? nextFocusNode,
     String? errorKey,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    final errorText = errorKey != null ? _errors[errorKey] : null;
+    final showLimitWarning = errorText == null && controller.text.length >= 55;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 150,
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF101018),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              fontFamily: 'Estedad',
-            ),
-          ),
-        ),
-        HoverTextField(
+        AppTextField(
           controller: controller,
           focusNode: focusNode,
-          nextFocusNode: nextFocusNode,
-          errorText: errorKey != null ? _errors[errorKey] : null,
+          labelText: label,
+          labelWidth: 150,
+          labelSpacing: 0,
+          width: 548,
+          height: 64,
+          textInputAction: nextFocusNode != null ? TextInputAction.next : TextInputAction.done,
+          inputFormatters: [LengthLimitingTextInputFormatter(55)],
+          errorText: errorText,
+          // برای این‌که هشدار سقف کاراکتر لحظه‌به‌لحظه به‌روز بشه
+          onChanged: (_) => setState(() {}),
+          onSubmitted: (_) {
+            if (nextFocusNode != null) {
+              FocusScope.of(context).requestFocus(nextFocusNode);
+            }
+          },
         ),
+        if (errorText != null || showLimitWarning)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, right: 150),
+            child: Text(
+              errorText ?? 'حداکثر 55 کاراکتر مجاز است',
+              style: const TextStyle(color: Color(0xFFA85838), fontSize: 12, fontFamily: 'Estedad'),
+            ),
+          ),
       ],
     );
   }
@@ -1149,20 +984,12 @@ class _LetterFormPageState extends State<LetterFormPage> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  Container(
-                    width: 1440,
-                    height: 80,
-                    color: const Color(0xFFBBBBC0),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'ثبت نامه صادره',
-                      style: TextStyle(
-                        color: Color(0xFF101018),
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Estedad',
-                      ),
-                    ),
+                  // هدر صفحه، حالا از AppHeader استفاده می‌شه. چون این
+                  // صفحه‌ی ریشه‌ست و دکمه‌ی بازگشتی نداریم،
+                  // leading رو none گذاشتیم.
+                  const AppHeader(
+                    title: 'ثبت نامه صادره',
+                    leading: HeaderLeading.none,
                   ),
                   Padding(
                     padding: const EdgeInsets.only(right: 32, top: 64),
@@ -1180,7 +1007,7 @@ class _LetterFormPageState extends State<LetterFormPage> {
                         SmartDateField(
                           controller: dateController,
                           label: 'تاریخ:',
-                          isReadOnly: true, // غیرفعال (فقط نمایش)
+                          isReadOnly: true,
                         ),
                         const SizedBox(height: 32),
                         _buildFormRow(
@@ -1191,7 +1018,9 @@ class _LetterFormPageState extends State<LetterFormPage> {
                           errorKey: 'subject',
                         ),
                         const SizedBox(height: 32),
-                        // بخش تگ‌ها
+                        // بخش تگ‌ها — دیگه نیازی به منطق دستی
+                        // hover/focus نیست چون AppTextField خودش
+                        // suffixIcon و رنگ‌بندی رو مدیریت می‌کنه.
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -1199,38 +1028,14 @@ class _LetterFormPageState extends State<LetterFormPage> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                MouseRegion(
-                                  onEnter: (_) => setState(() => _isTagHovered = true),
-                                  onExit: (_) => setState(() => _isTagHovered = false),
-                                  child: Focus(
-                                    onFocusChange: (hasFocus) => setState(() => _isTagFocused = hasFocus),
-                                    child: SizedBox(
-                                      width: 548,
-                                      height: 64,
-                                      child: TextField(
-                                        controller: _tagInputController,
-                                        style: const TextStyle(
-                                          color: Color(0xFFF3F3F7),
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          fontFamily: 'Estedad',
-                                        ),
-                                        decoration: InputDecoration(
-                                          filled: true,
-                                          fillColor: _getTagFillColor(),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                            borderSide: BorderSide.none,
-                                          ),
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                                          suffixIcon: IconButton(
-                                            icon: const Icon(Icons.add_circle_outline, color: Color(0xFFF3F3F7)),
-                                            onPressed: _addTag,
-                                          ),
-                                        ),
-                                        onSubmitted: (_) => _addTag(),
-                                      ),
-                                    ),
+                                AppTextField(
+                                  controller: _tagInputController,
+                                  width: 548,
+                                  height: 64,
+                                  onSubmitted: (_) => _addTag(),
+                                  suffixIcon: IconButton(
+                                    icon: const Icon(Icons.add_circle_outline, color: Color(0xFFF3F3F7)),
+                                    onPressed: _addTag,
                                   ),
                                 ),
                                 const SizedBox(height: 12),
@@ -1322,22 +1127,29 @@ class _LetterFormPageState extends State<LetterFormPage> {
                           'پوشه بایگانی:',
                           archiveFolderController,
                           focusNode: _fnArchiveFolder,
-                          nextFocusNode: _fnPriority,
                           errorKey: 'archiveFolder',
                         ),
                         const SizedBox(height: 32),
-                        // اولویت
+                        // اولویت — با AppDropdown<String>. توجه: نسخه‌ی
+                        // جدیدِ ویجت آیتم‌های دراپ‌داون (DropdownMenuItemWidget)
+                        // ورودیِ رنگِ نشانگر (indicator dot) نداره؛ برای اینکه
+                        // گزینه‌ی «فوری» هنوز قابل تشخیص باشه، یک نشانگر متنی
+                        // ساده کنارش گذاشتیم. اگه دایره‌ی رنگیِ واقعی لازمه،
+                        // باید یک پارامتر leading به DropdownMenuItemWidget
+                        // اضافه بشه.
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             _buildSectionLabel('اولویت:'),
-                            HoverDropdownField(
-                              value: selectedPriority,
+                            AppDropdown<String>(
                               items: const ['عادی', 'فوری'],
-                              focusNode: _fnPriority,
-                              nextFocusNode: _fnSendMethod,
-                              itemIndicatorColors: const {'فوری': Color(0xFFA85838)},
-                              onChanged: (value) => setState(() => selectedPriority = value),
+                              value: selectedPriority,
+                              itemLabelBuilder: (item) => item == 'فوری' ? '🔴 $item' : item,
+                              onChanged: (value) {
+                                if (value != null) setState(() => selectedPriority = value);
+                              },
+                              width: 216,
+                              height: 64,
                             ),
                           ],
                         ),
@@ -1347,21 +1159,24 @@ class _LetterFormPageState extends State<LetterFormPage> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             _buildSectionLabel('نحوه ارسال:'),
-                            HoverDropdownField(
-                              value: selectedSendMethod,
+                            AppDropdown<String>(
                               items: const ['ایمیل', 'فکس', 'حضوری'],
-                              focusNode: _fnSendMethod,
-                              onChanged: (value) => setState(() => selectedSendMethod = value),
+                              value: selectedSendMethod,
+                              onChanged: (value) {
+                                if (value != null) setState(() => selectedSendMethod = value);
+                              },
+                              width: 216,
+                              height: 64,
                             ),
                           ],
                         ),
                         const SizedBox(height: 32),
-                        // سوئیچ نیاز به پیگیری
+                        // سوئیچ نیاز به پیگیری — حالا مستقیم AppSwitch
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             _buildSectionLabel('نیاز به پیگیری:'),
-                            CustomSwitch(
+                            AppSwitch(
                               value: _isSwitchOn,
                               onChanged: (value) {
                                 setState(() => _isSwitchOn = value);
@@ -1378,7 +1193,7 @@ class _LetterFormPageState extends State<LetterFormPage> {
                             _buildSectionLabel('ذخیره فایل:'),
                             Row(
                               children: [
-                                CustomSwitch(
+                                AppSwitch(
                                   value: _isFileSwitchOn,
                                   onChanged: (value) async {
                                     if (value) {
@@ -1416,258 +1231,12 @@ class _LetterFormPageState extends State<LetterFormPage> {
                       ],
                     ),
                   ),
-
-                  // === پنل اسکن/پیوست + دکمه‌های نهایی: زیر فرم و وسط صفحه ===
                   const SizedBox(height: 48),
                   Center(child: _buildAttachmentsPanel()),
                   const SizedBox(height: 64),
                 ],
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class HoverTextField extends StatefulWidget {
-  final TextEditingController controller;
-  final double width;
-  final FocusNode? focusNode;
-  final FocusNode? nextFocusNode;
-  final String? errorText;
-
-  const HoverTextField({
-    super.key,
-    required this.controller,
-    this.width = 548,
-    this.focusNode,
-    this.nextFocusNode,
-    this.errorText,
-  });
-
-  @override
-  State<HoverTextField> createState() => _HoverTextFieldState();
-}
-
-class _HoverTextFieldState extends State<HoverTextField> {
-  bool isHovered = false;
-  bool isFocused = false;
-  static const int maxChars = 55;
-
-  void _onControllerChanged() => setState(() {});
-
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_onControllerChanged);
-    widget.focusNode?.addListener(_onFocusChanged);
-  }
-
-  void _onFocusChanged() => setState(() => isFocused = widget.focusNode?.hasFocus ?? false);
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_onControllerChanged);
-    widget.focusNode?.removeListener(_onFocusChanged);
-    super.dispose();
-  }
-
-  Color _getFillColor() {
-    if (isFocused) return const Color(0xFF3863A8);
-    if (isHovered) return const Color(0xFFBBBBC0);
-    return const Color(0xFF828288);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bool limitReached = widget.controller.text.length >= maxChars;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        MouseRegion(
-          onEnter: (_) => setState(() => isHovered = true),
-          onExit: (_) => setState(() => isHovered = false),
-          child: SizedBox(
-            width: widget.width,
-            height: 64,
-            child: TextField(
-              controller: widget.controller,
-              focusNode: widget.focusNode,
-              maxLength: maxChars,
-              maxLengthEnforcement: MaxLengthEnforcement.enforced,
-              textInputAction: widget.nextFocusNode != null
-                  ? TextInputAction.next
-                  : TextInputAction.done,
-              onSubmitted: (_) {
-                if (widget.nextFocusNode != null) {
-                  FocusScope.of(context).requestFocus(widget.nextFocusNode);
-                }
-              },
-              style: const TextStyle(
-                color: Color(0xFFF3F3F7),
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                fontFamily: 'Estedad',
-              ),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: _getFillColor(),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                counterText: '',
-              ),
-            ),
-          ),
-        ),
-        if (widget.errorText != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              widget.errorText!,
-              style: const TextStyle(
-                color: Color(0xFFA85838),
-                fontSize: 12,
-                fontFamily: 'Estedad',
-              ),
-            ),
-          )
-        else if (limitReached)
-          const Padding(
-            padding: EdgeInsets.only(top: 4),
-            child: Text(
-              'حداکثر 55 کاراکتر مجاز است',
-              style: TextStyle(color: Color(0xFFA85838), fontSize: 12, fontFamily: 'Estedad'),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class HoverDropdownField extends StatefulWidget {
-  final String value;
-  final List<String> items;
-  final ValueChanged<String> onChanged;
-  final FocusNode? focusNode;
-  final FocusNode? nextFocusNode;
-  // نگاشت اختیاری «متن آیتم -> رنگ دایره‌ی نشانگر». مثلاً برای نمایش
-  // یک دایره‌ی قرمز کنار آیتم «فوری»: {'فوری': Color(0xFFA85838)}
-  final Map<String, Color>? itemIndicatorColors;
-
-  const HoverDropdownField({
-    super.key,
-    required this.value,
-    required this.items,
-    required this.onChanged,
-    this.focusNode,
-    this.nextFocusNode,
-    this.itemIndicatorColors,
-  });
-
-  @override
-  State<HoverDropdownField> createState() => _HoverDropdownFieldState();
-}
-
-class _HoverDropdownFieldState extends State<HoverDropdownField> {
-  bool _isHovered = false;
-  late final FocusNode _keyboardFocusNode;
-
-  @override
-  void initState() {
-    super.initState();
-    _keyboardFocusNode = FocusNode(skipTraversal: true);
-  }
-
-  @override
-  void dispose() {
-    _keyboardFocusNode.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: KeyboardListener(
-        focusNode: _keyboardFocusNode,
-        onKeyEvent: (event) {
-          if (event is KeyDownEvent &&
-              event.logicalKey == LogicalKeyboardKey.enter &&
-              widget.nextFocusNode != null) {
-            widget.nextFocusNode!.requestFocus();
-          }
-        },
-        child: SizedBox(
-          width: 216,
-          height: 64,
-          // نکته‌ی اصلیِ فیکس باگ «دو بار کلیک»:
-          // قبلاً یک TextEditingController جدا به DropdownMenu داده می‌شد و
-          // هم‌زمان initialSelection هم ست شده بود. وقتی این دو با رندر
-          // بیرونی (بعد از setState والد) درست هم‌گام نبودن، اولین کلیک فقط
-          // ایندکس داخلی ویجت رو عوض می‌کرد ولی متنِ نمایش داده‌شده به‌روز
-          // نمی‌شد، و کاربر مجبور بود دوباره کلیک کنه تا واقعاً هماهنگ بشه.
-          // با حذف کنترلر دستی و دادن یک key بر پایه‌ی مقدار فعلی، هر بار که
-          // value از بیرون عوض بشه، DropdownMenu کاملاً از نو با
-          // initialSelection جدید ساخته می‌شه و از همون کلیک اول درست کار
-          // می‌کنه.
-          child: DropdownMenu<String>(
-            key: ValueKey(widget.value),
-            focusNode: widget.focusNode,
-            initialSelection: widget.value,
-            enableFilter: true,
-            enableSearch: true,
-            width: 216,
-            textStyle: const TextStyle(
-              color: Color(0xFFF3F3F7),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              fontFamily: 'Estedad',
-            ),
-            inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor: _isHovered
-                  ? const Color(0xFFBBBBC0)
-                  : const Color(0xFF828288),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 32,
-                vertical: 16,
-              ),
-            ),
-            dropdownMenuEntries: widget.items.map((item) {
-              final indicatorColor = widget.itemIndicatorColors?[item];
-              return DropdownMenuEntry<String>(
-                value: item,
-                label: item,
-                // چون کل درخت به‌صورت RTL هست، leadingIcon سمت راست آیتم
-                // (طرفِ شروع/start) نمایش داده می‌شه.
-                leadingIcon: indicatorColor != null
-                    ? Container(
-                        width: 16,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          color: indicatorColor,
-                          shape: BoxShape.circle,
-                        ),
-                      )
-                    : null,
-              );
-            }).toList(),
-            onSelected: (value) {
-              if (value != null) {
-                widget.onChanged(value);
-                widget.nextFocusNode?.requestFocus();
-              }
-            },
           ),
         ),
       ),
