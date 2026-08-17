@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 
+import 'package:flutter_application_1/m_sadere.dart';
+
 import 'widgets.dart/switch_button.dart';
 import 'widgets.dart/buttons.dart';
 import 'widgets.dart/text_input.dart';
@@ -564,6 +566,8 @@ class OutgoingLetterFormPage extends StatefulWidget {
 }
 
 class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
+  String? _followUpDate;
+  String? _followUpBy;
   final letterNumberController = TextEditingController();
   final dateController = TextEditingController();
   final registrationDateController = TextEditingController();
@@ -670,25 +674,20 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     setState(() => tags.removeAt(index));
   }
 
-  void _showModal() {
-    showDialog(
-      context: context,
-      builder: (context) => const CustomModal(),
-    ).then((result) {
-      if (result != null) {
-        rootScaffoldMessengerKey.currentState?.showSnackBar(
-          SnackBar(
-            content: Text(
-              'اطلاعات ذخیره شد:\nسازمان: ${result['organization']}\nتاریخ: ${result['date']}\nپیگیری: ${result['followUpBy']}',
-              style: const TextStyle(fontFamily: 'Estedad'),
-            ),
-            backgroundColor: const Color(0xFF3863A8),
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    });
-  }
+void _showModal() {
+  showDialog(
+    context: context,
+    builder: (context) => const CustomModal(),
+  ).then((result) {
+    if (result != null) {
+      setState(() {
+        _followUpDate = result['date'];
+        _followUpBy = result['followUpBy'];
+        _isSwitchOn = true;
+      });
+    }
+  });
+}
 
   Future<void> _pickFile() async {
     try {
@@ -772,17 +771,38 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     setState(() => _errors.addAll(newErrors));
     return newErrors.values.every((e) => e == null);
   }
+void _submitForm() {
+  if (!_validateForm()) return;
 
-  void _submitForm() {
-    if (!_validateForm()) return;
-
-    setState(() => _isSwitchOn = true);
-    _showModal();
-
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
-      const SnackBar(content: Text('نامه ثبت شد'), backgroundColor: Color(0xFF3863A8)),
-    );
-  }
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => OutgoingLetterViewPage(
+        data: {
+          'letterNumber': letterNumberController.text,
+          'date': dateController.text,
+          'subject': subjectController.text,
+          'tags': List<String>.from(tags),
+          'organization': organizationController.text,
+          'recipient': recipientController.text,
+          'signer': signerController.text,
+          'actionBy': actionByController.text,
+          'registrationNumber': registrationNumberController.text,
+          'registrationDate': registrationDateController.text,
+          'archiveFolder': archiveFolderController.text,
+          'priority': selectedPriority,
+          'sendMethod': selectedSendMethod,
+          'needsFollowUp': _isSwitchOn,
+          'followUpDate': _followUpDate,
+          'followUpBy': _followUpBy,
+          'saveFile': _isFileSwitchOn,
+          'savedFileName': _selectedFilePath,
+          'attachments': List<AttachedItem>.from(_attachedItems),
+        },
+      ),
+    ),
+  );
+ }
 
   void _cancelForm() {
     rootScaffoldMessengerKey.currentState?.showSnackBar(
@@ -1242,4 +1262,48 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       ),
     );
   }
+}
+
+class OutgoingLetterData {
+  final String letterNumber;
+  final String date;
+  final String subject;
+  final List<String> tags;
+  final String organization;
+  final String recipient;
+  final String signer;
+  final String actionBy;
+  final String registrationNumber;
+  final String registrationDate;
+  final String archiveFolder;
+  final String priority;
+  final String sendMethod;
+  final bool needsFollowUp;
+  final String? followUpDate;
+  final String? followUpBy;
+  final bool saveFile;
+  final String? savedFileName;
+  final List<AttachedItem> attachments;
+
+  const OutgoingLetterData({
+    required this.letterNumber,
+    required this.date,
+    required this.subject,
+    required this.tags,
+    required this.organization,
+    required this.recipient,
+    required this.signer,
+    required this.actionBy,
+    required this.registrationNumber,
+    required this.registrationDate,
+    required this.archiveFolder,
+    required this.priority,
+    required this.sendMethod,
+    required this.needsFollowUp,
+    this.followUpDate,
+    this.followUpBy,
+    required this.saveFile,
+    this.savedFileName,
+    required this.attachments,
+  });
 }

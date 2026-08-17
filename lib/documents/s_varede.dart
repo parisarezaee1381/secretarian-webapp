@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 
+import 'package:flutter_application_1/m_varede.dart';
+
 import 'widgets.dart/switch_button.dart';
 import 'widgets.dart/buttons.dart';
 import 'widgets.dart/text_input.dart';
@@ -767,16 +769,38 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
     return newErrors.values.every((e) => e == null);
   }
 
-  void _submitForm() {
-    if (!_validateForm()) return;
+void _submitForm() {
+  if (!_validateForm()) return;
 
-    setState(() => _isSwitchOn = true);
-    _showModal();
+  final data = <String, dynamic>{
+    'letterNumber': letterNumberController.text,
+    'date': dateController.text,
+    'subject': subjectController.text,
+    'tags': List<String>.from(tags),
+    'organization': organizationController.text,
+    'sender': recipientController.text,
+    'senderLetterNumber': signerController.text,
+    'recipient': actionByController.text,
+    'registrationDate': registrationDateController.text,
+    'archiveFolder': archiveFolderController.text,
+    'priority': selectedPriority,
+    'needsFollowUp': _isSwitchOn,
+    'followUpDate': null,
+    'followUpBy': null,
+    'saveFile': _isFileSwitchOn,
+    'savedFileName': _selectedFilePath,
+    'attachments': List.from(_attachedItems),
+  };
 
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
-      const SnackBar(content: Text('نامه ثبت شد'), backgroundColor: Color(0xFF3863A8)),
-    );
-  }
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => IncomingLetterViewPage(
+        data: data,
+      ),
+    ),
+  );
+}
 
   void _cancelForm() {
     rootScaffoldMessengerKey.currentState?.showSnackBar(
@@ -1209,4 +1233,44 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
       ),
     );
   }
+}
+
+class IncomingLetterData {
+  final String letterNumber;
+  final String date;
+  final String subject;
+  final List<String> tags;
+  final String organization;
+  final String sender;
+  final String senderLetterNumber;
+  final String recipient;
+  final String registrationDate;
+  final String archiveFolder;
+  final String priority;
+  final bool needsFollowUp;
+  final String? followUpDate;
+  final String? followUpBy;
+  final bool saveFile;
+  final String? savedFileName;
+  final List<AttachedItem> attachments;
+
+  const IncomingLetterData({
+    required this.letterNumber,
+    required this.date,
+    required this.subject,
+    required this.tags,
+    required this.organization,
+    required this.sender,
+    required this.senderLetterNumber,
+    required this.recipient,
+    required this.registrationDate,
+    required this.archiveFolder,
+    required this.priority,
+    required this.needsFollowUp,
+    this.followUpDate,
+    this.followUpBy,
+    required this.saveFile,
+    this.savedFileName,
+    required this.attachments,
+  });
 }

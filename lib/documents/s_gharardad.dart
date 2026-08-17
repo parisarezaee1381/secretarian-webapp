@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 
+import 'package:flutter_application_1/m_gharardad.dart';
+
 import 'widgets.dart/switch_button.dart';
 import 'widgets.dart/buttons.dart';
 import 'widgets.dart/text_input.dart';
@@ -572,14 +574,33 @@ void _removeTag(int index) {
     return newErrors.values.every((e) => e == null);
   }
 
-  void _submitForm() {
-    if (!_validateForm()) return;
+ void _submitForm() {
+  if (!_validateForm()) return;
 
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
-      const SnackBar(content: Text('نامه ثبت شد'), backgroundColor: Color(0xFF3863A8)),
-    );
-  }
+  final data = <String, dynamic>{
+    'letterNumber': letterNumberController.text,
+    'date': dateController.text,
+    'subject': subjectController.text,
+    'tags': List<String>.from(tags),
+    'organization': organizationController.text,
+    'recipient': recipientController.text,
+    'actionBy': actionByController.text,
+    'contractSubject': registrationNumberController.text,
+    'registrationDate': registrationDateController.text,
+    'referenceContractNumber': archiveFolderController.text,
+    'saveFile': _isFileSwitchOn,
+    'savedFileName': _selectedFilePath,
+    'attachments': List.from(_attachedItems),
+  };
 
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ContractViewPage(data: data),
+    ),
+  );
+}
+ 
   void _cancelForm() {
     rootScaffoldMessengerKey.currentState?.showSnackBar(
       const SnackBar(content: Text('عملیات لغو شد'), backgroundColor: Color(0xFF828288)),
@@ -973,4 +994,36 @@ void _removeTag(int index) {
       ),
     );
   }
+}
+
+class ContractData {
+  final String letterNumber;
+  final String date;
+  final String subject;
+  final List<String> tags;
+  final String organization;
+  final String recipient;
+  final String actionBy;
+  final String contractSubject;
+  final String registrationDate;
+  final String referenceContractNumber;
+  final bool saveFile;
+  final String? savedFileName;
+  final List<AttachedItem> attachments;
+
+  const ContractData({
+    required this.letterNumber,
+    required this.date,
+    required this.subject,
+    required this.tags,
+    required this.organization,
+    required this.recipient,
+    required this.actionBy,
+    required this.contractSubject,
+    required this.registrationDate,
+    required this.referenceContractNumber,
+    required this.saveFile,
+    this.savedFileName,
+    required this.attachments,
+  });
 }
