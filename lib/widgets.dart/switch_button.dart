@@ -23,21 +23,6 @@ class AppSwitchColors {
   final double hoverOpacity;
 }
 
-/// یک سوییچ سفارشی با انیمیشن نرم، پشتیبانی از hover، فوکوس با صفحه‌کلید
-/// (Space/Enter) و حالت غیرفعال.
-///
-/// در مقایسه با نسخه‌ی قبلی:
-/// * با صفحه‌کلید هم قابل استفاده است (فوکوس‌پذیر + فعال‌سازی با
-///   Space/Enter) که برای دسترس‌پذیری (Accessibility) لازم است.
-/// * `Semantics` مناسب برای screen readerها دارد (`toggled`, `label`).
-/// * حالت `enabled: false` را پشتیبانی می‌کند.
-/// * اندازه‌ها (عرض، ارتفاع، اندازه‌ی thumb، padding) به‌جای مقادیر
-///   ثابت، از طریق سازنده قابل تنظیم هستند.
-/// * رنگ‌ها در یک کلاس جدا (`AppSwitchColors`) نگه‌داری می‌شوند تا قابل
-///   استفاده‌ی مجدد و شخصی‌سازی باشند.
-/// * رنگ track با `AnimatedContainer` و همچنین جابه‌جایی thumb با
-///   `AnimatedAlign` انیمیشن می‌شوند (بدون تغییر رفتار قبلی).
-/// * حلقه‌ی فوکوس (focus ring) ساده برای وضوح دسترس‌پذیری اضافه شده.
 class AppSwitch extends StatefulWidget {
   const AppSwitch({
     super.key,
@@ -64,7 +49,6 @@ class AppSwitch extends StatefulWidget {
   final double width;
   final double height;
 
-  /// فاصله‌ی thumb از لبه‌های track.
   final double thumbPadding;
 
   final Duration animationDuration;

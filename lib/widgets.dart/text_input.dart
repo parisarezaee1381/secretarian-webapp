@@ -63,9 +63,9 @@ class AppTextField extends StatefulWidget {
         );
   final TextEditingController? controller;
   final FocusNode? focusNode;
-  /// عنوانی که خارج از TextField و سمت راست آن نمایش داده می‌شود.
+
   final String? labelText;
-  /// متنی که داخل TextField و زمانی که خالی است نمایش داده می‌شود.
+
   final String? hintText;
   final String? initialValue;
   final String? errorText;
@@ -91,11 +91,11 @@ class AppTextField extends StatefulWidget {
   final Duration animationDuration;
   final AppTextFieldColors colors;
   final TextStyle? textStyle;
-  /// استایل عنوان سمت راست.
+  
   final TextStyle? labelStyle;
-  /// عرض قسمت عنوان.
+
   final double labelWidth;
-  /// فاصله بین عنوان و TextField.
+
   final double labelSpacing;
   @override
   State<AppTextField> createState() => _AppTextFieldState();

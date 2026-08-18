@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
-import 'widgets.dart/header.dart';
-import 'widgets.dart/buttons.dart';
+import '../widgets.dart/header.dart';
+import '../widgets.dart/buttons.dart';
+import '../documents.dart';
 
 class ContractViewPage extends StatelessWidget {
-  final Map<String, dynamic> data;
+  final ContractDocument document;
 
   const ContractViewPage({
     super.key,
-    required this.data,
+    required this.document,
   });
 
   Widget _row(String label, String value) {
@@ -67,7 +68,6 @@ class ContractViewPage extends StatelessWidget {
     return Column(
       children: [
         const SizedBox(height: 32),
-
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -80,9 +80,7 @@ class ContractViewPage extends StatelessWidget {
                 // فعلاً عملکرد چاپ اضافه نشده
               },
             ),
-
             const SizedBox(width: 32),
-
             CustomButton(
               label: 'ویرایش',
               type: ButtonType.secondary,
@@ -94,7 +92,6 @@ class ContractViewPage extends StatelessWidget {
             ),
           ],
         ),
-
         const SizedBox(height: 128),
       ],
     );
@@ -124,71 +121,35 @@ class ContractViewPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _row(
-                        'شماره نامه:',
-                        data['letterNumber'] ?? '',
-                      ),
-
-                      _row(
-                        'تاریخ:',
-                        data['date'] ?? '',
-                      ),
-
-                      _row(
-                        'عنوان/خلاصه نامه:',
-                        data['subject'] ?? '',
-                      ),
-
-                      _row(
-                        'کلمات کلیدی:',
-                        (data['tags'] as List?)?.join('، ') ?? '',
-                      ),
+                      _row('شماره نامه:', document.letterNumber),
+                      _row('تاریخ:', document.date),
+                      _row('عنوان/خلاصه نامه:', document.subject),
+                      _row('کلمات کلیدی:', document.tags.join('، ')),
 
                       _divider(),
 
-                      _row(
-                        'شرکت طرف قرارداد:',
-                        data['organization'] ?? '',
-                      ),
-
-                      _row(
-                        'شخص طرف قرارداد:',
-                        data['recipient'] ?? '',
-                      ),
-
-                      _row(
-                        'اقدام کننده:',
-                        data['actionBy'] ?? '',
-                      ),
+                      _row('شرکت طرف قرارداد:', document.organization),
+                      _row('شخص طرف قرارداد:', document.recipient),
+                      _row('اقدام کننده:', document.actionBy),
 
                       _divider(),
 
-                      _row(
-                        'موضوع قرارداد:',
-                        data['contractSubject'] ?? '',
-                      ),
-
-                      _row(
-                        'تاریخ ثبت:',
-                        data['registrationDate'] ?? '',
-                      ),
-
-                      _row(
-                        'شماره قرارداد مرجع:',
-                        data['referenceContractNumber'] ?? '',
-                      ),
+                      _row('موضوع قرارداد:', document.contractSubject),
+                      _row('تاریخ ثبت:', document.registrationDate),
+                      _row('شماره قرارداد مرجع:', document.referenceContractNumber),
 
                       _row(
                         'ذخیره فایل:',
-                        data['saveFile'] == true
-                            ? 'بله'
-                            : 'خیر',
+                        document.saveFile ? 'بله' : 'خیر',
                       ),
 
-                      if (data['savedFileName'] != null)
+                      if (document.filePath != null)
+                        _row('فایل ذخیره شده:', document.filePath!),
+
+                      if (document.attachments.isNotEmpty)
                         _row(
-                          'فایل ذخیره شده:',
-                          data['savedFileName'] ?? '',
+                          'تعداد پیوست:',
+                          document.attachments.length.toString(),
                         ),
 
                       _actionButtons(),

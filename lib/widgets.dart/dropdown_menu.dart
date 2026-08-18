@@ -30,36 +30,6 @@ class AppDropdownColors {
   final Color menuBackground;
 }
 
-/// یک dropdown سفارشی و کاملاً کنترل‌شده که به‌جای تکیه بر
-/// `DropdownButton` داخلی فلاتر (و هک کردن آن با `enabled: false` +
-/// `onChanged: null`)، خودش یک overlay می‌سازد و مسیر باز/بسته شدن،
-/// انتخاب آیتم و موقعیت‌دهی منو را کاملاً مدیریت می‌کند.
-///
-/// تغییرات نسبت به نسخه‌ی قبلی:
-/// * **حذف هک `DropdownMenuItem(enabled: false)` + `onChanged: null`**:
-///   این روش به رفتار داخلی و مستندنشده‌ی `DropdownButton` وابسته بود و
-///   ممکن بود با تغییر نسخه‌ی فلاتر از کار بیفتد. حالا منو با
-///   `OverlayEntry` و `CompositedTransformFollower` خودمان رسم می‌شود؛
-///   یعنی رفتار کاملاً قابل پیش‌بینی و کنترل‌شده است.
-/// * **همگام‌سازی با `widget.value`**: در نسخه‌ی قبلی `_selectedValue`
-///   فقط در `initState` مقداردهی می‌شد و اگر مقدار از بیرون (parent)
-///   بعداً تغییر می‌کرد، ویجت آن را نشان نمی‌داد. حالا با
-///   `didUpdateWidget` این مقدار همگام نگه داشته می‌شود.
-/// * **پشتیبانی از نوع عمومی `<T>`**: به‌جای محدود بودن به `List<String>`،
-///   حالا هر نوعی را می‌پذیرد (`enum`، مدل و ...) و برچسب هر آیتم را با
-///   `itemLabelBuilder` (پیش‌فرض `toString()`) می‌سازد.
-/// * **حالت غیرفعال (`enabled: false`) و پیام خطا (`errorText`)** اضافه
-///   شده، مشابه الگوی [AppTextField].
-/// * **بسته شدن با تپ بیرون از منو** (overlay barrier)، **بسته شدن با
-///   کلید Escape** و **باز/بسته شدن با Space/Enter روی کیبورد**.
-/// * **اسکرول برای لیست‌های بلند**: ارتفاع منو با `maxMenuHeight` محدود
-///   می‌شود و در صورت نیاز اسکرول می‌خورد (در نسخه‌ی قبلی هیچ محدودیتی
-///   نبود و لیست‌های بلند می‌توانستند از صفحه بیرون بزنند).
-/// * **پشتیبانی از راست‌به‌چپ (RTL)**: موقعیت‌دهی منو بر اساس جهت متن
-///   context تعیین می‌شود.
-/// * **جلوگیری از overflow متن**: برچسب انتخاب‌شده و hint با `ellipsis`
-///   کوتاه می‌شوند.
-/// * مدیریت صحیح `dispose` overlay در صورت حذف ویجت درحالی‌که منو باز است.
 class AppDropdown<T extends Object> extends StatefulWidget {
   const AppDropdown({
     super.key,
@@ -191,7 +161,7 @@ class _AppDropdownState<T extends Object> extends State<AppDropdown<T>> {
       builder: (context) {
         return Stack(
           children: [
-            // بستن منو با تپ روی هر نقطه‌ی بیرون از پنل.
+
             Positioned.fill(
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,

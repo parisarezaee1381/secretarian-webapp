@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
-import 'widgets.dart/header.dart';
-import 'widgets.dart/buttons.dart';
+import '../widgets.dart/header.dart';
+import '../widgets.dart/buttons.dart';
+import '../documents.dart';
 
 class IncomingLetterViewPage extends StatelessWidget {
-  final Map<String, dynamic> data;
+  final IncomingLetterDocument document;
 
   const IncomingLetterViewPage({
     super.key,
-    required this.data,
+    required this.document,
   });
 
   Widget _row(String label, String value) {
@@ -67,11 +68,9 @@ class IncomingLetterViewPage extends StatelessWidget {
     return Column(
       children: [
         const SizedBox(height: 32),
-
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // سمت چپ
             CustomButton(
               label: 'چاپ',
               type: ButtonType.secondary,
@@ -81,10 +80,7 @@ class IncomingLetterViewPage extends StatelessWidget {
                 // فعلاً عملکرد چاپ اضافه نشده
               },
             ),
-
             const SizedBox(width: 32),
-
-            // سمت راست
             CustomButton(
               label: 'ویرایش',
               type: ButtonType.secondary,
@@ -96,55 +92,8 @@ class IncomingLetterViewPage extends StatelessWidget {
             ),
           ],
         ),
-
         const SizedBox(height: 128),
       ],
-    );
-  }
-
-  Widget _buildAttachments() {
-    final attachments = data['attachments'];
-
-    if (attachments is! List || attachments.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 32),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(
-            width: 150,
-            child: Text(
-              'پیوست:',
-              style: TextStyle(
-                color: Color(0xFF101018),
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                fontFamily: 'Estedad',
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 548,
-            child: Text(
-              attachments.map((file) {
-                if (file is Map<String, dynamic>) {
-                  return file['name']?.toString() ?? '-';
-                }
-
-                return file.toString();
-              }).join('، '),
-              style: const TextStyle(
-                color: Color(0xFF101018),
-                fontSize: 14,
-                fontFamily: 'Estedad',
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -172,100 +121,48 @@ class IncomingLetterViewPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _row(
-                        'شماره نامه:',
-                        data['letterNumber'] ?? '',
-                      ),
-
-                      _row(
-                        'تاریخ:',
-                        data['date'] ?? '',
-                      ),
-
-                      _row(
-                        'عنوان/خلاصه نامه:',
-                        data['subject'] ?? '',
-                      ),
-
-                      _row(
-                        'کلمات کلیدی:',
-                        (data['tags'] as List?)?.join('، ') ?? '',
-                      ),
+                      _row('شماره نامه:', document.letterNumber),
+                      _row('تاریخ:', document.date),
+                      _row('عنوان/خلاصه نامه:', document.subject),
+                      _row('کلمات کلیدی:', document.tags.join('، ')),
 
                       _divider(),
 
-                      _row(
-                        'به سازمان/شرکت:',
-                        data['organization'] ?? '',
-                      ),
-
-                      _row(
-                        'شخص ارسال کننده:',
-                        data['sender'] ?? '',
-                      ),
-
-                      _row(
-                        'شماره نامه فرستنده:',
-                        data['senderLetterNumber'] ?? '',
-                      ),
-
-                      _row(
-                        'مخاطب:',
-                        data['recipient'] ?? '',
-                      ),
+                      _row('به سازمان/شرکت:', document.organization),
+                      _row('شخص ارسال کننده:', document.sender),
+                      _row('شماره نامه فرستنده:', document.senderLetterNumber),
+                      _row('مخاطب:', document.recipient),
 
                       _divider(),
 
-                      _row(
-                        'تاریخ ثبت:',
-                        data['registrationDate'] ?? '',
-                      ),
-
-                      _row(
-                        'پوشه بایگانی:',
-                        data['archiveFolder'] ?? '',
-                      ),
-
-                      _row(
-                        'اولویت:',
-                        data['priority'] ?? '',
-                      ),
+                      _row('تاریخ ثبت:', document.registrationDate),
+                      _row('پوشه بایگانی:', document.archiveFolder),
+                      _row('اولویت:', document.priority),
 
                       _row(
                         'نیاز به پیگیری:',
-                        data['needsFollowUp'] == true
-                            ? 'دارد'
-                            : 'ندارد',
+                        document.needsFollowUp ? 'دارد' : 'ندارد',
                       ),
 
-                      if (data['needsFollowUp'] == true) ...[
-                        _row(
-                          'تاریخ پیگیری:',
-                          data['followUpDate'] ?? '',
-                        ),
-
-                        _row(
-                          'پیگیری توسط:',
-                          data['followUpBy'] ?? '',
-                        ),
+                      if (document.needsFollowUp) ...[
+                        _row('تاریخ پیگیری:', document.followUpDate ?? ''),
+                        _row('پیگیری توسط:', document.followUpBy ?? ''),
                       ],
 
                       _row(
                         'ذخیره فایل:',
-                        data['saveFile'] == true
-                            ? 'بله'
-                            : 'خیر',
+                        document.saveFile ? 'بله' : 'خیر',
                       ),
 
-                      if (data['savedFileName'] != null)
+                      if (document.filePath != null)
+                        _row('فایل ذخیره شده:', document.filePath!),
+
+                      if (document.attachments.isNotEmpty)
                         _row(
-                          'فایل ذخیره شده:',
-                          data['savedFileName'] ?? '',
+                          'تعداد پیوست:',
+                          document.attachments.length.toString(),
                         ),
 
-                      _buildAttachments(),
-
-                      // دکمه‌های ویرایش و چاپ
                       _actionButtons(),
                     ],
                   ),

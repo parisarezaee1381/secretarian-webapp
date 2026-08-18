@@ -3,15 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shamsi_date/shamsi_date.dart';
+import 'package:flutter_application_1/documents.dart';
 
-import 'package:flutter_application_1/m_sadere.dart';
+import 'package:flutter_application_1/documents/m_sadere.dart';
 
-import 'widgets.dart/switch_button.dart';
-import 'widgets.dart/buttons.dart';
-import 'widgets.dart/text_input.dart';
-import 'widgets.dart/dropdown_menu.dart';
-import 'widgets.dart/header.dart';
-import 'widgets.dart/hoverablecontainer.dart';
+import '../widgets.dart/switch_button.dart';
+import '../widgets.dart/buttons.dart';
+import '../widgets.dart/text_input.dart';
+import '../widgets.dart/dropdown_menu.dart';
+import '../widgets.dart/header.dart';
+import '../widgets.dart/hoverablecontainer.dart';
 
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -771,38 +772,54 @@ void _showModal() {
     setState(() => _errors.addAll(newErrors));
     return newErrors.values.every((e) => e == null);
   }
-void _submitForm() {
+  
+ void _submitForm() {
   if (!_validateForm()) return;
+
+  final document = OutgoingLetterDocument(
+    letterNumber: letterNumberController.text.trim(),
+    date: formatJalaliDate(dateController.text),
+    subject: subjectController.text.trim(),
+    tags: List<String>.from(tags),
+
+    organization: organizationController.text.trim(),
+    recipient: recipientController.text.trim(),
+    signer: signerController.text.trim(),
+    actionBy: actionByController.text.trim(),
+
+    registrationNumber: registrationNumberController.text.trim(),
+    registrationDate: formatJalaliDate(registrationDateController.text),
+    archiveFolder: archiveFolderController.text.trim(),
+
+    priority: selectedPriority,
+    sendMethod: selectedSendMethod,
+
+    needsFollowUp: _isSwitchOn,
+    followUpDate: _followUpDate,
+    followUpBy: _followUpBy,
+
+    saveFile: _isFileSwitchOn,
+    filePath: _selectedFilePath,
+
+    attachments: _attachedItems.map((item) {
+      return AttachmentDocument(
+        name: item.name,
+        path: item.path,
+        bytes: item.bytes,
+      );
+    }).toList(),
+  );
 
   Navigator.push(
     context,
     MaterialPageRoute(
       builder: (context) => OutgoingLetterViewPage(
-        data: {
-          'letterNumber': letterNumberController.text,
-          'date': dateController.text,
-          'subject': subjectController.text,
-          'tags': List<String>.from(tags),
-          'organization': organizationController.text,
-          'recipient': recipientController.text,
-          'signer': signerController.text,
-          'actionBy': actionByController.text,
-          'registrationNumber': registrationNumberController.text,
-          'registrationDate': registrationDateController.text,
-          'archiveFolder': archiveFolderController.text,
-          'priority': selectedPriority,
-          'sendMethod': selectedSendMethod,
-          'needsFollowUp': _isSwitchOn,
-          'followUpDate': _followUpDate,
-          'followUpBy': _followUpBy,
-          'saveFile': _isFileSwitchOn,
-          'savedFileName': _selectedFilePath,
-          'attachments': List<AttachedItem>.from(_attachedItems),
-        },
+        document: document,
       ),
     ),
   );
- }
+}
+
 
   void _cancelForm() {
     rootScaffoldMessengerKey.currentState?.showSnackBar(
@@ -1306,4 +1323,10 @@ class OutgoingLetterData {
     this.savedFileName,
     required this.attachments,
   });
+}
+
+String formatJalaliDate(String digits) {
+  final clean = digits.replaceAll(RegExp(r'[^0-9]'), '');
+  if (clean.length != 8) return clean;
+  return '${clean.substring(0, 4)}/${clean.substring(4, 6)}/${clean.substring(6, 8)}';
 }

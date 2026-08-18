@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
-import 'widgets.dart/header.dart';
-import 'widgets.dart/buttons.dart';
+import '../widgets.dart/header.dart';
+import '../widgets.dart/buttons.dart';
+import '../documents.dart';
 
 class OutgoingLetterViewPage extends StatelessWidget {
-  final Map<String, dynamic> data;
+  final OutgoingLetterDocument document;
 
   const OutgoingLetterViewPage({
     super.key,
-    required this.data,
+    required this.document,
   });
 
   Widget _row(String label, String value) {
@@ -67,11 +68,9 @@ class OutgoingLetterViewPage extends StatelessWidget {
     return Column(
       children: [
         const SizedBox(height: 32),
-
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // سمت چپ
             CustomButton(
               label: 'چاپ',
               type: ButtonType.secondary,
@@ -81,10 +80,7 @@ class OutgoingLetterViewPage extends StatelessWidget {
                 // فعلاً عملکرد چاپ اضافه نشده
               },
             ),
-
             const SizedBox(width: 32),
-
-            // سمت راست
             CustomButton(
               label: 'ویرایش',
               type: ButtonType.secondary,
@@ -96,7 +92,6 @@ class OutgoingLetterViewPage extends StatelessWidget {
             ),
           ],
         ),
-
         const SizedBox(height: 128),
       ],
     );
@@ -126,108 +121,142 @@ class OutgoingLetterViewPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // -----------------------------
+                      // اطلاعات اولیه نامه
+                      // -----------------------------
+
                       _row(
                         'شماره نامه:',
-                        data['letterNumber'] ?? '',
+                        document.letterNumber,
                       ),
 
                       _row(
                         'تاریخ:',
-                        data['date'] ?? '',
+                        document.date,
                       ),
 
                       _row(
                         'عنوان/خلاصه نامه:',
-                        data['subject'] ?? '',
+                        document.subject,
                       ),
 
                       _row(
                         'کلمات کلیدی:',
-                        (data['tags'] as List?)?.join('، ') ?? '',
+                        document.tags.join('، '),
                       ),
 
                       _divider(),
 
+                      // -----------------------------
+                      // اطلاعات گیرنده
+                      // -----------------------------
+
                       _row(
                         'به سازمان/شرکت:',
-                        data['organization'] ?? '',
+                        document.organization,
                       ),
 
                       _row(
                         'گیرنده نامه:',
-                        data['recipient'] ?? '',
+                        document.recipient,
                       ),
 
                       _row(
                         'امضا کننده:',
-                        data['signer'] ?? '',
+                        document.signer,
                       ),
 
                       _row(
                         'اقدام کننده:',
-                        data['actionBy'] ?? '',
+                        document.actionBy,
                       ),
 
                       _divider(),
 
+                      // -----------------------------
+                      // اطلاعات دبیرخانه
+                      // -----------------------------
+
                       _row(
                         'شماره ثبت دبیرخانه:',
-                        data['registrationNumber'] ?? '',
+                        document.registrationNumber,
                       ),
 
                       _row(
                         'تاریخ ثبت:',
-                        data['registrationDate'] ?? '',
+                        document.registrationDate,
                       ),
 
                       _row(
                         'پوشه بایگانی:',
-                        data['archiveFolder'] ?? '',
+                        document.archiveFolder,
                       ),
 
                       _row(
                         'اولویت:',
-                        data['priority'] ?? '',
+                        document.priority,
                       ),
 
                       _row(
                         'نحوه ارسال:',
-                        data['sendMethod'] ?? '',
+                        document.sendMethod,
                       ),
+
+                      // -----------------------------
+                      // پیگیری
+                      // -----------------------------
 
                       _row(
                         'نیاز به پیگیری:',
-                        data['needsFollowUp'] == true
+                        document.needsFollowUp
                             ? 'دارد'
                             : 'ندارد',
                       ),
 
-                      if (data['needsFollowUp'] == true) ...[
+                      if (document.needsFollowUp) ...[
                         _row(
                           'تاریخ پیگیری:',
-                          data['followUpDate'] ?? '',
+                          document.followUpDate ?? '',
                         ),
 
                         _row(
                           'پیگیری توسط:',
-                          data['followUpBy'] ?? '',
+                          document.followUpBy ?? '',
                         ),
                       ],
 
+                      // -----------------------------
+                      // فایل
+                      // -----------------------------
+
                       _row(
                         'ذخیره فایل:',
-                        data['saveFile'] == true
+                        document.saveFile
                             ? 'بله'
                             : 'خیر',
                       ),
 
-                      if (data['savedFileName'] != null)
+                      if (document.filePath != null)
                         _row(
                           'فایل ذخیره شده:',
-                          data['savedFileName'] ?? '',
+                          document.filePath!,
                         ),
 
-                      // دکمه‌های ویرایش و چاپ
+                      // -----------------------------
+                      // پیوست‌ها
+                      // -----------------------------
+
+                      if (document.attachments.isNotEmpty) ...[
+                        _row(
+                          'تعداد پیوست:',
+                          document.attachments.length.toString(),
+                        ),
+                      ],
+
+                      // -----------------------------
+                      // دکمه‌ها
+                      // -----------------------------
+
                       _actionButtons(),
                     ],
                   ),

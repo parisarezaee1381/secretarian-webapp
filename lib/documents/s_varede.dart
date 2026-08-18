@@ -4,14 +4,15 @@ import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 
-import 'package:flutter_application_1/m_varede.dart';
+import 'package:flutter_application_1/documents.dart';
+import 'package:flutter_application_1/documents/m_varede.dart';
 
-import 'widgets.dart/switch_button.dart';
-import 'widgets.dart/buttons.dart';
-import 'widgets.dart/text_input.dart';
-import 'widgets.dart/dropdown_menu.dart';
-import 'widgets.dart/header.dart';
-import 'widgets.dart/hoverablecontainer.dart';
+import '../widgets.dart/switch_button.dart';
+import '../widgets.dart/buttons.dart';
+import '../widgets.dart/text_input.dart';
+import '../widgets.dart/dropdown_menu.dart';
+import '../widgets.dart/header.dart';
+import '../widgets.dart/hoverablecontainer.dart';
 
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -603,6 +604,8 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
   bool _isSwitchOn = false;
   bool _isFileSwitchOn = false;
   String? _selectedFilePath;
+  String? _followUpDate;
+  String? _followUpBy;
 
   final List<AttachedItem> _attachedItems = [];
 
@@ -668,24 +671,19 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
   }
 
   void _showModal() {
-    showDialog(
-      context: context,
-      builder: (context) => const CustomModal(),
-    ).then((result) {
-      if (result != null) {
-        rootScaffoldMessengerKey.currentState?.showSnackBar(
-          SnackBar(
-            content: Text(
-              'اطلاعات ذخیره شد:\nسازمان: ${result['organization']}\nتاریخ: ${result['date']}\nپیگیری: ${result['followUpBy']}',
-              style: const TextStyle(fontFamily: 'Estedad'),
-            ),
-            backgroundColor: const Color(0xFF3863A8),
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    });
-  }
+  showDialog(
+    context: context,
+    builder: (context) => const CustomModal(),
+  ).then((result) {
+    if (result != null) {
+      setState(() {
+        _followUpDate = result['date'];
+        _followUpBy = result['followUpBy'];
+        _isSwitchOn = true;
+      });
+    }
+  });
+ }
 
   Future<void> _pickFile() async {
     try {
@@ -769,38 +767,50 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
     return newErrors.values.every((e) => e == null);
   }
 
-void _submitForm() {
+ void _submitForm() {
   if (!_validateForm()) return;
 
-  final data = <String, dynamic>{
-    'letterNumber': letterNumberController.text,
-    'date': dateController.text,
-    'subject': subjectController.text,
-    'tags': List<String>.from(tags),
-    'organization': organizationController.text,
-    'sender': recipientController.text,
-    'senderLetterNumber': signerController.text,
-    'recipient': actionByController.text,
-    'registrationDate': registrationDateController.text,
-    'archiveFolder': archiveFolderController.text,
-    'priority': selectedPriority,
-    'needsFollowUp': _isSwitchOn,
-    'followUpDate': null,
-    'followUpBy': null,
-    'saveFile': _isFileSwitchOn,
-    'savedFileName': _selectedFilePath,
-    'attachments': List.from(_attachedItems),
-  };
+  final document = IncomingLetterDocument(
+    letterNumber: letterNumberController.text.trim(),
+    date: formatJalaliDate(dateController.text),
+    subject: subjectController.text.trim(),
+    tags: List<String>.from(tags),
+
+    organization: organizationController.text.trim(),
+    sender: recipientController.text.trim(),
+    senderLetterNumber: signerController.text.trim(),
+    recipient: actionByController.text.trim(),
+
+    registrationDate: formatJalaliDate(registrationDateController.text),
+    archiveFolder: archiveFolderController.text.trim(),
+
+    priority: selectedPriority,
+
+    needsFollowUp: _isSwitchOn,
+    followUpDate: _followUpDate,
+    followUpBy: _followUpBy,
+
+    saveFile: _isFileSwitchOn,
+    filePath: _selectedFilePath,
+
+    attachments: _attachedItems.map((item) {
+      return AttachmentDocument(
+        name: item.name,
+        path: item.path,
+        bytes: item.bytes,
+      );
+    }).toList(),
+  );
 
   Navigator.push(
     context,
     MaterialPageRoute(
       builder: (context) => IncomingLetterViewPage(
-        data: data,
+        document: document,
       ),
     ),
   );
-}
+ }
 
   void _cancelForm() {
     rootScaffoldMessengerKey.currentState?.showSnackBar(
@@ -1273,4 +1283,10 @@ class IncomingLetterData {
     this.savedFileName,
     required this.attachments,
   });
+}
+
+String formatJalaliDate(String digits) {
+  final clean = digits.replaceAll(RegExp(r'[^0-9]'), '');
+  if (clean.length != 8) return clean;
+  return '${clean.substring(0, 4)}/${clean.substring(4, 6)}/${clean.substring(6, 8)}';
 }

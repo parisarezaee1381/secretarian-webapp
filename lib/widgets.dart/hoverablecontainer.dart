@@ -1,22 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// یک container تعاملی که به hover، press و فوکوس با صفحه‌کلید واکنش
-/// نشان می‌دهد و می‌تواند به‌عنوان دکمه‌ی سفارشی استفاده شود.
-///
-/// در مقایسه با نسخه‌ی قبلی:
-/// * حالت press رنگ جداگانه‌ای دارد (`pressedColor`) به‌جای اینکه فقط
-///   مدت انیمیشن تغییر کند؛ همچنین یک افکت مقیاس‌گیری (scale) خفیف در
-///   حالت press اضافه شده که حس لمسی بهتری می‌دهد.
-/// * با صفحه‌کلید هم قابل استفاده است (فوکوس‌پذیر + فعال‌سازی با
-///   Space/Enter) و `Semantics(button: true)` برای screen readerها دارد.
-/// * حالت `isDisabled` علاوه بر جلوگیری از تعامل، شفافیت فرزند را هم کم
-///   می‌کند تا از نظر بصری هم غیرفعال بودن مشخص باشد.
-/// * `onLongPress` و `alignment` اضافه شده‌اند.
-/// * `border` اختیاری برای حالت‌های نیازمند outline.
-/// * `onEnter`/`onExit` دیگر باعث پاک شدن ناخواسته‌ی `_isPressed` در وسط
-///   یک press معتبر نمی‌شوند (تنها زمانی ریست می‌شود که واقعاً press در
-///   جریان باشد).
 class HoverableContainer extends StatefulWidget {
   const HoverableContainer({
     super.key,
@@ -55,7 +39,6 @@ class HoverableContainer extends StatefulWidget {
   final Color hoverColor;
   final double hoverOpacity;
 
-  /// رنگ حالت press. اگر مقدار ندهید، از `hoverColor` با شفافیت
   /// [pressedOpacity] استفاده می‌شود.
   final Color? pressedColor;
   final double pressedOpacity;
@@ -69,7 +52,6 @@ class HoverableContainer extends StatefulWidget {
 
   final bool isDisabled;
 
-  /// شفافیت فرزند در حالت غیرفعال (برای نمایش بصری disabled بودن).
   final double disabledOpacity;
 
   final String? semanticLabel;

@@ -4,13 +4,14 @@ import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 
-import 'package:flutter_application_1/m_gharardad.dart';
+import 'package:flutter_application_1/documents.dart';
+import 'package:flutter_application_1/documents/m_gharardad.dart';
 
-import 'widgets.dart/switch_button.dart';
-import 'widgets.dart/buttons.dart';
-import 'widgets.dart/text_input.dart';
-import 'widgets.dart/header.dart';
-import 'widgets.dart/hoverablecontainer.dart';
+import '../widgets.dart/switch_button.dart';
+import '../widgets.dart/buttons.dart';
+import '../widgets.dart/text_input.dart';
+import '../widgets.dart/header.dart';
+import '../widgets.dart/hoverablecontainer.dart';
 
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -577,29 +578,39 @@ void _removeTag(int index) {
  void _submitForm() {
   if (!_validateForm()) return;
 
-  final data = <String, dynamic>{
-    'letterNumber': letterNumberController.text,
-    'date': dateController.text,
-    'subject': subjectController.text,
-    'tags': List<String>.from(tags),
-    'organization': organizationController.text,
-    'recipient': recipientController.text,
-    'actionBy': actionByController.text,
-    'contractSubject': registrationNumberController.text,
-    'registrationDate': registrationDateController.text,
-    'referenceContractNumber': archiveFolderController.text,
-    'saveFile': _isFileSwitchOn,
-    'savedFileName': _selectedFilePath,
-    'attachments': List.from(_attachedItems),
-  };
+  final document = ContractDocument(
+    letterNumber: letterNumberController.text.trim(),
+    date: formatJalaliDate(dateController.text),
+    subject: subjectController.text.trim(),
+    tags: List<String>.from(tags),
+
+    organization: organizationController.text.trim(),
+    recipient: recipientController.text.trim(),
+    actionBy: actionByController.text.trim(),
+
+    contractSubject: registrationNumberController.text.trim(),
+    registrationDate: formatJalaliDate(registrationDateController.text),
+    referenceContractNumber: archiveFolderController.text.trim(),
+
+    saveFile: _isFileSwitchOn,
+    filePath: _selectedFilePath,
+
+    attachments: _attachedItems.map((item) {
+      return AttachmentDocument(
+        name: item.name,
+        path: item.path,
+        bytes: item.bytes,
+      );
+    }).toList(),
+  );
 
   Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (context) => ContractViewPage(data: data),
+      builder: (context) => ContractViewPage(document: document),
     ),
   );
-}
+ }
  
   void _cancelForm() {
     rootScaffoldMessengerKey.currentState?.showSnackBar(
@@ -1026,4 +1037,10 @@ class ContractData {
     this.savedFileName,
     required this.attachments,
   });
+}
+
+String formatJalaliDate(String digits) {
+  final clean = digits.replaceAll(RegExp(r'[^0-9]'), '');
+  if (clean.length != 8) return clean;
+  return '${clean.substring(0, 4)}/${clean.substring(4, 6)}/${clean.substring(6, 8)}';
 }
