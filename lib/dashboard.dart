@@ -3,11 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/documents/s_sadere.dart';
 import 'package:flutter_application_1/documents/s_varede.dart';
 import 'package:flutter_application_1/documents/s_gharardad.dart';
+import 'package:flutter_application_1/document_list.dart';
 
 import 'widgets.dart/header.dart';
 import 'widgets.dart/buttons.dart';
 import 'widgets.dart/table.dart';
 import 'widgets.dart/dropdown_menu_items.dart';
+import 'widgets.dart/notification.dart';
+
+import '../documents.dart';
+import '../document_repository.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -19,6 +24,25 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   // وضعیت منوی «ثبت سند جدید»
   bool _showDocumentMenu = false;
+  DocumentTableRow _mapToRow(dynamic doc) {
+    if (doc is OutgoingLetterDocument) {
+      return DocumentTableRow.fromOutgoing(
+        doc,
+        operation: const Icon(Icons.more_horiz, color: Color(0xFF101018)),
+      );
+    } else if (doc is IncomingLetterDocument) {
+      return DocumentTableRow.fromIncoming(
+        doc,
+        operation: const Icon(Icons.more_horiz, color: Color(0xFF101018)),
+      );
+    } else if (doc is ContractDocument) {
+      return DocumentTableRow.fromContract(
+        doc,
+        operation: const Icon(Icons.more_horiz, color: Color(0xFF101018)),
+      );
+    }
+    throw ArgumentError('نوع document ناشناخته');
+  }
 
   // باز و بسته کردن منو با کلیک روی دکمه
   void _toggleDocumentMenu() {
@@ -36,8 +60,12 @@ class _DashboardState extends State<Dashboard> {
     });
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
+    final rows = DocumentRepository.instance
+        .getLatest(5)
+        .map(_mapToRow)
+        .toList();
     return Scaffold(
       backgroundColor: const Color(0xFFF5F4F4),
 
@@ -70,30 +98,37 @@ class _DashboardState extends State<Dashboard> {
                 const SizedBox(height: 32),
 
                 Align(
-                  alignment: Alignment.center,
-                  child: CustomButton(
-                    label: 'لیست اسناد',
-                    type: ButtonType.secondary,
-                    width: 204,
-                    onPressed: () {},
-                  ),
-                ),
+  alignment: Alignment.center,
+  child: CustomButton(
+    label: 'لیست اسناد',
+    type: ButtonType.secondary,
+    width: 204,
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DocumentList(),
+        ),
+      );
+    },
+  ),
+),
 
                 const SizedBox(height: 64),
 
                 Align(
-                  alignment: Alignment.center,
-                  child: CustomButton(
-                    label: '۲ نامه نیازمند پیگیری برای امروز',
-                    type: ButtonType.secondary,
-                    width: 336,
-                    icon: const Icon(
-                      Icons.notifications_none_outlined,
-                      color: Color(0xFF3863A8),
-                    ),
-                    onPressed: () {},
-                  ),
-                ),
+  alignment: Alignment.center,
+  child: PendingLettersButton(
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DocumentList(),
+        ),
+      );
+    },
+  ),
+),
 
                 const SizedBox(height: 64),
 
@@ -116,39 +151,8 @@ class _DashboardState extends State<Dashboard> {
 
                 const SizedBox(height: 32),
 
-                DocumentTable(
-                  rows: const [
-                    DocumentTableRow(
-                      number: '۱',
-                      organization: 'شرکت نمونه',
-                      title: 'قرارداد همکاری',
-                      priority: 'بالا',
-                    ),
-                    DocumentTableRow(
-                      number: '۲',
-                      organization: 'سازمان نمونه',
-                      title: 'نامه اداری',
-                      priority: 'متوسط',
-                    ),
-                    DocumentTableRow(
-                      number: '۳',
-                      organization: 'شرکت نمونه',
-                      title: 'درخواست همکاری',
-                      priority: 'پایین',
-                    ),
-                    DocumentTableRow(
-                      number: '۴',
-                      organization: 'سازمان نمونه',
-                      title: 'نامه پیگیری',
-                      priority: 'بالا',
-                    ),
-                    DocumentTableRow(
-                      number: '۵',
-                      organization: 'سازمان نمونه',
-                      title: 'گزارش عملکرد',
-                      priority: 'متوسط',
-                    ),
-                  ],
+                                DocumentTable(
+                  rows: rows,
                   rowsPerPage: 5,
                   showPagination: false,
                 ),

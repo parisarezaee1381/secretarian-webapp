@@ -110,7 +110,7 @@ class ContractViewPage extends StatelessWidget {
               children: [
                 const AppHeader(
                   title: 'مشاهده قرارداد',
-                  leading: HeaderLeading.none,
+                  leading: HeaderLeading.back,
                 ),
 
                 Padding(

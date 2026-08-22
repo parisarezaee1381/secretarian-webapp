@@ -110,7 +110,7 @@ class OutgoingLetterViewPage extends StatelessWidget {
               children: [
                 const AppHeader(
                   title: 'مشاهده نامه صادره',
-                  leading: HeaderLeading.none,
+                  leading: HeaderLeading.back,
                 ),
 
                 Padding(

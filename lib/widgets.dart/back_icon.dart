@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'hoverablecontainer.dart';
+import 'package:flutter_application_1/dashboard.dart'; 
 
 class AppBackButton extends StatelessWidget {
   const AppBackButton({
     super.key,
-    required this.onPressed,
+    this.onPressed,
     this.icon,
     this.iconColor = const Color(0xFF3863A8),
     this.size = 32,
@@ -16,15 +17,12 @@ class AppBackButton extends StatelessWidget {
     this.semanticLabel = 'بازگشت',
   });
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   final IconData? icon;
   final Color iconColor;
-
   final double size;
-
   final double? touchTargetSize;
-
   final Color hoverBackgroundColor;
   final double hoverBackgroundOpacity;
   final double borderRadius;
@@ -45,7 +43,13 @@ class AppBackButton extends StatelessWidget {
       hoverOpacity: hoverBackgroundOpacity,
       isDisabled: isDisabled,
       semanticLabel: semanticLabel,
-      onTap: onPressed,
+      onTap: onPressed ??
+          () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const Dashboard()),
+              (route) => false,
+            );
+          },
       child: Center(
         child: Icon(
           resolvedIcon,

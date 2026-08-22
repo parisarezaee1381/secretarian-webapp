@@ -1,8 +1,12 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:shamsi_date/shamsi_date.dart';
+import '../document_repository.dart'; 
+
+import '../widgets.dart/smart_date_field.dart';
+import '../widgets.dart/letter_number_generator.dart';
+import '../attachments.dart/attached_item.dart';
+import '../attachments.dart/attachments_panel.dart';
 
 import 'package:flutter_application_1/documents.dart';
 import 'package:flutter_application_1/documents/m_gharardad.dart';
@@ -11,377 +15,9 @@ import '../widgets.dart/switch_button.dart';
 import '../widgets.dart/buttons.dart';
 import '../widgets.dart/text_input.dart';
 import '../widgets.dart/header.dart';
-import '../widgets.dart/hoverablecontainer.dart';
 
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
-
-class PrimaryButton extends StatelessWidget {
-  final String label;
-  final IconData? icon;
-  final VoidCallback onPressed;
-  final Color primaryColor;
-  final Color backgroundColor;
-
-  const PrimaryButton({
-    super.key,
-    required this.label,
-    this.icon,
-    required this.onPressed,
-    this.primaryColor = const Color(0xFF3863A8),
-    this.backgroundColor = const Color(0xFFF3F3F7),
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomButton(
-      label: label,
-      type: ButtonType.primary,
-      icon: icon != null ? Icon(icon) : null,
-      backgroundColor: primaryColor,
-      textColor: backgroundColor,
-      onPressed: onPressed,
-    );
-  }
-}
-
-class SecondaryButton extends StatelessWidget {
-  final String label;
-  final IconData? icon;
-  final VoidCallback onPressed;
-
-  const SecondaryButton({
-    super.key,
-    required this.label,
-    this.icon,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomButton(
-      label: label,
-      type: ButtonType.secondary,
-      icon: icon != null ? Icon(icon) : null,
-      onPressed: onPressed,
-    );
-  }
-}
-
-class TertiaryButton extends StatelessWidget {
-  final String label;
-  final IconData? icon;
-  final VoidCallback onPressed;
-  final Color backgroundColor;
-
-  const TertiaryButton({
-    super.key,
-    required this.label,
-    this.icon,
-    required this.onPressed,
-    this.backgroundColor = const Color(0xFFF3F3F7),
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomButton(
-      label: label,
-      type: ButtonType.tertiary,
-      icon: icon != null ? Icon(icon) : null,
-      backgroundColor: backgroundColor,
-      onPressed: onPressed,
-    );
-  }
-}
-
-class AttachedItem {
-  final String name;
-  final Uint8List? bytes;
-  final String? path;
-  final bool isImage;
-
-  AttachedItem({required this.name, this.bytes, this.path})
-      : isImage = _checkIsImage(name);
-
-  static bool _checkIsImage(String name) {
-    final ext = name.contains('.') ? name.split('.').last.toLowerCase() : '';
-    return ['jpg', 'jpeg', 'png', 'bmp', 'gif', 'webp'].contains(ext);
-  }
-}
-
-class SmartDateField extends StatefulWidget {
-  final TextEditingController controller;
-  final String label;
-  final bool isReadOnly;
-  final double fieldWidth;
-  final double labelWidth;
-
-  const SmartDateField({
-    super.key,
-    required this.controller,
-    required this.label,
-    this.isReadOnly = false,
-    this.fieldWidth = 548,
-    this.labelWidth = 150,
-  });
-
-  @override
-  State<SmartDateField> createState() => _SmartDateFieldState();
-}
-
-class _SmartDateFieldState extends State<SmartDateField> {
-  late final TextEditingController _displayController;
-  late final FocusNode _focusNode;
-
-  bool _isUpdating = false;
-  bool _isDefaultUntouched = false;
-
-  // تاریخ امروز شمسی
-  String _getTodayDigits() {
-    final today = Jalali.now();
-
-    return '${today.year.toString().padLeft(4, '0')}'
-        '${today.month.toString().padLeft(2, '0')}'
-        '${today.day.toString().padLeft(2, '0')}';
-  }
-
-  // تبدیل 14050827 به 1405/08/27
-  String _displayDate(String digits) {
-    if (digits.isEmpty) return '';
-
-    final padded = digits.padRight(8, '_');
-
-    final year = padded.substring(0, 4).replaceAll('_', '');
-    final month = padded.substring(4, 6).replaceAll('_', '');
-    final day = padded.substring(6, 8).replaceAll('_', '');
-
-    final displayYear =
-        year.isNotEmpty ? year.padRight(4, '_') : '____';
-
-    final displayMonth =
-        month.isNotEmpty ? month.padRight(2, '_') : '__';
-
-    final displayDay =
-        day.isNotEmpty ? day.padRight(2, '_') : '__';
-
-    return '$displayYear/$displayMonth/$displayDay';
-  }
-
-  // بررسی و اصلاح تاریخ واردشده
-  String _processFinalDate(String input) {
-    final cleaned = input.replaceAll(RegExp(r'[^0-9]'), '');
-
-    if (cleaned.isEmpty) return '';
-
-    final today = Jalali.now();
-
-    int day = today.day;
-    int month = today.month;
-    int year = today.year;
-
-    if (cleaned.length == 1) {
-      day = int.parse(cleaned);
-    } else if (cleaned.length == 2) {
-      day = int.parse(cleaned.substring(0, 2));
-    } else if (cleaned.length == 4) {
-      day = int.parse(cleaned.substring(0, 2));
-      month = int.parse(cleaned.substring(2, 4));
-    } else if (cleaned.length == 6) {
-      day = int.parse(cleaned.substring(0, 2));
-      month = int.parse(cleaned.substring(2, 4));
-
-      final shortYear = int.parse(cleaned.substring(4, 6));
-      year = 1400 + shortYear;
-    } else if (cleaned.length >= 8) {
-      day = int.parse(cleaned.substring(0, 2));
-      month = int.parse(cleaned.substring(2, 4));
-      year = int.parse(cleaned.substring(4, 8));
-    }
-
-    // محدود کردن ماه
-    if (month < 1) month = 1;
-    if (month > 12) month = 12;
-
-    // محدود کردن روز بر اساس تعداد واقعی روزهای همان ماه
-    final maxDay = Jalali(year, month, 1).monthLength;
-
-    if (day < 1) day = 1;
-    if (day > maxDay) day = maxDay;
-
-    // ساخت تاریخ معتبر شمسی
-    final date = Jalali(year, month, day);
-
-    return '${date.year.toString().padLeft(4, '0')}'
-        '${date.month.toString().padLeft(2, '0')}'
-        '${date.day.toString().padLeft(2, '0')}';
-  }
-
-  void _updateDisplay(String value) {
-    var digits = value.replaceAll(RegExp(r'[^0-9]'), '');
-
-    if (digits.length > 8) {
-      digits = digits.substring(0, 8);
-    }
-
-    String day;
-    String month;
-    String year;
-
-    if (digits.isNotEmpty) {
-      final dayLength = digits.length >= 2 ? 2 : digits.length;
-
-      day = digits
-          .substring(0, dayLength)
-          .padLeft(2, '0');
-
-      if (digits.length > 2) {
-        const monthStart = 2;
-
-        final monthLength =
-            digits.length >= 4 ? 2 : digits.length - 2;
-
-        month = digits
-            .substring(monthStart, monthStart + monthLength)
-            .padLeft(2, '0');
-
-        if (digits.length > 4) {
-          const yearStart = 4;
-
-          final yearLength =
-              digits.length >= 8 ? 4 : digits.length - 4;
-
-          year = digits
-              .substring(yearStart, yearStart + yearLength)
-              .padLeft(4, '0');
-        } else {
-          year = '0000';
-        }
-      } else {
-        month = '00';
-        year = '0000';
-      }
-    } else {
-      day = '00';
-      month = '00';
-      year = '0000';
-    }
-
-    widget.controller.text = '$year$month$day';
-
-    _isDefaultUntouched = false;
-  }
-
-  void _onFocusLost() {
-    if (widget.controller.text.isNotEmpty) {
-      widget.controller.text =
-          _processFinalDate(widget.controller.text);
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    _focusNode = FocusNode();
-
-    if (widget.controller.text.isEmpty) {
-      widget.controller.text = _getTodayDigits();
-      _isDefaultUntouched = true;
-    }
-
-    _displayController = TextEditingController(
-      text: _displayDate(widget.controller.text),
-    );
-
-    widget.controller.addListener(_syncDisplayController);
-    _focusNode.addListener(_handleFocusChange);
-  }
-
-  void _handleFocusChange() {
-    if (_focusNode.hasFocus) {
-      if (_isDefaultUntouched && !widget.isReadOnly) {
-        _displayController.selection = TextSelection(
-          baseOffset: 0,
-          extentOffset: _displayController.text.length,
-        );
-      }
-    } else if (!widget.isReadOnly) {
-      _onFocusLost();
-    }
-  }
-
-  void _syncDisplayController() {
-    if (_isUpdating) return;
-
-    _isUpdating = true;
-
-    _displayController.text =
-        _displayDate(widget.controller.text);
-
-    _displayController.selection =
-        TextSelection.collapsed(
-      offset: _displayController.text.length,
-    );
-
-    _isUpdating = false;
-  }
-
-  @override
-  void didUpdateWidget(
-    covariant SmartDateField oldWidget,
-  ) {
-    super.didUpdateWidget(oldWidget);
-
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller
-          .removeListener(_syncDisplayController);
-
-      widget.controller
-          .addListener(_syncDisplayController);
-
-      _syncDisplayController();
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.controller
-        .removeListener(_syncDisplayController);
-
-    _focusNode
-        .removeListener(_handleFocusChange);
-
-    _focusNode.dispose();
-    _displayController.dispose();
-
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = widget.isReadOnly
-        ? const AppTextFieldColors(
-            disabled: Color(0xFFF3F3F7),
-            text: Color(0xFF101018),
-          )
-        : const AppTextFieldColors();
-
-    return AppTextField(
-      controller: _displayController,
-      focusNode: _focusNode,
-      labelText: widget.label,
-      labelWidth: widget.labelWidth,
-      labelSpacing: 0,
-      width: widget.fieldWidth,
-      height: 64,
-      enabled: !widget.isReadOnly,
-      keyboardType: TextInputType.number,
-      onChanged:
-          widget.isReadOnly ? null : _updateDisplay,
-      colors: colors,
-    );
-  }
-}
 
 class ContractFormPage extends StatefulWidget {
   const ContractFormPage({super.key});
@@ -401,7 +37,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
   final registrationNumberController = TextEditingController();
   final archiveFolderController = TextEditingController();
 
-  final _fnLetterNumber = FocusNode();
   final _fnSubject = FocusNode();
   final _fnOrganization = FocusNode();
   final _fnRecipient = FocusNode();
@@ -410,7 +45,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
   final _fnArchiveFolder = FocusNode();
 
   final Map<String, String?> _errors = {
-    'letterNumber': null,
     'subject': null,
     'organization': null,
     'recipient': null,
@@ -428,32 +62,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
   bool _isFileSwitchOn = false;
   String? _selectedFilePath;
 
-  final List<AttachedItem> _attachedItems = [];
-
-  static const double _a4Width = 793.7;
-  static const double _a4Height = 1122.5;
-  static const double _thumbnailWidth = _a4Width / 4;
-  static const double _thumbnailHeight = _a4Height / 4;
-
-  Map<String, int> _getCurrentDate() {
-    final now = DateTime.now();
-    final year = now.year - 621;
-    var month = now.month;
-    final day = now.day;
-    month = month > 6 ? month - 6 : month + 6;
-    return {'year': year, 'month': month, 'day': day};
-  }
-
-  String _getTodayDigits() {
-    final d = _getCurrentDate();
-    return '${d['year']!.toString().padLeft(4, '0')}${d['month']!.toString().padLeft(2, '0')}${d['day']!.toString().padLeft(2, '0')}';
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    dateController.text = _getTodayDigits();
-  }
+  List<AttachedItem> _currentAttachments = [];
 
   @override
   void dispose() {
@@ -467,7 +76,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
     registrationNumberController.dispose();
     archiveFolderController.dispose();
     _tagInputController.dispose();
-    _fnLetterNumber.dispose();
     _fnSubject.dispose();
     _fnOrganization.dispose();
     _fnRecipient.dispose();
@@ -486,6 +94,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
       });
     }
   }
+
 void _removeTag(int index) {
 
   setState(() {
@@ -493,77 +102,40 @@ void _removeTag(int index) {
   });
 
 }
-  Future<void> _pickFile() async {
-    try {
-      final result = await FilePicker.platform.saveFile(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'png'],
-      );
-      if (result != null) {
-        final fileName = result.split(Platform.pathSeparator).last;
-        setState(() {
-          _selectedFilePath = fileName;
-          _isFileSwitchOn = true;
-        });
-        rootScaffoldMessengerKey.currentState?.showSnackBar(
-          SnackBar(content: Text('فایل ذخیره شد: $fileName'), backgroundColor: const Color(0xFF3863A8)),
-        );
-      } else {
-        setState(() => _isFileSwitchOn = false);
-      }
-    } catch (e) {
-      setState(() => _isFileSwitchOn = false);
-      rootScaffoldMessengerKey.currentState?.showSnackBar(
-        const SnackBar(content: Text('خطا در ذخیره فایل'), backgroundColor: Color(0xFFA85838)),
-      );
-    }
-  }
-
-  Future<void> _pickAttachment() async {
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
-        allowMultiple: false,
-        withData: true,
-      );
-      if (result != null) {
-        final file = result.files.first;
-        setState(() {
-          _attachedItems.add(AttachedItem(name: file.name, bytes: file.bytes, path: file.path));
-        });
-      }
-    } catch (e) {
-      rootScaffoldMessengerKey.currentState?.showSnackBar(
-        const SnackBar(content: Text('خطا در انتخاب فایل'), backgroundColor: Color(0xFFA85838)),
-      );
-    }
-  }
-
-  Future<void> _scanDocument() async {
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
-      const SnackBar(
-        content: Text(
-          'اتصال به اسکنر هنوز پیاده‌سازی نشده است. برای اتصال واقعی به یک پکیج/درایور اسکنر مخصوص پلتفرم نیاز است.',
-          style: TextStyle(fontFamily: 'Estedad'),
-        ),
-        backgroundColor: Color(0xFFA85838),
-      ),
+  Future<void> _pickPdfSavePath() async {
+  try {
+    final result = await FilePicker.platform.saveFile(
+      dialogTitle: 'محل ذخیره PDF را انتخاب کنید',
+      fileName: '${letterNumberController.text.trim()}.pdf',
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
     );
-  }
 
-  // ignore: unused_element
-  void _onScanComplete(Uint8List imageBytes, String fileName) {
-    setState(() => _attachedItems.add(AttachedItem(name: fileName, bytes: imageBytes)));
-  }
+    if (!mounted) return;
 
-  void _removeAttachedItem(int index) {
-    setState(() => _attachedItems.removeAt(index));
+    if (result != null) {
+      setState(() {
+        _selectedFilePath = result;
+        _isFileSwitchOn = true;
+      });
+    } else {
+      setState(() {
+        _isFileSwitchOn = false;
+        _selectedFilePath = null;
+      });
+    }
+  } catch (e) {
+    if (!mounted) return;
+
+    setState(() {
+      _isFileSwitchOn = false;
+      _selectedFilePath = null;
+    });
   }
+ }
 
   bool _validateForm() {
     final newErrors = <String, String?>{
-      'letterNumber': letterNumberController.text.trim().isEmpty ? 'لطفا این فیلد را پر کنید' : null,
       'subject': subjectController.text.trim().isEmpty ? 'لطفا این فیلد را پر کنید' : null,
       'organization': organizationController.text.trim().isEmpty ? 'لطفا این فیلد را پر کنید' : null,
       'recipient': recipientController.text.trim().isEmpty ? 'لطفا این فیلد را پر کنید' : null,
@@ -580,7 +152,7 @@ void _removeTag(int index) {
 
   final document = ContractDocument(
     letterNumber: letterNumberController.text.trim(),
-    date: formatJalaliDate(dateController.text),
+    date: dateController.text,
     subject: subjectController.text.trim(),
     tags: List<String>.from(tags),
 
@@ -589,13 +161,13 @@ void _removeTag(int index) {
     actionBy: actionByController.text.trim(),
 
     contractSubject: registrationNumberController.text.trim(),
-    registrationDate: formatJalaliDate(registrationDateController.text),
+    registrationDate: registrationDateController.text,
     referenceContractNumber: archiveFolderController.text.trim(),
 
     saveFile: _isFileSwitchOn,
     filePath: _selectedFilePath,
 
-    attachments: _attachedItems.map((item) {
+    attachments: _currentAttachments.map((item) {
       return AttachmentDocument(
         name: item.name,
         path: item.path,
@@ -603,6 +175,7 @@ void _removeTag(int index) {
       );
     }).toList(),
   );
+  DocumentRepository.instance.addContract(document);
 
   Navigator.push(
     context,
@@ -618,111 +191,36 @@ void _removeTag(int index) {
     );
   }
 
-  Widget _buildFileIconPlaceholder(String name) {
-    return Container(
-      color: const Color(0xFFF3F3F7),
-      alignment: Alignment.center,
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.insert_drive_file, color: Color(0xFF828288), size: 40),
-          const SizedBox(height: 8),
-          Text(
-            name,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: Color(0xFF101018), fontSize: 11, fontFamily: 'Estedad'),
-          ),
-        ],
+ Widget _buildAttachmentsPanel() {
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      AttachmentsPanel(
+        onChanged: (items) => _currentAttachments = items,
       ),
-    );
-  }
-
-  Widget _buildThumbnail(AttachedItem item, int index) {
-    Widget preview;
-    if (item.isImage && item.bytes != null) {
-      preview = Image.memory(item.bytes!, fit: BoxFit.cover);
-    } else if (item.isImage && item.path != null) {
-      preview = Image.file(File(item.path!), fit: BoxFit.cover);
-    } else {
-      preview = _buildFileIconPlaceholder(item.name);
-    }
-
-    // دکمه‌ی حذف پیوست حالا روی HoverableContainer سوار شده تا هاورش با
-    // بقیه‌ی اپ هماهنگ باشه.
-    return Container(
-      width: _thumbnailWidth,
-      height: _thumbnailHeight,
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFBBBBC0)),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 2)),
-        ],
-      ),
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: SizedBox.expand(child: preview),
-          ),
-          Positioned(
-            top: 6,
-            left: 6,
-            child: HoverableContainer(
-              width: 24,
-              height: 24,
-              borderRadius: 12,
-              normalColor: const Color(0xFFA85838),
-              hoverColor: const Color(0xFFA85838),
-              hoverOpacity: 0.8,
-              onTap: () => _removeAttachedItem(index),
-              child: const Icon(Icons.close, size: 16, color: Color(0xFFF3F3F7)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAttachmentsPanel() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        if (_attachedItems.isNotEmpty) ...[
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 16,
-            runSpacing: 16,
-            children: List.generate(_attachedItems.length, (i) => _buildThumbnail(_attachedItems[i], i)),
-          ),
-          const SizedBox(height: 16),
-        ],
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SecondaryButton(label: 'اسکن سند', icon: Icons.print_outlined, onPressed: _scanDocument),
-            const SizedBox(width: 16),
-            SecondaryButton(label: '+ افزودن پیوست', onPressed: _pickAttachment),
-          ],
-        ),
-        const SizedBox(height: 64),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            PrimaryButton(label: 'ثبت', onPressed: _submitForm),
-            const SizedBox(width: 16),
-            TertiaryButton(label: 'انصراف', onPressed: _cancelForm),
-          ],
-        ),
-      ],
-    );
-  }
+      const SizedBox(height: 64),
+      Row(
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    CustomButton(
+      label: 'ثبت',
+      type: ButtonType.primary,
+      width: 204,
+      onPressed: _submitForm,
+    ),
+    const SizedBox(width: 16),
+    CustomButton(
+      label: 'انصراف',
+      type: ButtonType.tertiary,
+      width: 204,
+      onPressed: _cancelForm,
+    ),
+  ],
+),
+    ],
+  );
+ }
 
   Widget _buildDivider() {
     return Column(
@@ -817,20 +315,18 @@ void _removeTag(int index) {
                   // leading رو none گذاشتیم.
                   const AppHeader(
                     title: 'ثبت قرارداد',
-                    leading: HeaderLeading.none,
+                    leading: HeaderLeading.back,
                   ),
                   Padding(
                     padding: const EdgeInsets.only(right: 32, top: 64),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildFormRow(
-                          'شماره نامه:',
-                          letterNumberController,
-                          focusNode: _fnLetterNumber,
-                          nextFocusNode: _fnSubject,
-                          errorKey: 'letterNumber',
-                        ),
+                        LetterNumberField(
+  controller: letterNumberController,
+  type: LetterNumberType.contract,
+),
+const SizedBox(height: 32),
                         const SizedBox(height: 32),
                         SmartDateField(
                           controller: dateController,
@@ -960,7 +456,7 @@ void _removeTag(int index) {
                                   value: _isFileSwitchOn,
                                   onChanged: (value) async {
                                     if (value) {
-                                      await _pickFile();
+                                      await _pickPdfSavePath();
                                     } else {
                                       setState(() {
                                         _isFileSwitchOn = false;
@@ -1037,10 +533,4 @@ class ContractData {
     this.savedFileName,
     required this.attachments,
   });
-}
-
-String formatJalaliDate(String digits) {
-  final clean = digits.replaceAll(RegExp(r'[^0-9]'), '');
-  if (clean.length != 8) return clean;
-  return '${clean.substring(0, 4)}/${clean.substring(4, 6)}/${clean.substring(6, 8)}';
 }

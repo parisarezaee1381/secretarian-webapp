@@ -173,7 +173,7 @@ class _AppDropdownState<T extends Object> extends State<AppDropdown<T>> {
               showWhenUnlinked: false,
               targetAnchor: isRtl ? Alignment.bottomRight : Alignment.bottomLeft,
               followerAnchor: isRtl ? Alignment.topRight : Alignment.topLeft,
-              offset: Offset(0, widget.height + widget.menuGap),
+              offset: Offset(0, widget.menuGap),
               child: Material(
                 color: Colors.transparent,
                 child: Align(

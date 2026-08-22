@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../documents.dart';
 
 class DocumentTable extends StatelessWidget {
 
@@ -302,8 +303,6 @@ class DocumentTableRow {
   final String organization;
   final String title;
   final String priority;
-
-  // محتوای ستون عملیات
   final Widget? operation;
 
   const DocumentTableRow({
@@ -313,4 +312,43 @@ class DocumentTableRow {
     required this.priority,
     this.operation,
   });
+
+  factory DocumentTableRow.fromOutgoing(
+    OutgoingLetterDocument doc, {
+    Widget? operation,
+  }) {
+    return DocumentTableRow(
+      number: doc.letterNumber,
+      organization: doc.organization,
+      title: doc.subject,
+      priority: doc.priority,
+      operation: operation,
+    );
+  }
+
+  factory DocumentTableRow.fromIncoming(
+    IncomingLetterDocument doc, {
+    Widget? operation,
+  }) {
+    return DocumentTableRow(
+      number: doc.letterNumber,
+      organization: doc.organization,
+      title: doc.subject,
+      priority: doc.priority,
+      operation: operation,
+    );
+  }
+
+  factory DocumentTableRow.fromContract(
+    ContractDocument doc, {
+    Widget? operation,
+  }) {
+    return DocumentTableRow(
+      number: doc.letterNumber,
+      organization: doc.organization,
+      title: doc.subject,
+      priority: 'عادی', // همیشه ثابت برای قرارداد
+      operation: operation,
+    );
+  }
 }

@@ -62,14 +62,13 @@ class AppHeader extends StatelessWidget
     switch (leading) {
       case HeaderLeading.back:
         return AppBackButton(
-          onPressed: onLeadingPressed ??
-              () => Navigator.of(context).pop(),
-          iconColor: colors.icon,
-          size: 32,
-          hoverBackgroundColor: colors.hover,
-          hoverBackgroundOpacity: colors.hoverOpacity,
-          borderRadius: 10,
-        );
+    onPressed: onLeadingPressed, 
+    iconColor: colors.icon,
+    size: 32,
+    hoverBackgroundColor: colors.hover,
+    hoverBackgroundOpacity: colors.hoverOpacity,
+    borderRadius: 10,
+  );
 
       case HeaderLeading.settings:
         return _HeaderIconButton(
