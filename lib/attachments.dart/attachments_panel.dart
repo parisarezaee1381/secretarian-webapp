@@ -1,4 +1,4 @@
-// lib/widgets.dart/attachments_panel.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';

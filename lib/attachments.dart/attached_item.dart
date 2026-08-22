@@ -1,4 +1,3 @@
-// lib/widgets.dart/attached_item.dart
 import 'package:flutter/foundation.dart' show Uint8List;
 
 class AttachedItem {
