@@ -20,8 +20,9 @@ final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
 class ContractFormPage extends StatefulWidget {
-  const ContractFormPage({super.key});
+  const ContractFormPage({super.key, this.initialDocument});
 
+  final ContractDocument? initialDocument;
   @override
   State<ContractFormPage> createState() => _ContractFormPageState();
 }
@@ -63,6 +64,26 @@ class _ContractFormPageState extends State<ContractFormPage> {
   String? _selectedFilePath;
 
   List<AttachedItem> _currentAttachments = [];
+
+@override
+void initState() {
+  super.initState();
+  final doc = widget.initialDocument;
+  if (doc != null) {
+    letterNumberController.text = doc.letterNumber;
+    dateController.text = doc.date;
+    registrationDateController.text = doc.registrationDate;
+    subjectController.text = doc.subject;
+    organizationController.text = doc.organization;
+    recipientController.text = doc.recipient;          
+    actionByController.text = doc.actionBy;           
+    registrationNumberController.text = doc.contractSubject;
+    archiveFolderController.text = doc.referenceContractNumber;
+    tags = List<String>.from(doc.tags);
+    _isFileSwitchOn = doc.saveFile;
+    _selectedFilePath = doc.filePath;
+  }
+}
 
   @override
   void dispose() {
@@ -151,6 +172,8 @@ void _removeTag(int index) {
   if (!_validateForm()) return;
 
   final document = ContractDocument(
+    id: widget.initialDocument?.id ??
+        DateTime.now().microsecondsSinceEpoch.toString(), 
     letterNumber: letterNumberController.text.trim(),
     date: dateController.text,
     subject: subjectController.text.trim(),
@@ -175,20 +198,30 @@ void _removeTag(int index) {
       );
     }).toList(),
   );
-  DocumentRepository.instance.addContract(document);
 
+   if (widget.initialDocument != null) {                     // ← این بخش تغییر کرد
+    DocumentRepository.instance.updateContract(
+      widget.initialDocument!.id,
+      document,
+    );
+  } else {
+    DocumentRepository.instance.addContract(document);
+  }
+
+  if (!mounted) return;
   Navigator.push(
     context,
     MaterialPageRoute(
       builder: (context) => ContractViewPage(document: document),
     ),
   );
- }
+}
  
   void _cancelForm() {
     rootScaffoldMessengerKey.currentState?.showSnackBar(
       const SnackBar(content: Text('عملیات لغو شد'), backgroundColor: Color(0xFF828288)),
     );
+    Navigator.popUntil(context, (route) => route.isFirst);
   }
 
  Widget _buildAttachmentsPanel() {

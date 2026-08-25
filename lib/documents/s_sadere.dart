@@ -4,8 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_application_1/documents.dart';
 import '../document_repository.dart'; 
 
-import 'package:file_picker/file_picker.dart';
-
 import '../widgets.dart/smart_date_field.dart';
 import '../widgets.dart/modal.dart';
 import '../widgets.dart/letter_number_generator.dart';
@@ -19,6 +17,7 @@ import '../widgets.dart/buttons.dart';
 import '../widgets.dart/text_input.dart';
 import '../widgets.dart/dropdown_menu.dart';
 import '../widgets.dart/header.dart';
+import '../widgets.dart/file_picker.dart'; // مسیر واقعی رو با ساختار پروژه‌ت تنظیم کن
 
 import 'package:flutter_application_1/widgets.dart/pdf_document.dart';
 import 'package:flutter_application_1/widgets.dart/pdf_generator.dart';
@@ -27,7 +26,9 @@ final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
 class OutgoingLetterFormPage extends StatefulWidget {
-  const OutgoingLetterFormPage({super.key});
+  const OutgoingLetterFormPage({super.key, this.initialDocument});
+
+  final OutgoingLetterDocument? initialDocument;
 
   @override
   State<OutgoingLetterFormPage> createState() => _OutgoingLetterFormPageState();
@@ -46,6 +47,32 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
   final actionByController = TextEditingController();
   final registrationNumberController = TextEditingController();
   final archiveFolderController = TextEditingController();
+
+  @override
+void initState() {
+  super.initState();
+  final doc = widget.initialDocument;
+  if (doc != null) {
+    letterNumberController.text = doc.letterNumber;
+    dateController.text = doc.date;
+    registrationDateController.text = doc.registrationDate;
+    subjectController.text = doc.subject;
+    organizationController.text = doc.organization;
+    recipientController.text = doc.recipient;
+    signerController.text = doc.signer;
+    actionByController.text = doc.actionBy;
+    registrationNumberController.text = doc.registrationNumber;
+    archiveFolderController.text = doc.archiveFolder;
+    tags = List<String>.from(doc.tags);
+    selectedPriority = doc.priority;
+    selectedSendMethod = doc.sendMethod;
+    _isSwitchOn = doc.needsFollowUp;
+    _followUpDate = doc.followUpDate;
+    _followUpBy = doc.followUpBy;
+    _isFileSwitchOn = doc.saveFile;
+    _selectedFilePath = doc.filePath;
+  }
+}
 
   final _fnSubject = FocusNode();
   final _fnOrganization = FocusNode();
@@ -130,41 +157,43 @@ void _showModal() {
 }
 
  Future<void> _pickFile() async {
-  try {
-    final result = await FilePicker.platform.saveFile(
-      dialogTitle: 'محل ذخیره PDF را انتخاب کنید',
-      fileName: '${letterNumberController.text.trim()}.pdf',
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
+  final result = await Navigator.push<String?>(
+    context,
+    MaterialPageRoute(
+      builder: (context) => FileSavePickerPage(
+        suggestedFileName: letterNumberController.text.trim(),
+      ),
+    ),
+  );
 
-    if (result == null) {
-      // کاربر Cancel کرده
-      setState(() {
-        _isFileSwitchOn = false;
-        _selectedFilePath = null;
-      });
-      return;
-    }
-
-    setState(() {
-      _selectedFilePath = result;
-      _isFileSwitchOn = true;
-    });
-   } catch (e) {
+  if (result == '__error__') {
     setState(() {
       _isFileSwitchOn = false;
       _selectedFilePath = null;
     });
-
     rootScaffoldMessengerKey.currentState?.showSnackBar(
       const SnackBar(
         content: Text('خطا در انتخاب محل ذخیره فایل'),
         backgroundColor: Color(0xFFA85838),
       ),
     );
+    return;
   }
- }
+
+  if (result == null) {
+    // کاربر Cancel کرده
+    setState(() {
+      _isFileSwitchOn = false;
+      _selectedFilePath = null;
+    });
+    return;
+  }
+
+  setState(() {
+    _selectedFilePath = result;
+    _isFileSwitchOn = true;
+  });
+}
 
   bool _validateForm() {
     final newErrors = <String, String?>{
@@ -184,6 +213,8 @@ void _showModal() {
   if (!_validateForm()) return;
 
   final document = OutgoingLetterDocument(
+    id: widget.initialDocument?.id ??
+        DateTime.now().microsecondsSinceEpoch.toString(), 
     letterNumber: letterNumberController.text.trim(),
     date: dateController.text,
     subject: subjectController.text.trim(),
@@ -252,16 +283,22 @@ void _showModal() {
   }
 }
 
-DocumentRepository.instance.addOutgoing(document);
-if (!mounted) return;
-Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => OutgoingLetterViewPage(
-      document: document,
+if (widget.initialDocument != null) {                     // ← این بخش تغییر کرد
+    DocumentRepository.instance.updateOutgoing(
+      widget.initialDocument!.id,
+      document,
+    );
+  } else {
+    await DocumentRepository.instance.addOutgoing(document);
+  }
+
+  if (!mounted) return;
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => OutgoingLetterViewPage(document: document),
     ),
-  ),
-);
+  );
 }
 
 
@@ -269,6 +306,7 @@ Navigator.push(
     rootScaffoldMessengerKey.currentState?.showSnackBar(
       const SnackBar(content: Text('عملیات لغو شد'), backgroundColor: Color(0xFF828288)),
     );
+    Navigator.popUntil(context, (route) => route.isFirst);
   }
 
   Widget _buildAttachmentsPanel() {

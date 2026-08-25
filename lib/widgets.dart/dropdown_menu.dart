@@ -14,7 +14,7 @@ class AppDropdownColors {
     this.error = const Color(0xFFD64545),
     this.text = const Color(0xFFF3F3F7),
     this.hint = const Color(0xFFF3F3F7),
-    this.icon = const Color(0xFF3863A8),
+    this.icon = const Color(0xFFF3F3F7),
     this.menuBackground = const Color(0xFF3863A8),
   });
 

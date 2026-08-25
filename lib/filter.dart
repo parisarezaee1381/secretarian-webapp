@@ -42,7 +42,7 @@ class FilterPanel extends StatefulWidget {
     this.panelWidth = 500,
     this.rightPadding = 64,
     this.leftPadding = 24,
-    this.backgroundColor = const Color(0xFF828288),
+    this.backgroundColor = const Color(0xFFBBBBC0),
   });
 
   final ValueChanged<FilterValues>? onApply;
@@ -70,8 +70,6 @@ class _FilterPanelState extends State<FilterPanel> {
   String? _priority;
   final List<String> _keywords = [];
 
-  /// وقتی مقداری از بیرون اعمال شده باشد (initialValues != null)،
-  /// دکمه به «پاک کردن فیلترها» تبدیل می‌شود.
   bool get _hasAppliedFilters => widget.initialValues != null;
 
   double get _fieldWidth =>
@@ -142,11 +140,11 @@ class _FilterPanelState extends State<FilterPanel> {
 
   void _handleButtonPressed() {
     if (_hasAppliedFilters) {
-      // حالت «پاک کردن فیلترها»
+  
       _clearAllFields();
       widget.onClear?.call();
     } else {
-      // حالت «اعمال فیلترها»
+
       final values = FilterValues(
         letterNumber: _letterNumberController.text,
         fromDate: _fromDateController.text,
@@ -190,6 +188,7 @@ class _FilterPanelState extends State<FilterPanel> {
     return Drawer(
       width: widget.panelWidth,
       backgroundColor: widget.backgroundColor,
+      shape: const RoundedRectangleBorder(),
       child: SafeArea(
         child: Column(
           children: [
@@ -208,7 +207,6 @@ class _FilterPanelState extends State<FilterPanel> {
                       field: AppTextField(
                         controller: _letterNumberController,
                         width: _fieldWidth,
-                        hintText: 'شماره نامه را وارد کنید',
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -217,7 +215,6 @@ class _FilterPanelState extends State<FilterPanel> {
                       field: AppTextField(
                         controller: _fromDateController,
                         width: _fieldWidth,
-                        hintText: '۱۴۰۳/۰۱/۰۱',
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -226,7 +223,6 @@ class _FilterPanelState extends State<FilterPanel> {
                       field: AppTextField(
                         controller: _toDateController,
                         width: _fieldWidth,
-                        hintText: '۱۴۰۳/۱۲/۲۹',
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -235,7 +231,6 @@ class _FilterPanelState extends State<FilterPanel> {
                       field: AppTextField(
                         controller: _titleController,
                         width: _fieldWidth,
-                        hintText: 'عنوان را وارد کنید',
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -244,7 +239,6 @@ class _FilterPanelState extends State<FilterPanel> {
                       field: AppTextField(
                         controller: _organizationController,
                         width: _fieldWidth,
-                        hintText: 'نام سازمان یا شرکت',
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -256,7 +250,7 @@ class _FilterPanelState extends State<FilterPanel> {
                         itemLabelBuilder: (item) =>
                             item == 'فوری' ? '🔴 $item' : item,
                         width: _fieldWidth,
-                        hintText: 'انتخاب کنید',
+                        hintText: ' عادی ',
                         onChanged: (value) =>
                             setState(() => _priority = value),
                       ),
@@ -268,7 +262,6 @@ class _FilterPanelState extends State<FilterPanel> {
                         controller: _tagInputController,
                         width: _fieldWidth,
                         height: 64,
-                        hintText: 'کلمه کلیدی را وارد و اضافه کنید',
                         onSubmitted: (_) => _addTag(),
                         suffixIcon: IconButton(
                           icon: const Icon(
@@ -293,7 +286,7 @@ class _FilterPanelState extends State<FilterPanel> {
                                   label: Text(
                                     tag,
                                     style: const TextStyle(
-                                      color: Color(0xFFF3F3F7),
+                                      color:  Color(0xFF828288),
                                       fontFamily: 'Estedad',
                                     ),
                                   ),

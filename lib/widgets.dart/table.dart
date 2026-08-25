@@ -43,7 +43,8 @@ class DocumentTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    final visibleRows = rows.take(rowsPerPage).toList();
+    final startIndex = (currentPage - 1) * rowsPerPage;
+    final visibleRows = rows.skip(startIndex).take(rowsPerPage).toList();
 
     return Center(
       child: SingleChildScrollView(
@@ -136,7 +137,9 @@ class DocumentTable extends StatelessWidget {
         ),
 
         _buildOperationCell(
-          operation: row.operation,
+          hasAttachments: row.hasAttachments,
+          onAddAttachment: row.onAddAttachment,   // ← اضافه شد
+  onEdit: row.onEdit,  
           columnIndex: 4,
         ),
       ],
@@ -191,17 +194,64 @@ class DocumentTable extends StatelessWidget {
   }
 
   Widget _buildOperationCell({
-    required Widget? operation,
-    required int columnIndex,
-  }) {
-    return Container(
-      width: columnWidth,
-      height: rowHeight,
-      alignment: Alignment.center,
-      color: _getColumnColor(columnIndex),
-      child: operation ?? const SizedBox(),
-    );
-  }
+  required bool hasAttachments,
+  required int columnIndex,
+  VoidCallback? onAddAttachment,   // ← اضافه شد
+  VoidCallback? onEdit,
+}) {
+  return Container(
+    width: columnWidth,
+    height: rowHeight,
+    alignment: Alignment.center,
+    color: _getColumnColor(columnIndex),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // آیکون پیوست: اگر پیوست وجود داشته باشه، آیکون گیره
+        // (غیرقابل‌کلیک) نشون داده می‌شه. در غیر این صورت، آیکون
+        // + آبی و قابل‌کلیک برای افزودن پیوست نشون داده می‌شه.
+        if (hasAttachments)
+          const Icon(
+            Icons.attach_file,
+            size: 20,
+            color: Color(0xFF3863A8),
+          )
+        else
+          IconButton(
+            onPressed: onAddAttachment, 
+            icon: const Icon(Icons.add_circle_outline, size: 20),
+            color: const Color(0xFF3863A8),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+
+        const SizedBox(width: 12),
+
+        // آیکون ویرایش
+        IconButton(
+          onPressed: onEdit, 
+          icon: const Icon(Icons.edit_outlined, size: 20),
+          color: const Color(0xFF3863A8),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+
+        const SizedBox(width: 12),
+
+        // آیکون حذف
+        IconButton(
+          onPressed: () {
+            // بعداً تکمیل می‌شه: حذف سند
+          },
+          icon: const Icon(Icons.delete_outline, size: 20),
+          color: const Color(0xFF3863A8),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+      ],
+    ),
+  );
+}
 
   Color _getColumnColor(int columnIndex) {
     // ستون‌های ۱، ۳ و ۵
@@ -216,9 +266,7 @@ class DocumentTable extends StatelessWidget {
   }
 
   Widget _buildPagination() {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Row(
+    return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           // دکمه صفحه قبل
@@ -226,7 +274,7 @@ class DocumentTable extends StatelessWidget {
             onPressed:
                 currentPage > 1 ? onPreviousPage : null,
             icon: const Icon(
-              Icons.chevron_right,
+              Icons.chevron_left,
               size: 24,
             ),
             color: paginationColor,
@@ -287,14 +335,13 @@ class DocumentTable extends StatelessWidget {
                     ? onNextPage
                     : null,
             icon: const Icon(
-              Icons.chevron_left,
+              Icons.chevron_right,
               size: 24,
             ),
             color: paginationColor,
           ),
         ],
-      ),
-    );
+      );
   }
 }
 
@@ -304,6 +351,9 @@ class DocumentTableRow {
   final String title;
   final String priority;
   final Widget? operation;
+  final bool hasAttachments;
+  final VoidCallback? onAddAttachment;   // ← اضافه شد
+  final VoidCallback? onEdit;
 
   const DocumentTableRow({
     required this.number,
@@ -311,24 +361,34 @@ class DocumentTableRow {
     required this.title,
     required this.priority,
     this.operation,
+    this.hasAttachments = false,
+    this.onAddAttachment,               // ← اضافه شد
+    this.onEdit,   
   });
 
   factory DocumentTableRow.fromOutgoing(
-    OutgoingLetterDocument doc, {
-    Widget? operation,
-  }) {
-    return DocumentTableRow(
-      number: doc.letterNumber,
-      organization: doc.organization,
-      title: doc.subject,
-      priority: doc.priority,
-      operation: operation,
-    );
-  }
+  OutgoingLetterDocument doc, {
+  Widget? operation,
+  VoidCallback? onEdit,
+  VoidCallback? onAddAttachment,
+}) {
+  return DocumentTableRow(
+    number: doc.letterNumber,
+    organization: doc.organization,
+    title: doc.subject,
+    priority: doc.priority,
+    operation: operation,
+    hasAttachments: doc.attachments.isNotEmpty,
+    onAddAttachment: onAddAttachment, // ← اضافه شد
+    onEdit: onEdit,                   // ← اضافه شد
+  );
+}
 
   factory DocumentTableRow.fromIncoming(
     IncomingLetterDocument doc, {
     Widget? operation,
+    VoidCallback? onAddAttachment,      // ← اضافه شد
+    VoidCallback? onEdit,
   }) {
     return DocumentTableRow(
       number: doc.letterNumber,
@@ -336,19 +396,28 @@ class DocumentTableRow {
       title: doc.subject,
       priority: doc.priority,
       operation: operation,
+      hasAttachments: doc.attachments.isNotEmpty, 
+       onAddAttachment: onAddAttachment, // ← اضافه شد
+      onEdit: onEdit, 
     );
   }
 
   factory DocumentTableRow.fromContract(
     ContractDocument doc, {
     Widget? operation,
-  }) {
+     VoidCallback? onAddAttachment, 
+    VoidCallback? onEdit,   
+   }
+   ) {
     return DocumentTableRow(
       number: doc.letterNumber,
       organization: doc.organization,
       title: doc.subject,
-      priority: 'عادی', // همیشه ثابت برای قرارداد
+      priority: 'عادی', 
       operation: operation,
+      hasAttachments: doc.attachments.isNotEmpty,  
+       onAddAttachment: onAddAttachment, // ← اضافه شد
+      onEdit: onEdit, 
     );
   }
 }

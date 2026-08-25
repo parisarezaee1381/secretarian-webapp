@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/documents/s_varede.dart';
 
 import 'widgets.dart/header.dart';
 import 'widgets.dart/notification.dart';
@@ -9,8 +10,14 @@ import 'filter.dart';
 import '../document_repository.dart';
 import '../documents.dart';
 
+import 'documents/s_sadere.dart';
+import 'documents/s_gharardad.dart';
+
+
 class DocumentList extends StatefulWidget {
-  const DocumentList({super.key});
+  const DocumentList({super.key, this.initialPendingOnly = false});  
+
+  final bool initialPendingOnly;
 
   @override
   State<DocumentList> createState() => _DocumentListState();
@@ -20,45 +27,193 @@ class _DocumentListState extends State<DocumentList> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   FilterValues? _filterValues;
 
-  bool _matchesFilter(OutgoingLetterDocument doc, FilterValues f) {
+  Set<DocumentType> _selectedTypes = {};
+
+
+  bool _pendingOnly = false;
+
+  int _currentPage = 1;
+
+ @override
+  void initState() {
+    super.initState();
+    _pendingOnly = widget.initialPendingOnly;
+  }
+
+  String _docLetterNumber(dynamic doc) {
+    if (doc is OutgoingLetterDocument) return doc.letterNumber;
+    if (doc is IncomingLetterDocument) return doc.letterNumber;
+    if (doc is ContractDocument) return doc.letterNumber;
+    return '';
+  }
+
+  String _docDate(dynamic doc) {
+    if (doc is OutgoingLetterDocument) return doc.date;
+    if (doc is IncomingLetterDocument) return doc.date;
+    if (doc is ContractDocument) return doc.date;
+    return '';
+  }
+
+  String _docSubject(dynamic doc) {
+    if (doc is OutgoingLetterDocument) return doc.subject;
+    if (doc is IncomingLetterDocument) return doc.subject;
+    if (doc is ContractDocument) return doc.subject;
+    return '';
+  }
+
+  String _docOrganization(dynamic doc) {
+    if (doc is OutgoingLetterDocument) return doc.organization;
+    if (doc is IncomingLetterDocument) return doc.organization;
+    if (doc is ContractDocument) return doc.organization;
+    return '';
+  }
+
+  String _docPriority(dynamic doc) {
+    if (doc is OutgoingLetterDocument) return doc.priority;
+    if (doc is IncomingLetterDocument) return doc.priority;
+    if (doc is ContractDocument) return 'عادی';
+    return '';
+  }
+
+  List<String> _docTags(dynamic doc) {
+    if (doc is OutgoingLetterDocument) return doc.tags;
+    if (doc is IncomingLetterDocument) return doc.tags;
+    if (doc is ContractDocument) return doc.tags;
+    return const [];
+  }
+
+  bool _docNeedsFollowUp(dynamic doc) {
+    if (doc is OutgoingLetterDocument) return doc.needsFollowUp;
+    if (doc is IncomingLetterDocument) return doc.needsFollowUp;
+    return false;
+  }
+
+  List<dynamic> get _typedDocuments {
+    final repo = DocumentRepository.instance;
+    final types =
+        _selectedTypes.isEmpty ? DocumentType.values.toSet() : _selectedTypes;
+
+    final docs = <dynamic>[];
+    if (types.contains(DocumentType.outgoing)) {
+      docs.addAll(repo.outgoingLetters);
+    }
+    if (types.contains(DocumentType.incoming)) {
+      docs.addAll(repo.incomingLetters);
+    }
+    if (types.contains(DocumentType.contract)) {
+      docs.addAll(repo.contracts);
+    }
+    return docs;
+  }
+
+  bool _matchesFilter(dynamic doc, FilterValues f) {
     if (f.letterNumber.trim().isNotEmpty &&
-        !doc.letterNumber.contains(f.letterNumber.trim())) {
+        !_docLetterNumber(doc).contains(f.letterNumber.trim())) {
       return false;
     }
 
     if (f.fromDate.trim().isNotEmpty &&
-        doc.date.compareTo(f.fromDate.trim()) < 0) {
+        _docDate(doc).compareTo(f.fromDate.trim()) < 0) {
       return false;
     }
 
     if (f.toDate.trim().isNotEmpty &&
-        doc.date.compareTo(f.toDate.trim()) > 0) {
+        _docDate(doc).compareTo(f.toDate.trim()) > 0) {
       return false;
     }
 
     if (f.title.trim().isNotEmpty &&
-        !doc.subject.contains(f.title.trim())) {
+        !_docSubject(doc).contains(f.title.trim())) {
       return false;
     }
 
     if (f.organization.trim().isNotEmpty &&
-        !doc.organization.contains(f.organization.trim())) {
+        !_docOrganization(doc).contains(f.organization.trim())) {
       return false;
     }
 
-    if (f.priority != null && doc.priority != f.priority) {
+    if (f.priority != null && _docPriority(doc) != f.priority) {
       return false;
     }
 
     if (f.keywords.isNotEmpty) {
+      final tags = _docTags(doc);
       final matchesAllKeywords = f.keywords.every(
-        (keyword) => doc.tags.any((tag) => tag.contains(keyword)),
+        (keyword) => tags.any((tag) => tag.contains(keyword)),
       );
       if (!matchesAllKeywords) return false;
     }
 
     return true;
   }
+
+  bool _matchesPending(dynamic doc) {
+    if (!_pendingOnly) return true;
+    return _docNeedsFollowUp(doc);
+  }
+
+  List<dynamic> get _filteredDocuments {
+    return _typedDocuments.where((doc) {
+      if (_filterValues != null && !_matchesFilter(doc, _filterValues!)) {
+        return false;
+      }
+      return _matchesPending(doc);
+    }).toList();
+  }
+
+ DocumentTableRow _mapToRow(dynamic doc) {
+  const operation = Icon(Icons.more_horiz, color: Color(0xFF101018));
+  if (doc is OutgoingLetterDocument) {
+    return DocumentTableRow.fromOutgoing(
+      doc,
+      operation: operation,
+      onEdit: () => _openOutgoingForm(doc),           // ← اضافه شد
+      onAddAttachment: () => _openOutgoingForm(doc),  // ← اضافه شد
+    );
+  } else if (doc is IncomingLetterDocument) {
+    return DocumentTableRow.fromIncoming(
+      doc,
+      operation: operation,
+      onEdit: () => _openincomingForm(doc),           // ← اضافه شد
+      onAddAttachment: () => _openincomingForm(doc),  // ← اضافه شد
+    );
+  } else if (doc is ContractDocument) {
+    return DocumentTableRow.fromContract(doc,
+      operation: operation,
+      onEdit: () => _opencontractForm(doc),           // ← اضافه شد
+      onAddAttachment: () => _opencontractForm(doc),  // ← اضافه شد
+    );
+  }
+  throw ArgumentError('نوع سند ناشناخته');
+}
+
+// این متد جدید رو هم اضافه کنید
+void _openOutgoingForm(OutgoingLetterDocument doc) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => OutgoingLetterFormPage(initialDocument: doc),
+    ),
+  ).then((_) => setState(() {}));
+}
+
+void _openincomingForm(IncomingLetterDocument doc) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => IncomingLetterFormPage(initialDocument: doc),
+    ),
+  ).then((_) => setState(() {}));
+}
+
+void _opencontractForm(ContractDocument doc) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ContractFormPage(initialDocument: doc),
+    ),
+  ).then((_) => setState(() {}));
+}
 
   void _removeFilterField(String field, {String? keyword}) {
     final f = _filterValues;
@@ -76,7 +231,10 @@ class _DocumentListState extends State<DocumentList> {
           : f.keywords,
     );
 
-    setState(() => _filterValues = updated.isEmpty ? null : updated);
+    setState(() {
+  _filterValues = updated.isEmpty ? null : updated;
+  _currentPage = 1;
+   });
   }
 
   Widget _filterChip(String label, VoidCallback onDeleted) {
@@ -99,10 +257,26 @@ class _DocumentListState extends State<DocumentList> {
   }
 
   List<Widget> _buildActiveFilterChips() {
-    final f = _filterValues;
-    if (f == null) return [];
-
     final chips = <Widget>[];
+
+
+    for (final type in _selectedTypes) {
+      chips.add(_filterChip(
+        type.label,
+        () => setState(() => _selectedTypes = {..._selectedTypes}..remove(type)),
+      ));
+    }
+
+
+    if (_pendingOnly) {
+      chips.add(_filterChip(
+        'نیازمند پیگیری',
+        () => setState(() => _pendingOnly = false),
+      ));
+    }
+
+    final f = _filterValues;
+    if (f == null) return chips;
 
     if (f.letterNumber.isNotEmpty) {
       chips.add(_filterChip(
@@ -150,23 +324,14 @@ class _DocumentListState extends State<DocumentList> {
     return chips;
   }
 
+  bool get _hasAnyActiveFilter =>
+      _selectedTypes.isNotEmpty || _pendingOnly || _filterValues != null;
+
   @override
   Widget build(BuildContext context) {
-    final filtered = _filterValues == null
-        ? DocumentRepository.instance.outgoingLetters
-        : DocumentRepository.instance.outgoingLetters
-            .where((doc) => _matchesFilter(doc, _filterValues!))
-            .toList();
-
-    final rows = filtered.map((doc) {
-      return DocumentTableRow.fromOutgoing(
-        doc,
-        operation: const Icon(
-          Icons.more_horiz,
-          color: Color(0xFF101018),
-        ),
-      );
-    }).toList();
+    final rows = _filteredDocuments.map(_mapToRow).toList();
+    const rowsPerPage = 10;
+    final totalPages = (rows.length / rowsPerPage).ceil().clamp(1, 999);
 
     return Scaffold(
       key: _scaffoldKey,
@@ -178,11 +343,17 @@ class _DocumentListState extends State<DocumentList> {
       drawer: FilterPanel(
         initialValues: _filterValues,
         onApply: (values) {
-          setState(() => _filterValues = values);
-        },
+  setState(() {
+    _filterValues = values;
+    _currentPage = 1;
+  });
+ },
         onClear: () {
-          setState(() => _filterValues = null);
-        },
+  setState(() {
+    _filterValues = null;
+    _currentPage = 1;
+  });
+},
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -195,19 +366,25 @@ class _DocumentListState extends State<DocumentList> {
                 alignment: Alignment.center,
                 child: PendingLettersButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const DocumentList(),
-                      ),
-                    );
-                  },
+  setState(() {
+    _pendingOnly = !_pendingOnly;
+    _currentPage = 1;
+  });
+},
                 ),
               ),
 
               const SizedBox(height: 32),
 
-              const DocumentTypeFilterButtons(),
+              DocumentTypeFilterButtons(
+                initialSelected: _selectedTypes,
+                onChanged: (selected) {
+  setState(() {
+    _selectedTypes = selected;
+    _currentPage = 1;
+  });
+},
+              ),
 
               const SizedBox(height: 64),
 
@@ -229,7 +406,7 @@ class _DocumentListState extends State<DocumentList> {
 
               const SizedBox(height: 32),
 
-              if (_filterValues != null) ...[
+              if (_hasAnyActiveFilter) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Align(
@@ -246,21 +423,21 @@ class _DocumentListState extends State<DocumentList> {
               ],
 
               DocumentTable(
-                rows: rows,
-                rowsPerPage: 10,
-                showPagination: true,
-                currentPage: 1,
-                totalPages: 3,
-                onPreviousPage: () {
-                  // صفحه قبل
-                },
-                onNextPage: () {
-                  // صفحه بعد
-                },
-                onPageSelected: (page) {
-                  // انتخاب صفحه
-                },
-              ),
+  rows: rows,
+  rowsPerPage: rowsPerPage,
+  showPagination: true,
+  currentPage: _currentPage,
+  totalPages: totalPages,
+  onPreviousPage: () {
+    setState(() => _currentPage--);
+  },
+  onNextPage: () {
+    setState(() => _currentPage++);
+  },
+  onPageSelected: (page) {
+    setState(() => _currentPage = page);
+  },
+),
 
               const SizedBox(height: 128),
             ],

@@ -13,6 +13,7 @@ import 'widgets.dart/notification.dart';
 
 import '../documents.dart';
 import '../document_repository.dart';
+import 'package:flutter_application_1/setting.dart/settingview.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -28,7 +29,7 @@ class _DashboardState extends State<Dashboard> {
     if (doc is OutgoingLetterDocument) {
       return DocumentTableRow.fromOutgoing(
         doc,
-        operation: const Icon(Icons.more_horiz, color: Color(0xFF101018)),
+        operation: const Icon(Icons.more_horiz, color: Color(0xFF101018)), onEdit: () {  }, onAddAttachment: () {  },
       );
     } else if (doc is IncomingLetterDocument) {
       return DocumentTableRow.fromIncoming(
@@ -69,10 +70,21 @@ class _DashboardState extends State<Dashboard> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F4F4),
 
-      appBar: const AppHeader(
-        title: 'داشبورد اصلی',
-        leading: HeaderLeading.settings,
+      appBar: AppHeader(
+  title: 'داشبورد اصلی',
+  leading: HeaderLeading.settings,
+  onLeadingPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SettingsViewPage(
+  username: 'کاربر',
+  email: 'example@email.com',
+),
       ),
+    );
+  },
+),
 
       body: Stack(
         clipBehavior: Clip.none,
@@ -123,7 +135,7 @@ class _DashboardState extends State<Dashboard> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const DocumentList(),
+          builder: (context) => const DocumentList(initialPendingOnly: true),
         ),
       );
     },
@@ -187,7 +199,6 @@ class _DashboardState extends State<Dashboard> {
                         label: 'صادره',
                         isFirst: true,
 
-                        // فعلاً هیچ کاری نمی‌کند
                         onTap: () {
   Navigator.push(
     context,
@@ -201,7 +212,6 @@ class _DashboardState extends State<Dashboard> {
                       DropdownMenuItemWidget(
                         label: 'وارده',
 
-                        // فعلاً هیچ کاری نمی‌کند
                         onTap: () {
   Navigator.push(
     context,
@@ -216,7 +226,6 @@ class _DashboardState extends State<Dashboard> {
                         label: 'قرارداد',
                         isLast: true,
 
-                        // فعلاً هیچ کاری نمی‌کند
                         onTap: () {
   Navigator.push(
     context,

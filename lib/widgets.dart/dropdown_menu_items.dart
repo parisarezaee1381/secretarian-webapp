@@ -122,7 +122,7 @@ class _DropdownMenuItemWidgetState extends State<DropdownMenuItemWidget> {
               color: _backgroundColor(),
               borderRadius: _resolvedBorderRadius(),
             ),
-            alignment: AlignmentDirectional.centerStart,
+            alignment: Alignment.center,
             child: AnimatedScale(
               scale: _isPressed ? 0.97 : 1,
               duration: widget.duration,
@@ -136,7 +136,7 @@ class _DropdownMenuItemWidgetState extends State<DropdownMenuItemWidget> {
                       fontWeight: FontWeight.w600,
                       fontFamily: 'Estedad',
                     ),
-                textAlign: TextAlign.start,
+                textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

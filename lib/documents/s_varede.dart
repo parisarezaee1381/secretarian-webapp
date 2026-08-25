@@ -23,7 +23,9 @@ final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
 class IncomingLetterFormPage extends StatefulWidget {
-  const IncomingLetterFormPage({super.key});
+  const IncomingLetterFormPage({super.key, this.initialDocument});
+
+ final IncomingLetterDocument? initialDocument; 
 
   @override
   State<IncomingLetterFormPage> createState() => _IncomingLetterFormPageState();
@@ -70,6 +72,30 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
   String? _followUpBy;
 
   List<AttachedItem> _currentAttachments = [];
+
+  @override
+void initState() {
+  super.initState();
+  final doc = widget.initialDocument;
+  if (doc != null) {
+    letterNumberController.text = doc.letterNumber;
+    dateController.text = doc.date;
+    registrationDateController.text = doc.registrationDate;
+    subjectController.text = doc.subject;
+    organizationController.text = doc.organization;
+    recipientController.text = doc.recipient;
+    signerController.text = doc.senderLetterNumber;
+    actionByController.text = doc.recipient;
+    archiveFolderController.text = doc.archiveFolder;
+    tags = List<String>.from(doc.tags);
+    selectedPriority = doc.priority;
+    _isSwitchOn = doc.needsFollowUp;
+    _followUpDate = doc.followUpDate;
+    _followUpBy = doc.followUpBy;
+    _isFileSwitchOn = doc.saveFile;
+    _selectedFilePath = doc.filePath;
+  }
+}
 
   @override
   void dispose() {
@@ -166,32 +192,28 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
     return newErrors.values.every((e) => e == null);
   }
 
- void _submitForm() {
+void _submitForm() {
   if (!_validateForm()) return;
 
   final document = IncomingLetterDocument(
-    letterNumber: letterNumberController.text.trim(), 
+    id: widget.initialDocument?.id ??
+        DateTime.now().microsecondsSinceEpoch.toString(),
+    letterNumber: letterNumberController.text.trim(),
     date: dateController.text,
     subject: subjectController.text.trim(),
     tags: List<String>.from(tags),
-
     organization: organizationController.text.trim(),
     sender: recipientController.text.trim(),
     senderLetterNumber: signerController.text.trim(),
     recipient: actionByController.text.trim(),
-
     registrationDate: registrationDateController.text,
     archiveFolder: archiveFolderController.text.trim(),
-
     priority: selectedPriority,
-
     needsFollowUp: _isSwitchOn,
     followUpDate: _followUpDate,
     followUpBy: _followUpBy,
-
     saveFile: _isFileSwitchOn,
     filePath: _selectedFilePath,
-
     attachments: _currentAttachments.map((item) {
       return AttachmentDocument(
         name: item.name,
@@ -199,22 +221,31 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
         bytes: item.bytes,
       );
     }).toList(),
+    // خط id: '' حذف شد
   );
-  DocumentRepository.instance.addIncoming(document);
+
+  if (widget.initialDocument != null) {
+    DocumentRepository.instance.updateIncoming(
+      widget.initialDocument!.id,
+      document,
+    );
+  } else {
+    DocumentRepository.instance.addIncoming(document); // یا متد مناسب
+  }
+
+  if (!mounted) return;
   Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (context) => IncomingLetterViewPage(
-        document: document,
-      ),
+      builder: (context) => IncomingLetterViewPage(document: document),
     ),
   );
- }
-
+}
   void _cancelForm() {
     rootScaffoldMessengerKey.currentState?.showSnackBar(
       const SnackBar(content: Text('عملیات لغو شد'), backgroundColor: Color(0xFF828288)),
     );
+    Navigator.popUntil(context, (route) => route.isFirst);
   }
 
   Widget _buildAttachmentsPanel() {

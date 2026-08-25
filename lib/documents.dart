@@ -13,6 +13,7 @@ class AttachmentDocument {
 }
 
 class OutgoingLetterDocument {
+  final String id;    
   final String letterNumber;
   final String date;
   final String subject;
@@ -40,6 +41,7 @@ class OutgoingLetterDocument {
   final List<AttachmentDocument> attachments;
 
   const OutgoingLetterDocument({
+    required this.id,  
     required this.letterNumber,
     required this.date,
     required this.subject,
@@ -69,6 +71,7 @@ class OutgoingLetterDocument {
 }
 
 class IncomingLetterDocument {
+   final String id;  
   final String letterNumber;
   final String date;
   final String subject;
@@ -94,6 +97,7 @@ class IncomingLetterDocument {
   final List<AttachmentDocument> attachments;
 
   const IncomingLetterDocument({
+    required this.id,  
     required this.letterNumber,
     required this.date,
     required this.subject,
@@ -121,6 +125,7 @@ class IncomingLetterDocument {
 }
 
 class ContractDocument {
+  final String id; 
   final String letterNumber;
   final String date;
   final String subject;
@@ -136,6 +141,7 @@ class ContractDocument {
   final List<AttachmentDocument> attachments;
 
   const ContractDocument({
+    required this.id,   
     required this.letterNumber,
     required this.date,
     required this.subject,

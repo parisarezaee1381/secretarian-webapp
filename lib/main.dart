@@ -1,10 +1,18 @@
+
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/dashboard.dart';
+import 'package:flutter_application_1/authentication.dart/signup.dart';
+import 'document_repository.dart';
 
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await DocumentRepository.instance.loadOutgoingFromDatabase();
+  await DocumentRepository.instance.loadIncomingFromDatabase();
+  await DocumentRepository.instance.loadContractsFromDatabase();
+
   runApp(const MyApp());
 }
 
@@ -14,10 +22,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Dashboard(),
+      home: RegisterPage(),
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
-
       builder: (context, child) {
         return Directionality(
           textDirection: TextDirection.rtl,
@@ -27,3 +34,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+

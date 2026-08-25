@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 
+import 'text_input.dart';
+
 enum LetterNumberType { outgoing, incoming, contract }
 
 class LetterNumberGenerator {
@@ -45,6 +47,7 @@ class LetterNumberField extends StatelessWidget {
   final String label;
   final double labelWidth;
   final double labelSpacing;
+  final double fieldWidth;
 
   LetterNumberField({
     super.key,
@@ -53,7 +56,9 @@ class LetterNumberField extends StatelessWidget {
     this.label = 'شماره نامه:',
     this.labelWidth = 150,
     this.labelSpacing = 0,
+    this.fieldWidth = 548,
   }) {
+
     if (controller.text.isEmpty) {
       controller.text = LetterNumberGenerator.instance.generate(type);
     }
@@ -61,38 +66,18 @@ class LetterNumberField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: labelWidth,
-          child: Text(
-            label,
-            textAlign: TextAlign.right,
-            style: const TextStyle(
-              color: Color(0xFF101018),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              fontFamily: 'Estedad',
-            ),
-          ),
-        ),
-        SizedBox(width: labelSpacing),
-        ValueListenableBuilder<TextEditingValue>(
-          valueListenable: controller,
-          builder: (context, value, _) {
-            return Text(
-              value.text,
-              style: const TextStyle(
-                color: Color(0xFF101018),
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                fontFamily: 'Estedad',
-              ),
-            );
-          },
-        ),
-      ],
+    return AppTextField(
+      controller: controller,
+      labelText: label,
+      labelWidth: labelWidth,
+      labelSpacing: labelSpacing,
+      width: fieldWidth,
+      height: 64,
+      enabled: false,
+      colors: const AppTextFieldColors(
+        disabled: Color(0xFFF3F3F7),
+        text: Color(0xFF101018),
+      ),
     );
   }
 }
