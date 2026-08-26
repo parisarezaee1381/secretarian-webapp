@@ -36,11 +36,19 @@ class _VerificationCodePageState
 
   int _remainingSeconds = 120;
 
+  // ------------------------------------------------------------
+  // Init
+  // ------------------------------------------------------------
+
   @override
   void initState() {
     super.initState();
     _startTimer();
   }
+
+  // ------------------------------------------------------------
+  // Timer
+  // ------------------------------------------------------------
 
   void _startTimer() {
     _timer?.cancel();
@@ -73,6 +81,10 @@ class _VerificationCodePageState
 
   bool get _canResend => _remainingSeconds == 0;
 
+  // ------------------------------------------------------------
+  // Dispose
+  // ------------------------------------------------------------
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -89,6 +101,10 @@ class _VerificationCodePageState
 
     super.dispose();
   }
+
+  // ------------------------------------------------------------
+  // Code
+  // ------------------------------------------------------------
 
   void _handleCodeChanged(
     String value,
@@ -127,6 +143,10 @@ class _VerificationCodePageState
     );
   }
 
+  // ------------------------------------------------------------
+  // Code Field
+  // ------------------------------------------------------------
+
   Widget _buildCodeField({
     required TextEditingController controller,
     required FocusNode focusNode,
@@ -136,18 +156,28 @@ class _VerificationCodePageState
     return AppTextField(
       controller: controller,
       focusNode: focusNode,
+
       width: 64,
       height: 64,
+
       textAlign: TextAlign.center,
+
       keyboardType: TextInputType.number,
+
       textInputAction: TextInputAction.next,
+
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
         LengthLimitingTextInputFormatter(1),
       ],
+
       onChanged: (value) {
-        _handleCodeChanged(value, nextFocus);
+        _handleCodeChanged(
+          value,
+          nextFocus,
+        );
       },
+
       onSubmitted: (_) {
         if (nextFocus != null) {
           nextFocus.requestFocus();
@@ -156,13 +186,22 @@ class _VerificationCodePageState
     );
   }
 
+  // ------------------------------------------------------------
+  // Build
+  // ------------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F7),
+
       body: Stack(
         children: [
-          // ۱) پس‌زمینه تزئینی
+
+          // ====================================================
+          // Background
+          // ====================================================
+
           const Positioned.fill(
             child: ClipRect(
               child: Align(
@@ -172,157 +211,276 @@ class _VerificationCodePageState
             ),
           ),
 
-          // ۲) کارت + فرم کد تأیید
+          // ====================================================
+          // Scrollable Main Content
+          // ====================================================
+
           SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 32),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                vertical: 32,
+              ),
+
+              child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.center,
+
                   children: [
-                    const FakoorLoginCard(),
 
-                    const SizedBox(height: 64),
+                    // ==================================================
+                    // 64 px above card
+                    // ==================================================
 
-                    Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // زمان باقی مانده + ارسال مجدد
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'زمان باقی مانده:',
-                                style: TextStyle(
-                                  fontFamily: 'Estedad',
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF101018),
+                    Container(
+                      height: 64,
+                    ),
+
+                    // ==================================================
+                    // Card
+                    // ==================================================
+
+                    FakoorLoginCard(
+                      child: Form(
+                        key: _formKey,
+
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment:
+                              CrossAxisAlignment.center,
+
+                          children: [
+
+                            // ========================================
+                            // Remaining Time + Resend
+                            // ========================================
+
+                            Row(
+                              mainAxisSize:
+                                  MainAxisSize.min,
+
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.center,
+
+                              children: [
+
+                                const Text(
+                                  'زمان باقی مانده:',
+                                  style: TextStyle(
+                                    fontFamily:
+                                        'Estedad-VF',
+                                    fontSize: 16,
+                                    fontWeight:
+                                        FontWeight.w600,
+                                    color:
+                                        Color(0xFF101018),
+                                  ),
                                 ),
-                              ),
 
-                              const SizedBox(width: 16),
-
-                              Text(
-                                _formattedTime,
-                                style: const TextStyle(
-                                  fontFamily: 'Estedad',
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF101018),
+                                const SizedBox(
+                                  width: 16,
                                 ),
-                              ),
 
-                              const SizedBox(width: 32),
+                                Text(
+                                  _formattedTime,
+                                  style:
+                                      const TextStyle(
+                                    fontFamily:
+                                        'Estedad-VF',
+                                    fontSize: 16,
+                                    fontWeight:
+                                        FontWeight.w600,
+                                    color:
+                                        Color(0xFF101018),
+                                  ),
+                                ),
 
-                              CustomButton(
-                                label: 'ارسال مجدد',
-                                type: ButtonType.tertiary,
-                                width: 140,
-                                onPressed: _canResend
-                                    ? _handleResendCode
-                                    : null,
-                              ),
-                            ],
-                          ),
+                                const SizedBox(
+                                  width: 32,
+                                ),
 
-                          const SizedBox(height: 24),
+                                CustomButton(
+                                  label:
+                                      'ارسال مجدد',
 
-                          // چهار فیلد کد تأیید
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildCodeField(
-                                controller: _code1Controller,
-                                focusNode: _focusNode1,
-                                nextFocus: _focusNode2,
-                                previousFocus: null,
-                              ),
+                                  type:
+                                      ButtonType.tertiary,
 
-                              const SizedBox(width: 16),
+                                  width: 140,
 
-                              _buildCodeField(
-                                controller: _code2Controller,
-                                focusNode: _focusNode2,
-                                nextFocus: _focusNode3,
-                                previousFocus: _focusNode1,
-                              ),
+                                  onPressed:
+                                      _canResend
+                                          ? _handleResendCode
+                                          : null,
+                                ),
+                              ],
+                            ),
 
-                              const SizedBox(width: 16),
+                            const SizedBox(
+                              height: 24,
+                            ),
 
-                              _buildCodeField(
-                                controller: _code3Controller,
-                                focusNode: _focusNode3,
-                                nextFocus: _focusNode4,
-                                previousFocus: _focusNode2,
-                              ),
+                            // ========================================
+                            // Verification Code Fields
+                            // ========================================
 
-                              const SizedBox(width: 16),
+                            Row(
+                              mainAxisSize:
+                                  MainAxisSize.min,
 
-                              _buildCodeField(
-                                controller: _code4Controller,
-                                focusNode: _focusNode4,
-                                nextFocus: null,
-                                previousFocus: _focusNode3,
-                              ),
-                            ],
-                          ),
+                              children: [
 
-                          const SizedBox(height: 64),
+                                _buildCodeField(
+                                  controller:
+                                      _code1Controller,
+                                  focusNode:
+                                      _focusNode1,
+                                  nextFocus:
+                                      _focusNode2,
+                                  previousFocus:
+                                      null,
+                                ),
 
-                          // تایید کد
-                          CustomButton(
-                            label: 'تایید کد',
-                            type: ButtonType.primary,
-                            width: 204,
-                            onPressed: _handleVerifyCode,
-                          ),
+                                const SizedBox(
+                                  width: 16,
+                                ),
 
-                          const SizedBox(height: 24),
+                                _buildCodeField(
+                                  controller:
+                                      _code2Controller,
+                                  focusNode:
+                                      _focusNode2,
+                                  nextFocus:
+                                      _focusNode3,
+                                  previousFocus:
+                                      _focusNode1,
+                                ),
 
-                          // بازگشت
-                          CustomButton(
-                            label: 'بازگشت',
-                            type: ButtonType.tertiary,
-                            width: 204,
-                            onPressed: _handleBack,
-                          ),
-                        ],
+                                const SizedBox(
+                                  width: 16,
+                                ),
+
+                                _buildCodeField(
+                                  controller:
+                                      _code3Controller,
+                                  focusNode:
+                                      _focusNode3,
+                                  nextFocus:
+                                      _focusNode4,
+                                  previousFocus:
+                                      _focusNode2,
+                                ),
+
+                                const SizedBox(
+                                  width: 16,
+                                ),
+
+                                _buildCodeField(
+                                  controller:
+                                      _code4Controller,
+                                  focusNode:
+                                      _focusNode4,
+                                  nextFocus:
+                                      null,
+                                  previousFocus:
+                                      _focusNode3,
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(
+                              height: 64,
+                            ),
+
+                            // ========================================
+                            // Verify Code
+                            // ========================================
+
+                            CustomButton(
+                              label:
+                                  'تایید کد',
+
+                              type:
+                                  ButtonType.primary,
+
+                              width: 204,
+
+                              onPressed:
+                                  _handleVerifyCode,
+                            ),
+
+                            const SizedBox(
+                              height: 24,
+                            ),
+
+                            // ========================================
+                            // Back
+                            // ========================================
+
+                            CustomButton(
+                              label:
+                                  'بازگشت',
+
+                              type:
+                                  ButtonType.tertiary,
+
+                              width: 204,
+
+                              onPressed:
+                                  _handleBack,
+                            ),
+                          ],
+                        ),
                       ),
+                    ),
+
+                    // ==================================================
+                    // 64 px below card
+                    // ==================================================
+
+                    Container(
+                      height: 64,
+                    ),
+
+                    // ==================================================
+                    // Version
+                    // ==================================================
+
+                    Container(
+                      width: double.infinity,
+                      alignment: Alignment.center,
+
+                      child: const Text(
+                        'نسخه 1.0.0',
+
+                        textAlign:
+                            TextAlign.center,
+
+                        style: TextStyle(
+                          fontFamily:
+                              'Estedad-VF',
+                          fontSize: 14,
+                          fontWeight:
+                              FontWeight.normal,
+                          color:
+                              Color(0xFFF3F3F7),
+                        ),
+                      ),
+                    ),
+
+                    // ==================================================
+                    // 128 px below version
+                    // ==================================================
+
+                    Container(
+                      height: 128,
                     ),
                   ],
                 ),
               ),
             ),
           ),
-
-          // ۳) متن نسخه
-          Column(
-  mainAxisSize: MainAxisSize.min,
-  children: [
-    const SizedBox(height: 64),
-
-    Container(
-      width: double.infinity,
-      alignment: Alignment.center,
-      child: const Text(
-        'نسخه 1.0.0',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontFamily: 'Estedad-VF',
-          fontSize: 14,
-          fontWeight: FontWeight.normal,
-          color: Color(0xFF101018),
-        ),
-      ),
-    ),
-
-    const SizedBox(height: 128),
-  ],
-)
         ],
       ),
     );

@@ -359,7 +359,6 @@ void _removeTag(int index) {
   controller: letterNumberController,
   type: LetterNumberType.contract,
 ),
-const SizedBox(height: 32),
                         const SizedBox(height: 32),
                         SmartDateField(
                           controller: dateController,

@@ -375,7 +375,8 @@ class _RegisterPageState extends State<RegisterPage> {
                             fontWeight:
                                 FontWeight.normal,
                             color:
-                                Color(0xFF101018),
+                                  Color(0xFFF3F3F7),
+
                           ),
                         ),
                       ),

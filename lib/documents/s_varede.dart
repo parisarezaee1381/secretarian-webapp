@@ -383,7 +383,6 @@ void _submitForm() {
   controller: letterNumberController,
   type: LetterNumberType.incoming,
 ),
-const SizedBox(height: 32),
                         const SizedBox(height: 32),
                         SmartDateField(
                           controller: dateController,

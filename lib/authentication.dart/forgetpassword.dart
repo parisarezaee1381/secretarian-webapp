@@ -101,137 +101,141 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
 
               child: Center(
-                child: FakoorLoginCard(
-                  child: Form(
-                    key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.center,
 
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment:
-                          CrossAxisAlignment.center,
+                  children: [
 
-                      children: [
+                    // ==================================================
+                    // 64 px above card
+                    // ==================================================
 
-                        // ==========================================
-                        // Logo
-                        // ==========================================
-
-                        Image.asset(
-                          'assets/images/logo.png',
-                          width: 120,
-                          height: 64,
-                        ),
-
-                        const SizedBox(height: 32),
-
-                        // ==========================================
-                        // Title
-                        // ==========================================
-
-                        const Text(
-                          'سیستم دبیرخانه فکور',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'Estedad-VF',
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF101018),
-                          ),
-                        ),
-
-                        const SizedBox(height: 64),
-
-                        // ==========================================
-                        // Email
-                        // ==========================================
-
-                        AppTextField(
-                          controller:
-                              _emailController,
-
-                          labelText: 'ایمیل',
-
-                          keyboardType:
-                              TextInputType.emailAddress,
-
-                          textInputAction:
-                              TextInputAction.done,
-
-                          validator:
-                              _emailValidator,
-                        ),
-
-                        const SizedBox(height: 64),
-
-                        // ==========================================
-                        // Send Code Button
-                        // ==========================================
-
-                        CustomButton(
-                          label: 'ارسال کد',
-
-                          type:
-                              ButtonType.primary,
-
-                          width: 204,
-
-                          onPressed:
-                              _handleSendCode,
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // ==========================================
-                        // Back Button
-                        // ==========================================
-
-                        CustomButton(
-                          label: 'بازگشت',
-
-                          type:
-                              ButtonType.tertiary,
-
-                          width: 204,
-
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ],
+                    Container(
+                      height: 64,
                     ),
-                  ),
+
+                    // ==================================================
+                    // Card
+                    // ==================================================
+
+                    FakoorLoginCard(
+                      child: Form(
+                        key: _formKey,
+
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment:
+                              CrossAxisAlignment.center,
+
+                          children: [
+
+                            // ========================================
+                            // Email
+                            // ========================================
+
+                            AppTextField(
+                              controller:
+                                  _emailController,
+
+                              labelText:
+                                  'ایمیل',
+
+                              keyboardType:
+                                  TextInputType.emailAddress,
+
+                              textInputAction:
+                                  TextInputAction.done,
+
+                              validator:
+                                  _emailValidator,
+                            ),
+
+                            const SizedBox(height: 64),
+
+
+                            // ========================================
+// Buttons
+// ========================================
+
+Row(
+  mainAxisSize: MainAxisSize.min,
+  children: [
+
+    // ارسال کد
+    CustomButton(
+      label: 'ارسال کد',
+      type: ButtonType.primary,
+      width: 204,
+      onPressed: _handleSendCode,
+    ),
+
+    // فاصله 32 پیکسل
+    const SizedBox(width: 32),
+
+    // بازگشت
+    CustomButton(
+      label: 'بازگشت',
+      type: ButtonType.tertiary,
+      width: 204,
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    ),
+  ],
+),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // ==================================================
+                    // 64 px below card
+                    // ==================================================
+
+                    Container(
+                      height: 64,
+                    ),
+
+                    // ==================================================
+                    // Version
+                    // ==================================================
+
+                    Container(
+                      width: double.infinity,
+                      alignment: Alignment.center,
+
+                      child: const Text(
+                        'نسخه 1.0.0',
+
+                        textAlign:
+                            TextAlign.center,
+
+                        style: TextStyle(
+                          fontFamily:
+                              'Estedad-VF',
+                          fontSize: 14,
+                          fontWeight:
+                              FontWeight.normal,
+                          color:
+                              Color(0xFFF3F3F7),
+                        ),
+                      ),
+                    ),
+
+                    // ==================================================
+                    // 128 px below version
+                    // ==================================================
+
+                    Container(
+                      height: 128,
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-
-          // ====================================================
-          // Version
-          // ====================================================
-
-Column(
-  mainAxisSize: MainAxisSize.min,
-  children: [
-    const SizedBox(height: 64),
-
-    Container(
-      width: double.infinity,
-      alignment: Alignment.center,
-      child: const Text(
-        'نسخه 1.0.0',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontFamily: 'Estedad-VF',
-          fontSize: 14,
-          fontWeight: FontWeight.normal,
-          color: Color(0xFF101018),
-        ),
-      ),
-    ),
-
-    const SizedBox(height: 128),
-  ],
-)
         ],
       ),
     );

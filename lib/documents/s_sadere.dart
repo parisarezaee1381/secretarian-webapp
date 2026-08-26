@@ -1,7 +1,8 @@
-import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_1/documents.dart';
+import 'package:flutter_application_1/widgets.dart/pdf_save.dart';
 import '../document_repository.dart'; 
 
 import '../widgets.dart/smart_date_field.dart';
@@ -9,7 +10,6 @@ import '../widgets.dart/modal.dart';
 import '../widgets.dart/letter_number_generator.dart';
 import '../attachments.dart/attached_item.dart';
 import '../attachments.dart/attachments_panel.dart';
-
 import 'package:flutter_application_1/documents/m_sadere.dart';
 
 import '../widgets.dart/switch_button.dart';
@@ -17,10 +17,8 @@ import '../widgets.dart/buttons.dart';
 import '../widgets.dart/text_input.dart';
 import '../widgets.dart/dropdown_menu.dart';
 import '../widgets.dart/header.dart';
-import '../widgets.dart/file_picker.dart'; // مسیر واقعی رو با ساختار پروژه‌ت تنظیم کن
 
 import 'package:flutter_application_1/widgets.dart/pdf_document.dart';
-import 'package:flutter_application_1/widgets.dart/pdf_generator.dart';
 
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -70,7 +68,6 @@ void initState() {
     _followUpDate = doc.followUpDate;
     _followUpBy = doc.followUpBy;
     _isFileSwitchOn = doc.saveFile;
-    _selectedFilePath = doc.filePath;
   }
 }
 
@@ -100,7 +97,6 @@ void initState() {
 
   bool _isSwitchOn = false;
   bool _isFileSwitchOn = false;
-  String? _selectedFilePath;
 
   List<AttachedItem> _currentAttachments = [];
 
@@ -156,44 +152,7 @@ void _showModal() {
   });
 }
 
- Future<void> _pickFile() async {
-  final result = await Navigator.push<String?>(
-    context,
-    MaterialPageRoute(
-      builder: (context) => FileSavePickerPage(
-        suggestedFileName: letterNumberController.text.trim(),
-      ),
-    ),
-  );
 
-  if (result == '__error__') {
-    setState(() {
-      _isFileSwitchOn = false;
-      _selectedFilePath = null;
-    });
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
-      const SnackBar(
-        content: Text('خطا در انتخاب محل ذخیره فایل'),
-        backgroundColor: Color(0xFFA85838),
-      ),
-    );
-    return;
-  }
-
-  if (result == null) {
-    // کاربر Cancel کرده
-    setState(() {
-      _isFileSwitchOn = false;
-      _selectedFilePath = null;
-    });
-    return;
-  }
-
-  setState(() {
-    _selectedFilePath = result;
-    _isFileSwitchOn = true;
-  });
-}
 
   bool _validateForm() {
     final newErrors = <String, String?>{
@@ -208,13 +167,62 @@ void _showModal() {
     setState(() => _errors.addAll(newErrors));
     return newErrors.values.every((e) => e == null);
   }
-  
-  Future<void> _submitForm() async {
+
+Future<void> _submitForm() async {
   if (!_validateForm()) return;
+
+  // مسیر نهایی PDF
+  String? pdfPath;
+
+  // =====================================================
+  // 1. اگر سوییچ ذخیره فایل روشن است، پوشه را انتخاب کن
+  // =====================================================
+
+  if (_isFileSwitchOn) {
+    final pdfData = PdfDocumentData(
+      type: PdfDocumentType.outgoing,
+      letterNumber: letterNumberController.text.trim(),
+      date: dateController.text,
+      subject: subjectController.text.trim(),
+      tags: List<String>.from(tags),
+      organization: organizationController.text.trim(),
+      recipient: recipientController.text.trim(),
+      registrationDate: registrationDateController.text,
+      signer: signerController.text.trim(),
+      outgoingActionBy: actionByController.text.trim(),
+      sendMethod: selectedSendMethod,
+      archiveFolder: archiveFolderController.text.trim(),
+      priority: selectedPriority,
+      needsFollowUp: _isSwitchOn,
+      followUpDate: _followUpDate,
+      followUpBy: _followUpBy,
+    );
+
+    // فقط پوشه را از کاربر می‌گیرد
+    final selectedFolder =
+        await SavePdfWidget.chooseSaveFolder();
+
+    // اگر کاربر Cancel کرد
+    if (selectedFolder == null) {
+      return;
+    }
+
+    // ساخت مسیر کامل فایل PDF
+    pdfPath = SavePdfWidget.buildFilePath(
+      folderPath: selectedFolder,
+      document: pdfData,
+      suggestedFileName: letterNumberController.text.trim(),
+    );
+  }
+
+  // =====================================================
+  // 2. ساخت Document اصلی
+  // =====================================================
 
   final document = OutgoingLetterDocument(
     id: widget.initialDocument?.id ??
-        DateTime.now().microsecondsSinceEpoch.toString(), 
+        DateTime.now().microsecondsSinceEpoch.toString(),
+
     letterNumber: letterNumberController.text.trim(),
     date: dateController.text,
     subject: subjectController.text.trim(),
@@ -237,7 +245,10 @@ void _showModal() {
     followUpBy: _followUpBy,
 
     saveFile: _isFileSwitchOn,
-    filePath: _selectedFilePath,
+
+    // اگر سوییچ خاموش باشد null است
+    // اگر روشن باشد مسیر PDF است
+    filePath: pdfPath,
 
     attachments: _currentAttachments.map((item) {
       return AttachmentDocument(
@@ -246,44 +257,42 @@ void _showModal() {
         bytes: item.bytes,
       );
     }).toList(),
-    
   );
-  
-  // خط جدید: اضافه کردن سند به مخزن موقت حافظه
+
+  // =====================================================
+  // 3. ساخت و ذخیره PDF
+  // =====================================================
+
   if (document.saveFile && document.filePath != null) {
-  try {
-    final pdfData = PdfDocumentData.fromOutgoing(document);
+    try {
+      await SavePdfWidget.savePdf(
+        document: PdfDocumentData.fromOutgoing(document),
+        path: document.filePath!,
+      );
 
-    final pdfBytes = await DocumentPdfGenerator.generate(
-      pdfData,
-    );
+      rootScaffoldMessengerKey.currentState?.showSnackBar(
+        const SnackBar(
+          content: Text('PDF با موفقیت ذخیره شد'),
+          backgroundColor: Color(0xFF3863A8),
+        ),
+      );
+    } catch (e) {
+      rootScaffoldMessengerKey.currentState?.showSnackBar(
+        const SnackBar(
+          content: Text('خطا در ساخت یا ذخیره PDF'),
+          backgroundColor: Color(0xFFA85838),
+        ),
+      );
 
-    final file = File(document.filePath!);
-
-    await file.writeAsBytes(
-      pdfBytes,
-      flush: true,
-    );
-
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
-      const SnackBar(
-        content: Text('PDF با موفقیت ذخیره شد'),
-        backgroundColor: Color(0xFF3863A8),
-      ),
-    );
-  } catch (e) {
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
-      const SnackBar(
-        content: Text('خطا در ساخت یا ذخیره PDF'),
-        backgroundColor: Color(0xFFA85838),
-      ),
-    );
-
-    return;
+      return;
+    }
   }
-}
 
-if (widget.initialDocument != null) {                     // ← این بخش تغییر کرد
+  // =====================================================
+  // 4. ذخیره Document در Repository
+  // =====================================================
+
+  if (widget.initialDocument != null) {
     DocumentRepository.instance.updateOutgoing(
       widget.initialDocument!.id,
       document,
@@ -292,15 +301,21 @@ if (widget.initialDocument != null) {                     // ← این بخش �
     await DocumentRepository.instance.addOutgoing(document);
   }
 
+  // =====================================================
+  // 5. رفتن به صفحه نمایش نامه
+  // =====================================================
+
   if (!mounted) return;
+
   Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (context) => OutgoingLetterViewPage(document: document),
+      builder: (context) => OutgoingLetterViewPage(
+        document: document,
+      ),
     ),
   );
 }
-
 
   void _cancelForm() {
     rootScaffoldMessengerKey.currentState?.showSnackBar(
@@ -444,7 +459,6 @@ if (widget.initialDocument != null) {                     // ← این بخش �
   controller: letterNumberController,
   type: LetterNumberType.outgoing,
 ),
-const SizedBox(height: 32),
                         const SizedBox(height: 32),
                         SmartDateField(
                           controller: dateController,
@@ -643,36 +657,13 @@ const SizedBox(height: 32),
                             Row(
                               children: [
                                 AppSwitch(
-                                  value: _isFileSwitchOn,
-                                  onChanged: (value) async {
-                                    if (value) {
-                                      await _pickFile();
-                                    } else {
-                                      setState(() {
-                                        _isFileSwitchOn = false;
-                                        _selectedFilePath = null;
-                                      });
-                                    }
-                                  },
-                                ),
-                                if (_selectedFilePath != null) ...[
-                                  const SizedBox(width: 16),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF3863A8),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      _selectedFilePath!,
-                                      style: const TextStyle(
-                                        color: Color(0xFFF3F3F7),
-                                        fontSize: 14,
-                                        fontFamily: 'Estedad',
-                                      ),
-                                    ),
-                                  ),
-                                ],
+  value: _isFileSwitchOn,
+  onChanged: (value) {
+    setState(() {
+      _isFileSwitchOn = value;
+    });
+  },
+),
                               ],
                             ),
                           ],
