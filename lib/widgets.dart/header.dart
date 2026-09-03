@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'back_icon.dart';
 
-/// رنگ‌های پیش‌فرض [AppHeader].
 @immutable
 class AppHeaderColors {
   const AppHeaderColors({
@@ -19,16 +18,9 @@ class AppHeaderColors {
   final double hoverOpacity;
 }
 
-/// نوع آیتم سمت leading هدر.
-enum HeaderLeading {
-  back,
-  settings,
-  none,
-}
+enum HeaderLeading { back, settings, none }
 
-/// هدر استاندارد برنامه.
-class AppHeader extends StatelessWidget
-    implements PreferredSizeWidget {
+class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   const AppHeader({
     super.key,
     required this.title,
@@ -40,6 +32,7 @@ class AppHeader extends StatelessWidget
     this.horizontalPadding = 24,
     this.titleStyle,
     this.colors = const AppHeaderColors(),
+    this.responsive = true,
   });
 
   final String title;
@@ -55,20 +48,22 @@ class AppHeader extends StatelessWidget
   final TextStyle? titleStyle;
   final AppHeaderColors colors;
 
+  final bool responsive;
+
   @override
   Size get preferredSize => Size.fromHeight(height);
 
-  Widget _buildLeading(BuildContext context) {
+  Widget _buildLeading(BuildContext context, double iconSize) {
     switch (leading) {
       case HeaderLeading.back:
         return AppBackButton(
-    onPressed: onLeadingPressed, 
-    iconColor: colors.icon,
-    size: 32,
-    hoverBackgroundColor: colors.hover,
-    hoverBackgroundOpacity: colors.hoverOpacity,
-    borderRadius: 10,
-  );
+          onPressed: onLeadingPressed,
+          iconColor: colors.icon,
+          size: iconSize,
+          hoverBackgroundColor: colors.hover,
+          hoverBackgroundOpacity: colors.hoverOpacity,
+          borderRadius: 10,
+        );
 
       case HeaderLeading.settings:
         return _HeaderIconButton(
@@ -81,73 +76,155 @@ class AppHeader extends StatelessWidget
         );
 
       case HeaderLeading.none:
-        return const SizedBox(width: 32);
+        return const SizedBox.shrink();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final sideReserved =
-        (logoWidth > 48.0 ? logoWidth : 48.0) + 16;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double screenWidth = constraints.maxWidth;
 
-    return Semantics(
-      header: true,
-      child: Container(
-        height: height,
-        width: double.infinity,
-        color: colors.background,
-        padding: EdgeInsets.symmetric(
-          horizontal: horizontalPadding,
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // دکمه‌ی Back یا Settings
-            Positioned(
-              left: 0,
-              child: _buildLeading(context),
-            ),
+        final bool isMobile = responsive && screenWidth < 600;
 
-            // عنوان
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: sideReserved,
-              ),
-              child: Text(
-                title,
-                style: titleStyle ??
-                    TextStyle(
-                      color: colors.title,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Estedad',
-                    ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
+        final bool isTablet =
+            responsive && screenWidth >= 600 && screenWidth < 900;
 
-            // لوگوی ثابت برنامه
-            Positioned(
-              right: 0,
-              child: SizedBox(
-                width: logoWidth,
-                height: logoHeight,
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  fit: BoxFit.contain,
+        // ارتفاع
+        final double headerHeight = !responsive
+            ? height
+            : isMobile
+            ? 64
+            : isTablet
+            ? 72
+            : height;
+
+        // padding
+        final double padding = !responsive
+            ? horizontalPadding
+            : isMobile
+            ? 12
+            : isTablet
+            ? 16
+            : horizontalPadding;
+
+        // لوگو
+        final double currentLogoWidth = !responsive
+            ? logoWidth
+            : isMobile
+            ? 72
+            : isTablet
+            ? 96
+            : logoWidth;
+
+        final double currentLogoHeight = !responsive
+            ? logoHeight
+            : isMobile
+            ? 48
+            : isTablet
+            ? 56
+            : logoHeight;
+
+        // آیکون
+        final double iconSize = isMobile ? 28 : 32;
+
+        // عنوان
+        final double titleFontSize = !responsive
+            ? 24
+            : isMobile
+            ? 18
+            : isTablet
+            ? 21
+            : 24;
+
+        /*
+         * فضایی که برای دو طرف عنوان رزرو می‌کنیم.
+         *
+         * سمت چپ:
+         * دکمه + فاصله
+         *
+         * سمت راست:
+         * لوگو + فاصله
+         */
+        final double leftSpace = leading == HeaderLeading.none
+            ? 16
+            : iconSize + 24;
+
+        final double rightSpace = currentLogoWidth + 24;
+
+        return Semantics(
+          header: true,
+          child: Container(
+            width: double.infinity,
+            height: headerHeight,
+            color: colors.background,
+            padding: EdgeInsets.symmetric(horizontal: padding),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // -------------------------
+                // دکمه سمت چپ
+                // -------------------------
+
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(child: _buildLeading(context, iconSize)),
                 ),
-              ),
+
+                // -------------------------
+                // عنوان
+                // -------------------------
+                Positioned(
+                  left: leftSpace,
+                  right: rightSpace,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style:
+                          titleStyle ??
+                          TextStyle(
+                            color: colors.title,
+                            fontSize: titleFontSize,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Estedad',
+                          ),
+                    ),
+                  ),
+                ),
+
+                // -------------------------
+                // لوگو سمت راست
+                // -------------------------
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: SizedBox(
+                    width: currentLogoWidth,
+                    height: currentLogoHeight,
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
 
-/// دکمه‌ی آیکون‌دار عمومی برای سمت leading هدر.
 class _HeaderIconButton extends StatefulWidget {
   const _HeaderIconButton({
     required this.icon,
@@ -173,8 +250,7 @@ class _HeaderIconButton extends StatefulWidget {
   }
 }
 
-class _HeaderIconButtonState
-    extends State<_HeaderIconButton> {
+class _HeaderIconButtonState extends State<_HeaderIconButton> {
   bool _isHovered = false;
 
   @override
@@ -202,9 +278,7 @@ class _HeaderIconButtonState
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: _isHovered
-                  ? widget.hoverColor.withValues(
-                      alpha: widget.hoverOpacity,
-                    )
+                  ? widget.hoverColor.withValues(alpha: widget.hoverOpacity)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(10),
             ),

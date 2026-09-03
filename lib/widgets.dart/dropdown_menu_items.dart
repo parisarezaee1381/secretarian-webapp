@@ -37,21 +37,30 @@ class DropdownMenuItemWidget extends StatefulWidget {
     this.pressedDuration = const Duration(milliseconds: 300),
     this.colors = const DropdownItemColors(),
     this.textStyle,
+    this.responsive = true,
   });
 
   final String label;
   final VoidCallback? onTap;
+
   final bool isFirst;
   final bool isLast;
   final bool isSelected;
 
   final double height;
   final EdgeInsets padding;
+
   final double borderRadius;
+
   final Duration duration;
   final Duration pressedDuration;
+
   final DropdownItemColors colors;
+
   final TextStyle? textStyle;
+
+  /// اگر false باشد، اندازه‌های قبلی بدون تغییر استفاده می‌شوند.
+  final bool responsive;
 
   @override
   State<DropdownMenuItemWidget> createState() => _DropdownMenuItemWidgetState();
@@ -65,85 +74,188 @@ class _DropdownMenuItemWidgetState extends State<DropdownMenuItemWidget> {
 
   void _setHovered(bool hovered) {
     if (!_isInteractive) return;
+
     setState(() {
       _isHovered = hovered;
-      if (!hovered) _isPressed = false;
+
+      if (!hovered) {
+        _isPressed = false;
+      }
     });
   }
 
   void _setPressed(bool pressed) {
     if (!_isInteractive) return;
-    setState(() => _isPressed = pressed);
+
+    setState(() {
+      _isPressed = pressed;
+    });
   }
 
   Color _backgroundColor() {
     final colors = widget.colors;
-    if (_isPressed) return colors.pressed.withValues(alpha: colors.pressedOpacity);
-    if (widget.isSelected) return colors.selected;
-    if (_isHovered) return colors.hover;
+
+    if (_isPressed) {
+      return colors.pressed.withValues(alpha: colors.pressedOpacity);
+    }
+
+    if (widget.isSelected) {
+      return colors.selected;
+    }
+
+    if (_isHovered) {
+      return colors.hover;
+    }
+
     return colors.background;
   }
 
   BorderRadius _resolvedBorderRadius() {
     final radius = Radius.circular(widget.borderRadius);
-    if (widget.isFirst && widget.isLast) return BorderRadius.all(radius);
-    if (widget.isFirst) return BorderRadius.vertical(top: radius);
-    if (widget.isLast) return BorderRadius.vertical(bottom: radius);
+
+    if (widget.isFirst && widget.isLast) {
+      return BorderRadius.all(radius);
+    }
+
+    if (widget.isFirst) {
+      return BorderRadius.vertical(top: radius);
+    }
+
+    if (widget.isLast) {
+      return BorderRadius.vertical(bottom: radius);
+    }
+
     return BorderRadius.zero;
+  }
+
+  EdgeInsets _responsivePadding(double width) {
+    if (!widget.responsive) {
+      return widget.padding;
+    }
+
+    if (width < 360) {
+      return const EdgeInsets.symmetric(vertical: 12, horizontal: 16);
+    }
+
+    if (width < 600) {
+      return const EdgeInsets.symmetric(vertical: 14, horizontal: 20);
+    }
+
+    return widget.padding;
+  }
+
+  double _responsiveHeight(double width) {
+    if (!widget.responsive) {
+      return widget.height;
+    }
+
+    if (width < 360) {
+      return 52;
+    }
+
+    if (width < 600) {
+      return 56;
+    }
+
+    return widget.height;
+  }
+
+  TextStyle _responsiveTextStyle(double width) {
+    final baseStyle =
+        widget.textStyle ??
+        TextStyle(
+          color: widget.colors.text,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          fontFamily: 'Estedad',
+        );
+
+    if (!widget.responsive) {
+      return baseStyle;
+    }
+
+    if (width < 360) {
+      return baseStyle.copyWith(fontSize: 14);
+    }
+
+    if (width < 600) {
+      return baseStyle.copyWith(fontSize: 15);
+    }
+
+    return baseStyle;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: widget.isSelected,
-      enabled: _isInteractive,
-      label: widget.label,
-      child: MouseRegion(
-        onEnter: (_) => _setHovered(true),
-        onExit: (_) => _setHovered(false),
-        cursor: _isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic,
-        child: GestureDetector(
-          onTapDown: _isInteractive ? (_) => _setPressed(true) : null,
-          onTapUp: _isInteractive
-              ? (_) {
-                  _setPressed(false);
-                  widget.onTap?.call();
-                }
-              : null,
-          onTapCancel: _isInteractive ? () => _setPressed(false) : null,
-          child: AnimatedContainer(
-            duration: _isPressed ? widget.pressedDuration : widget.duration,
-            curve: Curves.easeOut,
-            width: double.infinity,
-            height: widget.height,
-            padding: widget.padding,
-            decoration: BoxDecoration(
-              color: _backgroundColor(),
-              borderRadius: _resolvedBorderRadius(),
-            ),
-            alignment: Alignment.center,
-            child: AnimatedScale(
-              scale: _isPressed ? 0.97 : 1,
-              duration: widget.duration,
-              curve: Curves.easeOut,
-              child: Text(
-                widget.label,
-                style: widget.textStyle ??
-                    TextStyle(
-                      color: widget.colors.text,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Estedad',
-                    ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+
+        /*
+         * اگر parent عرض نامحدود بدهد،
+         * از اندازه‌ی پیش‌فرض استفاده می‌کنیم.
+         */
+        final effectiveWidth = width.isFinite ? width : widget.height;
+
+        final effectiveHeight = _responsiveHeight(effectiveWidth);
+
+        final effectivePadding = _responsivePadding(effectiveWidth);
+
+        final effectiveTextStyle = _responsiveTextStyle(effectiveWidth);
+
+        return Semantics(
+          button: true,
+          selected: widget.isSelected,
+          enabled: _isInteractive,
+          label: widget.label,
+          child: MouseRegion(
+            onEnter: (_) => _setHovered(true),
+            onExit: (_) => _setHovered(false),
+            cursor: _isInteractive
+                ? SystemMouseCursors.click
+                : SystemMouseCursors.basic,
+            child: GestureDetector(
+              onTapDown: _isInteractive ? (_) => _setPressed(true) : null,
+              onTapUp: _isInteractive
+                  ? (_) {
+                      _setPressed(false);
+                      widget.onTap?.call();
+                    }
+                  : null,
+              onTapCancel: _isInteractive ? () => _setPressed(false) : null,
+              child: AnimatedContainer(
+                duration: _isPressed ? widget.pressedDuration : widget.duration,
+                curve: Curves.easeOut,
+
+                width: double.infinity,
+                height: effectiveHeight,
+
+                padding: effectivePadding,
+
+                decoration: BoxDecoration(
+                  color: _backgroundColor(),
+                  borderRadius: _resolvedBorderRadius(),
+                ),
+
+                alignment: Alignment.center,
+
+                child: AnimatedScale(
+                  scale: _isPressed ? 0.97 : 1,
+                  duration: widget.duration,
+                  curve: Curves.easeOut,
+                  child: Text(
+                    widget.label,
+                    style: effectiveTextStyle,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

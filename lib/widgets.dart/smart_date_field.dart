@@ -9,31 +9,32 @@ class _JalaliSlashFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    var digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits.length > 8) digits = digits.substring(0, 8);
+    String digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (digits.length > 8) {
+      digits = digits.substring(0, 8);
+    }
 
     final buffer = StringBuffer();
+
     for (int i = 0; i < digits.length; i++) {
       buffer.write(digits[i]);
+
       if ((i == 3 || i == 5) && i != digits.length - 1) {
         buffer.write('/');
       }
     }
 
+    final text = buffer.toString();
+
     return TextEditingValue(
-      text: buffer.toString(),
-      selection: TextSelection.collapsed(offset: buffer.length),
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
     );
   }
 }
 
 class SmartDateField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-  final bool isReadOnly;
-  final double fieldWidth;
-  final double labelWidth;
-
   SmartDateField({
     super.key,
     required this.controller,
@@ -41,11 +42,15 @@ class SmartDateField extends StatelessWidget {
     this.isReadOnly = false,
     this.fieldWidth = 548,
     this.labelWidth = 150,
+    this.labelSpacing = 0,
+    this.responsive = true,
+    this.mobileBreakpoint = 720,
   }) {
-    // فقط فیلدهای readonly به‌صورت خودکار با تاریخ امروز پر می‌شن.
-    // فیلدهای قابل‌ویرایش (مثل «تاریخ ثبت») باید توسط کاربر دستی پر بشن.
+    // اگر فیلد فقط خواندنی است و مقدار ندارد،
+    // تاریخ امروز شمسی را قرار می‌دهیم.
     if (isReadOnly && controller.text.isEmpty) {
       final today = Jalali.now();
+
       controller.text =
           '${today.year.toString().padLeft(4, '0')}/'
           '${today.month.toString().padLeft(2, '0')}/'
@@ -53,18 +58,43 @@ class SmartDateField extends StatelessWidget {
     }
   }
 
+  final TextEditingController controller;
+
+  final String label;
+
+  final bool isReadOnly;
+
+  /// عرض فیلد؛ همان عرضی که AppTextField استفاده می‌کند.
+  final double fieldWidth;
+
+  /// عرض label در حالت دسکتاپ.
+  final double labelWidth;
+
+  /// فاصله label و فیلد.
+  final double labelSpacing;
+
+  /// فعال بودن responsive.
+  final bool responsive;
+
+  /// breakpoint موبایل.
+  final double mobileBreakpoint;
+
   @override
   Widget build(BuildContext context) {
     return AppTextField(
       controller: controller,
       labelText: label,
       labelWidth: labelWidth,
-      labelSpacing: 0,
+      labelSpacing: labelSpacing,
       width: fieldWidth,
       height: 64,
+      responsive: responsive,
+      mobileBreakpoint: mobileBreakpoint,
       enabled: !isReadOnly,
       keyboardType: TextInputType.number,
-      inputFormatters: isReadOnly ? null : [_JalaliSlashFormatter()],
+      inputFormatters: isReadOnly
+          ? null
+          : <TextInputFormatter>[_JalaliSlashFormatter()],
       colors: isReadOnly
           ? const AppTextFieldColors(
               disabled: Color(0xFFF3F3F7),

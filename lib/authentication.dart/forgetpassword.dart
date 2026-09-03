@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:flutter_application_1/widgets.dart/text_input.dart';
 import 'package:flutter_application_1/widgets.dart/buttons.dart';
@@ -9,15 +10,13 @@ class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
 
   @override
-  State<ForgotPasswordPage> createState() =>
-      _ForgotPasswordPageState();
+  State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
 }
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _emailController =
-      TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
 
   // ------------------------------------------------------------
   // Dispose
@@ -40,8 +39,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     final String email = value.trim();
 
-    final RegExp emailRegex =
-        RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    final RegExp emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
 
     if (!emailRegex.hasMatch(email)) {
       return 'فرمت ایمیل صحیح نیست';
@@ -55,8 +53,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   // ------------------------------------------------------------
 
   void _handleSendCode() {
-    final bool isValid =
-        _formKey.currentState?.validate() ?? false;
+    final bool isValid = _formKey.currentState?.validate() ?? false;
 
     if (!isValid) {
       return;
@@ -74,169 +71,177 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F7),
 
-      body: Stack(
-        children: [
+      body: Material(
+        color: const Color(0xFFF3F3F7),
 
-          // ====================================================
-          // Background
-          // ====================================================
+        child: Stack(
+          children: [
+            // ====================================================
+            // Background
+            // ====================================================
 
-          const Positioned.fill(
-            child: ClipRect(
-              child: Align(
-                alignment: Alignment.center,
-                child: NestedRotatedRectangles(),
-              ),
-            ),
-          ),
+            const Positioned.fill(child: NestedRotatedRectangles()),
 
-          // ====================================================
-          // Scrollable Main Content
-          // ====================================================
+            // ====================================================
+            // Scrollable Main Content
+            // ====================================================
+            SafeArea(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(vertical: 32.w),
 
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                vertical: 32,
-              ),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
 
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment:
-                      CrossAxisAlignment.center,
+                    children: [
+                      // ==================================================
+                      // 64 px above card
+                      // ==================================================
 
-                  children: [
+                      SizedBox(height: 64.w),
 
-                    // ==================================================
-                    // 64 px above card
-                    // ==================================================
+                      // ==================================================
+                      // Card
+                      // ==================================================
+                      FakoorLoginCard(
+                        child: Form(
+                          key: _formKey,
 
-                    Container(
-                      height: 64,
-                    ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
 
-                    // ==================================================
-                    // Card
-                    // ==================================================
+                            children: [
+                              // ========================================
+                              // Email
+                              // ========================================
 
-                    FakoorLoginCard(
-                      child: Form(
-                        key: _formKey,
+                              AppTextField(
+                                controller: _emailController,
 
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment:
-                              CrossAxisAlignment.center,
+                                labelText: 'ایمیل',
 
-                          children: [
+                                keyboardType: TextInputType.emailAddress,
 
-                            // ========================================
-                            // Email
-                            // ========================================
+                                textInputAction: TextInputAction.done,
 
-                            AppTextField(
-                              controller:
-                                  _emailController,
+                                validator: _emailValidator,
+                              ),
 
-                              labelText:
-                                  'ایمیل',
+                              SizedBox(height: 64.w),
 
-                              keyboardType:
-                                  TextInputType.emailAddress,
+                              // ========================================
+                              // Buttons
+                              // ========================================
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final double buttonWidth = 204.w;
 
-                              textInputAction:
-                                  TextInputAction.done,
+                                  final double buttonSpacing = 32.w;
 
-                              validator:
-                                  _emailValidator,
-                            ),
+                                  final double totalWidth =
+                                      (buttonWidth * 2) + buttonSpacing;
 
-                            const SizedBox(height: 64),
+                                  // ------------------------------------
+                                  // Desktop / Wide screen
+                                  // ------------------------------------
 
+                                  if (constraints.maxWidth >= totalWidth) {
+                                    return Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        // ارسال کد
+                                        CustomButton(
+                                          label: 'ارسال کد',
+                                          type: ButtonType.primary,
+                                          width: buttonWidth,
+                                          onPressed: _handleSendCode,
+                                        ),
 
-                            // ========================================
-// Buttons
-// ========================================
+                                        SizedBox(width: buttonSpacing),
 
-Row(
-  mainAxisSize: MainAxisSize.min,
-  children: [
+                                        // بازگشت
+                                        CustomButton(
+                                          label: 'بازگشت',
+                                          type: ButtonType.tertiary,
+                                          width: buttonWidth,
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  }
 
-    // ارسال کد
-    CustomButton(
-      label: 'ارسال کد',
-      type: ButtonType.primary,
-      width: 204,
-      onPressed: _handleSendCode,
-    ),
+                                  // ------------------------------------
+                                  // Narrow screen
+                                  // ------------------------------------
 
-    // فاصله 32 پیکسل
-    const SizedBox(width: 32),
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CustomButton(
+                                        label: 'ارسال کد',
+                                        type: ButtonType.primary,
+                                        width: buttonWidth,
+                                        onPressed: _handleSendCode,
+                                      ),
 
-    // بازگشت
-    CustomButton(
-      label: 'بازگشت',
-      type: ButtonType.tertiary,
-      width: 204,
-      onPressed: () {
-        Navigator.pop(context);
-      },
-    ),
-  ],
-),
-                          ],
+                                      SizedBox(height: buttonSpacing),
+
+                                      CustomButton(
+                                        label: 'بازگشت',
+                                        type: ButtonType.tertiary,
+                                        width: buttonWidth,
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
 
-                    // ==================================================
-                    // 64 px below card
-                    // ==================================================
+                      // ==================================================
+                      // 64 px below card
+                      // ==================================================
+                      SizedBox(height: 64.w),
 
-                    Container(
-                      height: 64,
-                    ),
+                      // ==================================================
+                      // Version
+                      // ==================================================
+                      SizedBox(
+                        width: double.infinity,
+                        child: Text(
+                          'نسخه 1.0.0',
 
-                    // ==================================================
-                    // Version
-                    // ==================================================
+                          textAlign: TextAlign.center,
 
-                    Container(
-                      width: double.infinity,
-                      alignment: Alignment.center,
-
-                      child: const Text(
-                        'نسخه 1.0.0',
-
-                        textAlign:
-                            TextAlign.center,
-
-                        style: TextStyle(
-                          fontFamily:
-                              'Estedad-VF',
-                          fontSize: 14,
-                          fontWeight:
-                              FontWeight.normal,
-                          color:
-                              Color(0xFFF3F3F7),
+                          style: TextStyle(
+                            fontFamily: 'Estedad-VF',
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.normal,
+                            color: const Color(0xFFF3F3F7),
+                          ),
                         ),
                       ),
-                    ),
 
-                    // ==================================================
-                    // 128 px below version
-                    // ==================================================
-
-                    Container(
-                      height: 128,
-                    ),
-                  ],
+                      // ==================================================
+                      // 128 px below version
+                      // ==================================================
+                      SizedBox(height: 128.w),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

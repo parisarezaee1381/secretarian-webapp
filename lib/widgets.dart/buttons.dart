@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 enum ButtonType { primary, secondary, tertiary }
 
@@ -34,7 +35,6 @@ const Map<ButtonType, _ButtonTypeColors> _kDefaultColors = {
   ),
 };
 
-
 class CustomButton extends StatefulWidget {
   const CustomButton({
     super.key,
@@ -49,8 +49,8 @@ class CustomButton extends StatefulWidget {
     this.borderColor,
     this.width,
     this.height,
-    this.borderRadius = 10,
-    this.padding = const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+    this.borderRadius,
+    this.padding,
     this.duration = const Duration(milliseconds: 100),
     this.pressedDuration = const Duration(milliseconds: 300),
     this.focusNode,
@@ -70,8 +70,8 @@ class CustomButton extends StatefulWidget {
 
   final double? width;
   final double? height;
-  final double borderRadius;
-  final EdgeInsets padding;
+  final double? borderRadius;
+  final EdgeInsets? padding;
 
   final Duration duration;
   final Duration pressedDuration;
@@ -158,12 +158,22 @@ class _CustomButtonState extends State<CustomButton> {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveWidth = widget.width ?? 204.w;
+    // ============================================================
+    // مقادیر پیش‌فرض ریسپانسیو (فقط زمانی که مقدار صریحی داده نشده)
+    // ============================================================
+
+    final effectivePadding =
+        widget.padding ?? EdgeInsets.symmetric(vertical: 16, horizontal: 32.w);
+
+    final effectiveBorderRadius = widget.borderRadius ?? 10.r;
+
     final textColor = _textColor();
 
     final content = widget.isLoading
         ? SizedBox(
-            width: 20,
-            height: 20,
+            width: 20.w,
+            height: 20.w,
             child: CircularProgressIndicator(strokeWidth: 2, color: textColor),
           )
         : Row(
@@ -171,17 +181,17 @@ class _CustomButtonState extends State<CustomButton> {
             children: [
               if (widget.icon != null) ...[
                 IconTheme(
-                  data: IconThemeData(color: textColor, size: 20),
+                  data: IconThemeData(color: textColor, size: 20.sp),
                   child: widget.icon!,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8.w),
               ],
               Flexible(
                 child: Text(
                   widget.label,
                   style: TextStyle(
                     color: textColor,
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
                     fontFamily: 'Estedad',
                   ),
@@ -226,12 +236,12 @@ class _CustomButtonState extends State<CustomButton> {
               child: AnimatedContainer(
                 duration: _isPressed ? widget.pressedDuration : widget.duration,
                 curve: Curves.easeOut,
-                width: widget.width,
+                width: effectiveWidth,
                 height: widget.height,
-                padding: widget.padding,
+                padding: effectivePadding,
                 decoration: BoxDecoration(
                   color: _backgroundColor(),
-                  borderRadius: BorderRadius.circular(widget.borderRadius),
+                  borderRadius: BorderRadius.circular(effectiveBorderRadius),
                   border: _hasVisibleBorder
                       ? Border.all(color: _borderColor(), width: 2)
                       : null,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:flutter_application_1/widgets.dart/text_input.dart';
 import 'package:flutter_application_1/widgets.dart/buttons.dart';
@@ -16,17 +17,14 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _usernameController =
-      TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
 
-  final TextEditingController _passwordController =
-      TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
-  final TextEditingController _emailController =
-      TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -84,8 +82,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     final String email = value.trim();
 
-    final RegExp emailRegex =
-        RegExp(r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$');
+    final RegExp emailRegex = RegExp(r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$');
 
     if (!emailRegex.hasMatch(email)) {
       return 'فرمت ایمیل صحیح نیست';
@@ -99,8 +96,7 @@ class _RegisterPageState extends State<RegisterPage> {
   // ------------------------------------------------------------
 
   void _handleRegister() {
-    final bool isValid =
-        _formKey.currentState?.validate() ?? false;
+    final bool isValid = _formKey.currentState?.validate() ?? false;
 
     if (!isValid) {
       return;
@@ -108,9 +104,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (context) => const Dashboard(),
-      ),
+      MaterialPageRoute(builder: (context) => const Dashboard()),
     );
   }
 
@@ -126,8 +120,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _toggleConfirmPasswordVisibility() {
     setState(() {
-      _obscureConfirmPassword =
-          !_obscureConfirmPassword;
+      _obscureConfirmPassword = !_obscureConfirmPassword;
     });
   }
 
@@ -145,80 +138,57 @@ class _RegisterPageState extends State<RegisterPage> {
 
         child: Stack(
           children: [
-
             // ====================================================
             // Background
             // ====================================================
 
-            const Positioned.fill(
-              child: ClipRect(
-                child: Align(
-                  alignment: Alignment.center,
-                  child: NestedRotatedRectangles(),
-                ),
-              ),
-            ),
+            const Positioned.fill(child: NestedRotatedRectangles()),
 
             // ====================================================
             // Scrollable Main Content
             // ====================================================
-
             SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 32,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 32),
 
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment:
-                        CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
 
                     children: [
-
                       // ==================================================
                       // 64 px above card
                       // ==================================================
 
-                      Container(
-                        height: 64,
-                      ),
+                      const SizedBox(height: 64),
 
                       // ==================================================
                       // Card
                       // ==================================================
-
                       FakoorLoginCard(
                         child: Form(
                           key: _formKey,
 
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment:
-                                CrossAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
 
                             children: [
-
                               // ========================================
                               // Username
                               // ========================================
 
                               AppTextField(
-                                controller:
-                                    _usernameController,
+                                controller: _usernameController,
 
-                                labelText:
-                                    'نام کاربری',
+                                labelText: 'نام کاربری',
 
-                                keyboardType:
-                                    TextInputType.text,
+                                keyboardType: TextInputType.text,
 
-                                textInputAction:
-                                    TextInputAction.next,
+                                textInputAction: TextInputAction.next,
 
-                                validator:
-                                    _usernameValidator,
+                                validator: _usernameValidator,
                               ),
 
                               const SizedBox(height: 24),
@@ -226,39 +196,30 @@ class _RegisterPageState extends State<RegisterPage> {
                               // ========================================
                               // Password
                               // ========================================
-
                               AppTextField(
-                                controller:
-                                    _passwordController,
+                                controller: _passwordController,
 
-                                labelText:
-                                    'رمز عبور',
+                                labelText: 'رمز عبور',
 
-                                obscureText:
-                                    _obscurePassword,
+                                obscureText: _obscurePassword,
 
-                                textInputAction:
-                                    TextInputAction.next,
+                                textInputAction: TextInputAction.next,
 
-                                suffixIcon:
-                                    IconButton(
-                                  onPressed:
-                                      _togglePasswordVisibility,
+                                suffixIcon: IconButton(
+                                  onPressed: _togglePasswordVisibility,
 
                                   icon: Icon(
                                     _obscurePassword
                                         ? Icons.visibility_off
                                         : Icons.visibility,
 
-                                    color:
-                                        const Color(
-                                      0xFFF3F3F7,
-                                    ),
+                                    size: 20.sp,
+
+                                    color: const Color(0xFFF3F3F7),
                                   ),
                                 ),
 
-                                validator:
-                                    _passwordValidator,
+                                validator: _passwordValidator,
                               ),
 
                               const SizedBox(height: 24),
@@ -266,39 +227,30 @@ class _RegisterPageState extends State<RegisterPage> {
                               // ========================================
                               // Confirm Password
                               // ========================================
-
                               AppTextField(
-                                controller:
-                                    _confirmPasswordController,
+                                controller: _confirmPasswordController,
 
-                                labelText:
-                                    'تکرار رمز عبور',
+                                labelText: 'تکرار رمز عبور',
 
-                                obscureText:
-                                    _obscureConfirmPassword,
+                                obscureText: _obscureConfirmPassword,
 
-                                textInputAction:
-                                    TextInputAction.next,
+                                textInputAction: TextInputAction.next,
 
-                                suffixIcon:
-                                    IconButton(
-                                  onPressed:
-                                      _toggleConfirmPasswordVisibility,
+                                suffixIcon: IconButton(
+                                  onPressed: _toggleConfirmPasswordVisibility,
 
                                   icon: Icon(
                                     _obscureConfirmPassword
                                         ? Icons.visibility_off
                                         : Icons.visibility,
 
-                                    color:
-                                        const Color(
-                                      0xFFF3F3F7,
-                                    ),
+                                    size: 20.sp,
+
+                                    color: const Color(0xFFF3F3F7),
                                   ),
                                 ),
 
-                                validator:
-                                    _confirmPasswordValidator,
+                                validator: _confirmPasswordValidator,
                               ),
 
                               const SizedBox(height: 24),
@@ -306,22 +258,16 @@ class _RegisterPageState extends State<RegisterPage> {
                               // ========================================
                               // Email
                               // ========================================
-
                               AppTextField(
-                                controller:
-                                    _emailController,
+                                controller: _emailController,
 
-                                labelText:
-                                    'ایمیل',
+                                labelText: 'ایمیل',
 
-                                keyboardType:
-                                    TextInputType.emailAddress,
+                                keyboardType: TextInputType.emailAddress,
 
-                                textInputAction:
-                                    TextInputAction.done,
+                                textInputAction: TextInputAction.done,
 
-                                validator:
-                                    _emailValidator,
+                                validator: _emailValidator,
                               ),
 
                               const SizedBox(height: 64),
@@ -329,17 +275,14 @@ class _RegisterPageState extends State<RegisterPage> {
                               // ========================================
                               // Register Button
                               // ========================================
-
                               CustomButton(
                                 label: 'ثبت نام',
 
-                                type:
-                                    ButtonType.primary,
+                                type: ButtonType.primary,
 
-                                width: 204,
+                                width: 204.w,
 
-                                onPressed:
-                                    _handleRegister,
+                                onPressed: _handleRegister,
                               ),
                             ],
                           ),
@@ -349,34 +292,25 @@ class _RegisterPageState extends State<RegisterPage> {
                       // ==================================================
                       // 64 px below card
                       // ==================================================
-
-                      Container(
-                        height: 64,
-                      ),
+                      const SizedBox(height: 64),
 
                       // ==================================================
                       // Version
                       // ==================================================
-
                       Container(
                         width: double.infinity,
                         alignment: Alignment.center,
 
-                        child: const Text(
+                        child: Text(
                           'نسخه 1.0.0',
 
-                          textAlign:
-                              TextAlign.center,
+                          textAlign: TextAlign.center,
 
                           style: TextStyle(
-                            fontFamily:
-                                'Estedad-VF',
-                            fontSize: 14,
-                            fontWeight:
-                                FontWeight.normal,
-                            color:
-                                  Color(0xFFF3F3F7),
-
+                            fontFamily: 'Estedad-VF',
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.normal,
+                            color: const Color(0xFFF3F3F7),
                           ),
                         ),
                       ),
@@ -384,10 +318,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       // ==================================================
                       // 128 px below version
                       // ==================================================
-
-                      Container(
-                        height: 128,
-                      ),
+                      const SizedBox(height: 128),
                     ],
                   ),
                 ),

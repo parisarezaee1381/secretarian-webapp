@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_application_1/widgets.dart/header.dart';
 import 'package:flutter_application_1/widgets.dart/text_input.dart';
 import 'package:flutter_application_1/widgets.dart/buttons.dart';
-import 'package:flutter_application_1/setting.dart/settingview.dart';
+import 'package:flutter_application_1/setting.dart/changepassword.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({
@@ -21,11 +22,13 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
 
-  late final TextEditingController _usernameController =
-      TextEditingController(text: widget.initialUsername);
+  late final TextEditingController _usernameController = TextEditingController(
+    text: widget.initialUsername,
+  );
 
-  late final TextEditingController _emailController =
-      TextEditingController(text: widget.initialEmail);
+  late final TextEditingController _emailController = TextEditingController(
+    text: widget.initialEmail,
+  );
 
   @override
   void dispose() {
@@ -48,21 +51,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return null;
   }
 
-  // رفتن به صفحه مشاهده رمز عبور
+  // رفتن به صفحه تغییر رمز عبور
   Future<void> _handleChangePassword() async {
     final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (context) => const SettingsViewPage(username: '', email: '',),
-      ),
+      MaterialPageRoute(builder: (context) => const ChangePasswordPage()),
     );
 
     if (result == true) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('عملیات با موفقیت انجام شد'),
-        ),
+        const SnackBar(content: Text('رمز عبور با موفقیت تغییر کرد')),
       );
     }
   }
@@ -87,98 +86,111 @@ class _EditProfilePageState extends State<EditProfilePage> {
         leading: HeaderLeading.back,
       ),
 
-      body: Stack(
-        children: [
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 32),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 128.h),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+
+              // چون پروژه RTL است:
+              // start = سمت راست
+              crossAxisAlignment: CrossAxisAlignment.start,
+
+              children: [
+                // =========================
+                // نام کاربری
+                // =========================
+                AppTextField(
+                  controller: _usernameController,
+                  labelText: 'نام کاربری',
+                  keyboardType: TextInputType.text,
+                  textInputAction: TextInputAction.next,
+                  validator: (value) => (value == null || value.trim().isEmpty)
+                      ? 'نام کاربری را وارد کنید'
+                      : null,
+                ),
+
+                const SizedBox(height: 24),
+
+                // =========================
+                // ایمیل
+                // =========================
+                AppTextField(
+                  controller: _emailController,
+                  labelText: 'ایمیل',
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.done,
+                  validator: _emailValidator,
+                ),
+
+                const SizedBox(height: 64),
+
+                // =========================
+                // تغییر رمز عبور
+                // وسط چین
+                // =========================
+                Center(
+                  child: CustomButton(
+                    label: 'تغییر رمز عبور',
+                    type: ButtonType.secondary,
+                    width: 204.w,
+                    onPressed: _handleChangePassword,
+                  ),
+                ),
+
+                const SizedBox(height: 64),
+
+                // =========================
+                // ثبت و لغو
+                // وسط چین
+                // =========================
+                Center(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      AppTextField(
-                        controller: _usernameController,
-                        labelText: 'نام کاربری',
-                        keyboardType: TextInputType.text,
-                        textInputAction: TextInputAction.next,
-                        validator: (value) =>
-                            (value == null || value.trim().isEmpty)
-                                ? 'نام کاربری را وارد کنید'
-                                : null,
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      AppTextField(
-                        controller: _emailController,
-                        labelText: 'ایمیل',
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.done,
-                        validator: _emailValidator,
-                      ),
-
-                      const SizedBox(height: 64),
-
-                      // مشاهده رمز عبور
                       CustomButton(
-                        label: 'مشاهده رمز عبور',
-                        type: ButtonType.secondary,
-                        width: 204,
-                        onPressed: _handleChangePassword,
+                        label: 'ثبت',
+                        type: ButtonType.primary,
+                        width: 204.w,
+                        onPressed: _handleSave,
                       ),
 
-                      const SizedBox(height: 64),
+                      SizedBox(width: 32.w),
 
-                      // ثبت و لغو
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CustomButton(
-                            label: 'ثبت',
-                            type: ButtonType.primary,
-                            width: 204,
-                            onPressed: _handleSave,
-                          ),
-
-                          const SizedBox(width: 32),
-
-                          CustomButton(
-                            label: 'لغو',
-                            type: ButtonType.secondary,
-                            width: 204,
-                            onPressed: _handleCancel,
-                          ),
-                        ],
+                      CustomButton(
+                        label: 'لغو',
+                        type: ButtonType.secondary,
+                        width: 204.w,
+                        onPressed: _handleCancel,
                       ),
                     ],
                   ),
                 ),
-              ),
-            ),
-          ),
 
-          // متن نسخه؛ همیشه ۱۲۸ پیکسل از پایین صفحه، وسط‌چین
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: 128,
-            child: Center(
-              child: Text(
-                'نسخه 1.0.0',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Estedad-VF',
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal,
-                  color: Color(0xFF101018),
+                const SizedBox(height: 64),
+
+                // =========================
+                // نسخه
+                // همراه محتوا اسکرول می‌شود
+                // =========================
+                Center(
+                  child: Text(
+                    'نسخه 1.0.0',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Estedad-VF',
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.normal,
+                      color: const Color(0xFF101018),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_application_1/widgets.dart/header.dart';
 import 'package:flutter_application_1/widgets.dart/text_input.dart';
 import 'package:flutter_application_1/widgets.dart/buttons.dart';
 
 class ChangePasswordPage extends StatefulWidget {
-  const ChangePasswordPage({
-    super.key,
-  });
+  const ChangePasswordPage({super.key});
 
   @override
   State<ChangePasswordPage> createState() => _ChangePasswordPageState();
@@ -18,8 +17,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   final TextEditingController _currentPasswordController =
       TextEditingController();
 
-  final TextEditingController _newPasswordController =
-      TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
 
   final TextEditingController _confirmPasswordController =
       TextEditingController();
@@ -73,7 +71,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   }
 
   void _handleCancel() {
-
     Navigator.of(context).pop(false);
   }
 
@@ -87,137 +84,146 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         leading: HeaderLeading.back,
       ),
 
-      body: Stack(
-        children: [
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 32),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 128.h),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+
+              // چون پروژه RTL است:
+              // start = سمت راست
+              crossAxisAlignment: CrossAxisAlignment.start,
+
+              children: [
+                // =========================
+                // رمز عبور قبلی
+                // =========================
+                AppTextField(
+                  controller: _currentPasswordController,
+                  labelText: 'رمز عبور قبلی',
+                  obscureText: _obscureCurrentPassword,
+                  textInputAction: TextInputAction.next,
+                  validator: _passwordValidator,
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _obscureCurrentPassword = !_obscureCurrentPassword;
+                      });
+                    },
+                    icon: Icon(
+                      _obscureCurrentPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20.sp,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // =========================
+                // رمز عبور جدید
+                // =========================
+                AppTextField(
+                  controller: _newPasswordController,
+                  labelText: 'رمز عبور جدید',
+                  obscureText: _obscureNewPassword,
+                  textInputAction: TextInputAction.next,
+                  validator: _newPasswordValidator,
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _obscureNewPassword = !_obscureNewPassword;
+                      });
+                    },
+                    icon: Icon(
+                      _obscureNewPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20.sp,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // =========================
+                // تکرار رمز عبور جدید
+                // =========================
+                AppTextField(
+                  controller: _confirmPasswordController,
+                  labelText: 'تکرار رمز عبور جدید',
+                  obscureText: _obscureConfirmPassword,
+                  textInputAction: TextInputAction.done,
+                  validator: _confirmPasswordValidator,
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                      });
+                    },
+                    icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20.sp,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 64),
+
+                // =========================
+                // تأیید و لغو
+                // وسط چین
+                // =========================
+                Center(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // رمز عبور قبلی
-                      AppTextField(
-                        controller: _currentPasswordController,
-                        labelText: 'رمز عبور قبلی',
-                        obscureText: _obscureCurrentPassword,
-                        textInputAction: TextInputAction.next,
-                        validator: _passwordValidator,
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _obscureCurrentPassword =
-                                  !_obscureCurrentPassword;
-                            });
-                          },
-                          icon: Icon(
-                            _obscureCurrentPassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
-                        ),
+                      CustomButton(
+                        label: 'تأیید',
+                        type: ButtonType.primary,
+                        width: 204.w,
+                        onPressed: _handleConfirm,
                       ),
 
-                      const SizedBox(height: 24),
+                      SizedBox(width: 32.w),
 
-                      // رمز عبور جدید
-                      AppTextField(
-                        controller: _newPasswordController,
-                        labelText: 'رمز عبور جدید',
-                        obscureText: _obscureNewPassword,
-                        textInputAction: TextInputAction.next,
-                        validator: _newPasswordValidator,
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _obscureNewPassword =
-                                  !_obscureNewPassword;
-                            });
-                          },
-                          icon: Icon(
-                            _obscureNewPassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // تکرار رمز عبور جدید
-                      AppTextField(
-                        controller: _confirmPasswordController,
-                        labelText: 'تکرار رمز عبور جدید',
-                        obscureText: _obscureConfirmPassword,
-                        textInputAction: TextInputAction.done,
-                        validator: _confirmPasswordValidator,
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword =
-                                  !_obscureConfirmPassword;
-                            });
-                          },
-                          icon: Icon(
-                            _obscureConfirmPassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 64),
-
-                      // دکمه‌های تأیید و لغو
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CustomButton(
-                            label: 'تأیید',
-                            type: ButtonType.primary,
-                            width: 204,
-                            onPressed: _handleConfirm,
-                          ),
-
-                          const SizedBox(width: 32),
-
-                          CustomButton(
-                            label: 'لغو',
-                            type: ButtonType.secondary,
-                            width: 204,
-                            onPressed: _handleCancel,
-                          ),
-                        ],
+                      CustomButton(
+                        label: 'لغو',
+                        type: ButtonType.secondary,
+                        width: 204.w,
+                        onPressed: _handleCancel,
                       ),
                     ],
                   ),
                 ),
-              ),
-            ),
-          ),
 
-          // متن نسخه؛ همیشه ۱۲۸ پیکسل از پایین صفحه، وسط‌چین
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: 128,
-            child: Center(
-              child: Text(
-                'نسخه 1.0.0',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Estedad-VF',
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal,
-                  color: Color(0xFF101018),
+                const SizedBox(height: 64),
+
+                // =========================
+                // نسخه
+                // همراه محتوا اسکرول می‌شود
+                // =========================
+                Center(
+                  child: Text(
+                    'نسخه 1.0.0',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Estedad-VF',
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.normal,
+                      color: const Color(0xFF101018),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

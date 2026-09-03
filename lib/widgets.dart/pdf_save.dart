@@ -1,7 +1,7 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_selector/file_selector.dart';
-import 'package:path/path.dart' as p;
 
 import 'pdf_generator.dart';
 import 'pdf_document.dart';
@@ -9,64 +9,49 @@ import 'pdf_document.dart';
 class SavePdfWidget {
   SavePdfWidget._();
 
-  static Future<String?> chooseSaveFolder() async {
-    final String? folderPath = await getDirectoryPath(
-      confirmButtonText: 'انتخاب پوشه',
+  // =====================================================
+  // انتخاب محل ذخیره PDF
+  // =====================================================
+
+  static Future<String?> chooseSavePath({
+    required String suggestedFileName,
+  }) async {
+    final XTypeGroup pdfType = XTypeGroup(
+      label: 'PDF',
+      extensions: ['pdf'],
+      mimeTypes: ['application/pdf'],
     );
 
-    return folderPath;
+    final FileSaveLocation? location = await getSaveLocation(
+      suggestedName: suggestedFileName,
+      acceptedTypeGroups: [pdfType],
+      confirmButtonText: 'ذخیره',
+    );
+
+    return location?.path;
   }
 
-static String buildFilePath({
-  required String folderPath,
-  required PdfDocumentData document,
-  String? suggestedFileName,
-}) {
-  final fileName = _buildFileName(
-    document,
-    suggestedFileName,
-  );
-
-  return p.join(folderPath, fileName);
-}
+  // =====================================================
+  // ساخت و ذخیره واقعی فایل PDF
+  // =====================================================
 
   static Future<void> savePdf({
     required PdfDocumentData document,
     required String path,
   }) async {
-    final Uint8List pdfBytes =
-        await DocumentPdfGenerator.generate(document);
+    // ساخت بایت‌های واقعی PDF
+    final Uint8List pdfBytes = await DocumentPdfGenerator.generate(document);
 
-    final XFile file = XFile.fromData(
-      pdfBytes,
-      name: p.basename(path),
-      mimeType: 'application/pdf',
-    );
+    // اطمینان از اینکه مسیر پسوند PDF دارد
+    String finalPath = path;
 
-    await file.saveTo(path);
-  }
-
-  static String _buildFileName(
-    PdfDocumentData document,
-    String? suggestedFileName,
-  ) {
-    if (suggestedFileName != null &&
-        suggestedFileName.trim().isNotEmpty) {
-      final String name = suggestedFileName.trim();
-
-      if (name.toLowerCase().endsWith('.pdf')) {
-        return name;
-      }
-
-      return '$name.pdf';
+    if (!finalPath.toLowerCase().endsWith('.pdf')) {
+      finalPath = '$finalPath.pdf';
     }
 
-    final String number = document.letterNumber.trim();
+    // ساخت فایل واقعی روی دیسک
+    final File file = File(finalPath);
 
-    if (number.isNotEmpty) {
-      return '$number.pdf';
-    }
-
-    return 'document.pdf';
+    await file.writeAsBytes(pdfBytes, flush: true);
   }
 }

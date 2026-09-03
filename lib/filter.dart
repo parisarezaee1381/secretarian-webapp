@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'widgets.dart/text_input.dart';
 import 'widgets.dart/dropdown_menu.dart';
 import 'widgets.dart/buttons.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class FilterValues {
   const FilterValues({
@@ -39,9 +40,9 @@ class FilterPanel extends StatefulWidget {
     this.onClear,
     this.initialValues,
     this.priorityItems = const ['عادی', 'فوری'],
-    this.panelWidth = 500,
-    this.rightPadding = 64,
-    this.leftPadding = 24,
+    this.panelWidth,
+    this.rightPadding,
+    this.leftPadding,
     this.backgroundColor = const Color(0xFFBBBBC0),
   });
 
@@ -50,9 +51,9 @@ class FilterPanel extends StatefulWidget {
 
   final FilterValues? initialValues;
   final List<String> priorityItems;
-  final double panelWidth;
-  final double rightPadding;
-  final double leftPadding;
+  final double? panelWidth;
+  final double? rightPadding;
+  final double? leftPadding;
   final Color backgroundColor;
 
   @override
@@ -72,8 +73,12 @@ class _FilterPanelState extends State<FilterPanel> {
 
   bool get _hasAppliedFilters => widget.initialValues != null;
 
+  double get _effectivePanelWidth => widget.panelWidth ?? 500.w;
+  double get _effectiveRightPadding => widget.rightPadding ?? 64.w;
+  double get _effectiveLeftPadding => widget.leftPadding ?? 24.w;
+
   double get _fieldWidth =>
-      widget.panelWidth - widget.rightPadding - widget.leftPadding;
+      _effectivePanelWidth - _effectiveRightPadding - _effectiveLeftPadding;
 
   @override
   void initState() {
@@ -140,11 +145,9 @@ class _FilterPanelState extends State<FilterPanel> {
 
   void _handleButtonPressed() {
     if (_hasAppliedFilters) {
-  
       _clearAllFields();
       widget.onClear?.call();
     } else {
-
       final values = FilterValues(
         letterNumber: _letterNumberController.text,
         fromDate: _fromDateController.text,
@@ -163,9 +166,9 @@ class _FilterPanelState extends State<FilterPanel> {
     return Text(
       text,
       textAlign: TextAlign.right,
-      style: const TextStyle(
-        color: Color(0xFF101018),
-        fontSize: 16,
+      style: TextStyle(
+        color: const Color(0xFF101018),
+        fontSize: 16.sp,
         fontWeight: FontWeight.w600,
         fontFamily: 'Estedad',
       ),
@@ -175,18 +178,14 @@ class _FilterPanelState extends State<FilterPanel> {
   Widget _buildLabeledField({required String label, required Widget field}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        _buildLabel(label),
-        const SizedBox(height: 8),
-        field,
-      ],
+      children: [_buildLabel(label), const SizedBox(height: 8), field],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      width: widget.panelWidth,
+      width: _effectivePanelWidth,
       backgroundColor: widget.backgroundColor,
       shape: const RoundedRectangleBorder(),
       child: SafeArea(
@@ -195,8 +194,8 @@ class _FilterPanelState extends State<FilterPanel> {
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.only(
-                  right: widget.rightPadding,
-                  left: widget.leftPadding,
+                  right: _effectiveRightPadding,
+                  left: _effectiveLeftPadding,
                   top: 32,
                 ),
                 child: Column(
@@ -251,8 +250,7 @@ class _FilterPanelState extends State<FilterPanel> {
                             item == 'فوری' ? '🔴 $item' : item,
                         width: _fieldWidth,
                         hintText: ' عادی ',
-                        onChanged: (value) =>
-                            setState(() => _priority = value),
+                        onChanged: (value) => setState(() => _priority = value),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -278,7 +276,7 @@ class _FilterPanelState extends State<FilterPanel> {
                         width: _fieldWidth,
                         child: Wrap(
                           alignment: WrapAlignment.end,
-                          spacing: 8,
+                          spacing: 8.w,
                           runSpacing: 8,
                           children: _keywords
                               .map(
@@ -286,15 +284,15 @@ class _FilterPanelState extends State<FilterPanel> {
                                   label: Text(
                                     tag,
                                     style: const TextStyle(
-                                      color:  Color(0xFF828288),
+                                      color: Color(0xFF828288),
                                       fontFamily: 'Estedad',
                                     ),
                                   ),
                                   backgroundColor: const Color(0xFF3863A8),
-                                  deleteIcon: const Icon(
+                                  deleteIcon: Icon(
                                     Icons.close,
-                                    size: 16,
-                                    color: Color(0xFFF3F3F7),
+                                    size: 16.sp,
+                                    color: const Color(0xFFF3F3F7),
                                   ),
                                   onDeleted: () => _removeTag(tag),
                                 ),
@@ -309,13 +307,15 @@ class _FilterPanelState extends State<FilterPanel> {
             ),
             Padding(
               padding: EdgeInsets.only(
-                right: widget.rightPadding,
-                left: widget.leftPadding,
+                right: _effectiveRightPadding,
+                left: _effectiveLeftPadding,
                 top: 16,
                 bottom: 24,
               ),
               child: CustomButton(
-                label: _hasAppliedFilters ? 'پاک کردن فیلترها' : 'اعمال فیلترها',
+                label: _hasAppliedFilters
+                    ? 'پاک کردن فیلترها'
+                    : 'اعمال فیلترها',
                 type: _hasAppliedFilters
                     ? ButtonType.secondary
                     : ButtonType.primary,

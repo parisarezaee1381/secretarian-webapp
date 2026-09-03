@@ -12,10 +12,10 @@ import '../documents.dart';
 
 import 'documents/s_sadere.dart';
 import 'documents/s_gharardad.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class DocumentList extends StatefulWidget {
-  const DocumentList({super.key, this.initialPendingOnly = false});  
+  const DocumentList({super.key, this.initialPendingOnly = false});
 
   final bool initialPendingOnly;
 
@@ -29,12 +29,11 @@ class _DocumentListState extends State<DocumentList> {
 
   Set<DocumentType> _selectedTypes = {};
 
-
   bool _pendingOnly = false;
 
   int _currentPage = 1;
 
- @override
+  @override
   void initState() {
     super.initState();
     _pendingOnly = widget.initialPendingOnly;
@@ -90,8 +89,9 @@ class _DocumentListState extends State<DocumentList> {
 
   List<dynamic> get _typedDocuments {
     final repo = DocumentRepository.instance;
-    final types =
-        _selectedTypes.isEmpty ? DocumentType.values.toSet() : _selectedTypes;
+    final types = _selectedTypes.isEmpty
+        ? DocumentType.values.toSet()
+        : _selectedTypes;
 
     final docs = <dynamic>[];
     if (types.contains(DocumentType.outgoing)) {
@@ -161,59 +161,60 @@ class _DocumentListState extends State<DocumentList> {
     }).toList();
   }
 
- DocumentTableRow _mapToRow(dynamic doc) {
-  const operation = Icon(Icons.more_horiz, color: Color(0xFF101018));
-  if (doc is OutgoingLetterDocument) {
-    return DocumentTableRow.fromOutgoing(
-      doc,
-      operation: operation,
-      onEdit: () => _openOutgoingForm(doc),           // ← اضافه شد
-      onAddAttachment: () => _openOutgoingForm(doc),  // ← اضافه شد
-    );
-  } else if (doc is IncomingLetterDocument) {
-    return DocumentTableRow.fromIncoming(
-      doc,
-      operation: operation,
-      onEdit: () => _openincomingForm(doc),           // ← اضافه شد
-      onAddAttachment: () => _openincomingForm(doc),  // ← اضافه شد
-    );
-  } else if (doc is ContractDocument) {
-    return DocumentTableRow.fromContract(doc,
-      operation: operation,
-      onEdit: () => _opencontractForm(doc),           // ← اضافه شد
-      onAddAttachment: () => _opencontractForm(doc),  // ← اضافه شد
-    );
+  DocumentTableRow _mapToRow(dynamic doc) {
+    const operation = Icon(Icons.more_horiz, color: Color(0xFF101018));
+    if (doc is OutgoingLetterDocument) {
+      return DocumentTableRow.fromOutgoing(
+        doc,
+        operation: operation,
+        onEdit: () => _openOutgoingForm(doc), // ← اضافه شد
+        onAddAttachment: () => _openOutgoingForm(doc), // ← اضافه شد
+      );
+    } else if (doc is IncomingLetterDocument) {
+      return DocumentTableRow.fromIncoming(
+        doc,
+        operation: operation,
+        onEdit: () => _openincomingForm(doc), // ← اضافه شد
+        onAddAttachment: () => _openincomingForm(doc), // ← اضافه شد
+      );
+    } else if (doc is ContractDocument) {
+      return DocumentTableRow.fromContract(
+        doc,
+        operation: operation,
+        onEdit: () => _opencontractForm(doc), // ← اضافه شد
+        onAddAttachment: () => _opencontractForm(doc), // ← اضافه شد
+      );
+    }
+    throw ArgumentError('نوع سند ناشناخته');
   }
-  throw ArgumentError('نوع سند ناشناخته');
-}
 
-// این متد جدید رو هم اضافه کنید
-void _openOutgoingForm(OutgoingLetterDocument doc) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => OutgoingLetterFormPage(initialDocument: doc),
-    ),
-  ).then((_) => setState(() {}));
-}
+  // این متد جدید رو هم اضافه کنید
+  void _openOutgoingForm(OutgoingLetterDocument doc) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OutgoingLetterFormPage(initialDocument: doc),
+      ),
+    ).then((_) => setState(() {}));
+  }
 
-void _openincomingForm(IncomingLetterDocument doc) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => IncomingLetterFormPage(initialDocument: doc),
-    ),
-  ).then((_) => setState(() {}));
-}
+  void _openincomingForm(IncomingLetterDocument doc) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => IncomingLetterFormPage(initialDocument: doc),
+      ),
+    ).then((_) => setState(() {}));
+  }
 
-void _opencontractForm(ContractDocument doc) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ContractFormPage(initialDocument: doc),
-    ),
-  ).then((_) => setState(() {}));
-}
+  void _opencontractForm(ContractDocument doc) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ContractFormPage(initialDocument: doc),
+      ),
+    ).then((_) => setState(() {}));
+  }
 
   void _removeFilterField(String field, {String? keyword}) {
     final f = _filterValues;
@@ -232,26 +233,19 @@ void _opencontractForm(ContractDocument doc) {
     );
 
     setState(() {
-  _filterValues = updated.isEmpty ? null : updated;
-  _currentPage = 1;
-   });
+      _filterValues = updated.isEmpty ? null : updated;
+      _currentPage = 1;
+    });
   }
 
   Widget _filterChip(String label, VoidCallback onDeleted) {
     return Chip(
       label: Text(
         label,
-        style: const TextStyle(
-          color: Color(0xFFF3F3F7),
-          fontFamily: 'Estedad',
-        ),
+        style: const TextStyle(color: Color(0xFFF3F3F7), fontFamily: 'Estedad'),
       ),
       backgroundColor: const Color(0xFF3863A8),
-      deleteIcon: const Icon(
-        Icons.close,
-        size: 16,
-        color: Color(0xFFF3F3F7),
-      ),
+      deleteIcon: Icon(Icons.close, size: 16.w, color: Color(0xFFF3F3F7)),
       onDeleted: onDeleted,
     );
   }
@@ -259,66 +253,81 @@ void _opencontractForm(ContractDocument doc) {
   List<Widget> _buildActiveFilterChips() {
     final chips = <Widget>[];
 
-
     for (final type in _selectedTypes) {
-      chips.add(_filterChip(
-        type.label,
-        () => setState(() => _selectedTypes = {..._selectedTypes}..remove(type)),
-      ));
+      chips.add(
+        _filterChip(
+          type.label,
+          () => setState(
+            () => _selectedTypes = {..._selectedTypes}..remove(type),
+          ),
+        ),
+      );
     }
 
-
     if (_pendingOnly) {
-      chips.add(_filterChip(
-        'نیازمند پیگیری',
-        () => setState(() => _pendingOnly = false),
-      ));
+      chips.add(
+        _filterChip(
+          'نیازمند پیگیری',
+          () => setState(() => _pendingOnly = false),
+        ),
+      );
     }
 
     final f = _filterValues;
     if (f == null) return chips;
 
     if (f.letterNumber.isNotEmpty) {
-      chips.add(_filterChip(
-        'شماره نامه: ${f.letterNumber}',
-        () => _removeFilterField('letterNumber'),
-      ));
+      chips.add(
+        _filterChip(
+          'شماره نامه: ${f.letterNumber}',
+          () => _removeFilterField('letterNumber'),
+        ),
+      );
     }
     if (f.fromDate.isNotEmpty) {
-      chips.add(_filterChip(
-        'از تاریخ: ${f.fromDate}',
-        () => _removeFilterField('fromDate'),
-      ));
+      chips.add(
+        _filterChip(
+          'از تاریخ: ${f.fromDate}',
+          () => _removeFilterField('fromDate'),
+        ),
+      );
     }
     if (f.toDate.isNotEmpty) {
-      chips.add(_filterChip(
-        'تا تاریخ: ${f.toDate}',
-        () => _removeFilterField('toDate'),
-      ));
+      chips.add(
+        _filterChip(
+          'تا تاریخ: ${f.toDate}',
+          () => _removeFilterField('toDate'),
+        ),
+      );
     }
     if (f.title.isNotEmpty) {
-      chips.add(_filterChip(
-        'عنوان: ${f.title}',
-        () => _removeFilterField('title'),
-      ));
+      chips.add(
+        _filterChip('عنوان: ${f.title}', () => _removeFilterField('title')),
+      );
     }
     if (f.organization.isNotEmpty) {
-      chips.add(_filterChip(
-        'سازمان/شرکت: ${f.organization}',
-        () => _removeFilterField('organization'),
-      ));
+      chips.add(
+        _filterChip(
+          'سازمان/شرکت: ${f.organization}',
+          () => _removeFilterField('organization'),
+        ),
+      );
     }
     if (f.priority != null) {
-      chips.add(_filterChip(
-        'اولویت: ${f.priority}',
-        () => _removeFilterField('priority'),
-      ));
+      chips.add(
+        _filterChip(
+          'اولویت: ${f.priority}',
+          () => _removeFilterField('priority'),
+        ),
+      );
     }
     for (final keyword in f.keywords) {
-      chips.add(_filterChip(
-        'کلمات کلیدی: $keyword',
-        () => _removeFilterField('keyword', keyword: keyword),
-      ));
+      chips.add(
+        _filterChip(
+          'کلمات کلیدی: $keyword',
+          () => _removeFilterField('keyword', keyword: keyword),
+        ),
+      );
     }
 
     return chips;
@@ -336,24 +345,21 @@ void _opencontractForm(ContractDocument doc) {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: const Color(0xFFF5F4F4),
-      appBar: const AppHeader(
-        title: 'لیست اسناد',
-        leading: HeaderLeading.back,
-      ),
+      appBar: const AppHeader(title: 'لیست اسناد', leading: HeaderLeading.back),
       drawer: FilterPanel(
         initialValues: _filterValues,
         onApply: (values) {
-  setState(() {
-    _filterValues = values;
-    _currentPage = 1;
-  });
- },
+          setState(() {
+            _filterValues = values;
+            _currentPage = 1;
+          });
+        },
         onClear: () {
-  setState(() {
-    _filterValues = null;
-    _currentPage = 1;
-  });
-},
+          setState(() {
+            _filterValues = null;
+            _currentPage = 1;
+          });
+        },
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -366,11 +372,11 @@ void _opencontractForm(ContractDocument doc) {
                 alignment: Alignment.center,
                 child: PendingLettersButton(
                   onPressed: () {
-  setState(() {
-    _pendingOnly = !_pendingOnly;
-    _currentPage = 1;
-  });
-},
+                    setState(() {
+                      _pendingOnly = !_pendingOnly;
+                      _currentPage = 1;
+                    });
+                  },
                 ),
               ),
 
@@ -379,11 +385,11 @@ void _opencontractForm(ContractDocument doc) {
               DocumentTypeFilterButtons(
                 initialSelected: _selectedTypes,
                 onChanged: (selected) {
-  setState(() {
-    _selectedTypes = selected;
-    _currentPage = 1;
-  });
-},
+                  setState(() {
+                    _selectedTypes = selected;
+                    _currentPage = 1;
+                  });
+                },
               ),
 
               const SizedBox(height: 64),
@@ -391,12 +397,12 @@ void _opencontractForm(ContractDocument doc) {
               Align(
                 alignment: Alignment.centerRight,
                 child: Padding(
-                  padding: const EdgeInsets.only(right: 32),
+                  padding: EdgeInsets.only(right: 32.w),
                   child: CustomButton(
                     label: 'فیلتر',
                     type: ButtonType.primary,
                     icon: const Icon(Icons.filter_alt),
-                    width: 144,
+                    width: 144.w,
                     onPressed: () {
                       _scaffoldKey.currentState?.openDrawer();
                     },
@@ -408,12 +414,12 @@ void _opencontractForm(ContractDocument doc) {
 
               if (_hasAnyActiveFilter) ...[
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  padding: EdgeInsets.symmetric(horizontal: 32.w),
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: Wrap(
                       alignment: WrapAlignment.end,
-                      spacing: 8,
+                      spacing: 8.w,
                       runSpacing: 8,
                       children: _buildActiveFilterChips(),
                     ),
@@ -423,21 +429,21 @@ void _opencontractForm(ContractDocument doc) {
               ],
 
               DocumentTable(
-  rows: rows,
-  rowsPerPage: rowsPerPage,
-  showPagination: true,
-  currentPage: _currentPage,
-  totalPages: totalPages,
-  onPreviousPage: () {
-    setState(() => _currentPage--);
-  },
-  onNextPage: () {
-    setState(() => _currentPage++);
-  },
-  onPageSelected: (page) {
-    setState(() => _currentPage = page);
-  },
-),
+                rows: rows,
+                rowsPerPage: rowsPerPage,
+                showPagination: true,
+                currentPage: _currentPage,
+                totalPages: totalPages,
+                onPreviousPage: () {
+                  setState(() => _currentPage--);
+                },
+                onNextPage: () {
+                  setState(() => _currentPage++);
+                },
+                onPageSelected: (page) {
+                  setState(() => _currentPage = page);
+                },
+              ),
 
               const SizedBox(height: 128),
             ],

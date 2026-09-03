@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:flutter_application_1/widgets.dart/text_input.dart';
 import 'package:flutter_application_1/widgets.dart/buttons.dart';
@@ -17,11 +18,9 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _usernameController =
-      TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
 
-  final TextEditingController _passwordController =
-      TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _isForgotPasswordHovered = false;
@@ -46,9 +45,7 @@ class _LoginPageState extends State<LoginPage> {
     if (_formKey.currentState?.validate() ?? false) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => const Dashboard(),
-        ),
+        MaterialPageRoute(builder: (context) => const Dashboard()),
       );
     }
   }
@@ -64,81 +61,58 @@ class _LoginPageState extends State<LoginPage> {
 
       body: Stack(
         children: [
-
           // ====================================================
           // Background
           // ====================================================
 
-          const Positioned.fill(
-            child: ClipRect(
-              child: Align(
-                alignment: Alignment.center,
-                child: NestedRotatedRectangles(),
-              ),
-            ),
-          ),
+          const Positioned.fill(child: NestedRotatedRectangles()),
 
           // ====================================================
           // Scrollable Main Content
           // ====================================================
-
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                vertical: 32,
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 32),
 
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment:
-                      CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
 
                   children: [
-
                     // ==================================================
                     // 64 px above card
                     // ==================================================
 
-                    Container(
-                      height: 64,
-                    ),
+                    const SizedBox(height: 64),
 
                     // ==================================================
                     // Card
                     // ==================================================
-
                     FakoorLoginCard(
                       child: Form(
                         key: _formKey,
 
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment:
-                              CrossAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
 
                           children: [
-
                             // ========================================
                             // Username
                             // ========================================
 
                             AppTextField(
-                              controller:
-                                  _usernameController,
+                              controller: _usernameController,
 
-                              labelText:
-                                  'نام کاربری',
+                              labelText: 'نام کاربری',
 
-                              keyboardType:
-                                  TextInputType.text,
+                              keyboardType: TextInputType.text,
 
-                              textInputAction:
-                                  TextInputAction.next,
+                              textInputAction: TextInputAction.next,
 
                               validator: (value) {
-                                if (value == null ||
-                                    value.trim().isEmpty) {
+                                if (value == null || value.trim().isEmpty) {
                                   return 'نام کاربری را وارد کنید';
                                 }
 
@@ -151,44 +125,35 @@ class _LoginPageState extends State<LoginPage> {
                             // ========================================
                             // Password
                             // ========================================
-
                             AppTextField(
-                              controller:
-                                  _passwordController,
+                              controller: _passwordController,
 
-                              labelText:
-                                  'رمز عبور',
+                              labelText: 'رمز عبور',
 
-                              obscureText:
-                                  _obscurePassword,
+                              obscureText: _obscurePassword,
 
-                              textInputAction:
-                                  TextInputAction.done,
+                              textInputAction: TextInputAction.done,
 
-                              suffixIcon:
-                                  IconButton(
+                              suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscurePassword
                                       ? Icons.visibility_off
                                       : Icons.visibility,
 
-                                  color:
-                                      const Color(
-                                    0xFFF3F3F7,
-                                  ),
+                                  size: 20.sp,
+
+                                  color: const Color(0xFFF3F3F7),
                                 ),
 
                                 onPressed: () {
                                   setState(() {
-                                    _obscurePassword =
-                                        !_obscurePassword;
+                                    _obscurePassword = !_obscurePassword;
                                   });
                                 },
                               ),
 
                               validator: (value) {
-                                if (value == null ||
-                                    value.trim().isEmpty) {
+                                if (value == null || value.trim().isEmpty) {
                                   return 'رمز عبور را وارد کنید';
                                 }
 
@@ -201,77 +166,70 @@ class _LoginPageState extends State<LoginPage> {
                             // ========================================
                             // Forgot Password
                             // ========================================
+                            SizedBox(
+                              width: 808.w,
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: MouseRegion(
+                                  cursor: SystemMouseCursors.click,
 
-                            // ========================================
-// Forgot Password
-// ========================================
+                                  onEnter: (_) {
+                                    setState(() {
+                                      _isForgotPasswordHovered = true;
+                                    });
+                                  },
 
-SizedBox(
-  width: 808,
-  child: Align(
-    alignment: Alignment.centerRight,
-    child: MouseRegion(
-      cursor: SystemMouseCursors.click,
+                                  onExit: (_) {
+                                    setState(() {
+                                      _isForgotPasswordHovered = false;
+                                    });
+                                  },
 
-      onEnter: (_) {
-        setState(() {
-          _isForgotPasswordHovered = true;
-        });
-      },
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const ForgotPasswordPage(),
+                                        ),
+                                      );
+                                    },
 
-      onExit: (_) {
-        setState(() {
-          _isForgotPasswordHovered = false;
-        });
-      },
+                                    child: Text(
+                                      'فراموشی رمز',
 
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  const ForgotPasswordPage(),
-            ),
-          );
-        },
+                                      style: TextStyle(
+                                        fontFamily: 'Estedad-VF',
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.normal,
 
-        child: Text(
-          'فراموشی رمز',
-
-          style: TextStyle(
-            fontFamily: 'Estedad-VF',
-            fontSize: 14,
-            fontWeight: FontWeight.normal,
-
-            color: const Color(0xFF3863A8).withValues(
-              alpha: _isForgotPasswordHovered
-                  ? 0.5
-                  : 1.0,
-            ),
-          ),
-        ),
-      ),
-    ),
-  ),
-),
+                                        color: const Color(0xFF3863A8)
+                                            .withValues(
+                                              alpha: _isForgotPasswordHovered
+                                                  ? 0.5
+                                                  : 1.0,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
 
                             const SizedBox(height: 64),
 
                             // ========================================
                             // Login Button
                             // ========================================
-
                             CustomButton(
                               label: 'ورود',
 
-                              type:
-                                  ButtonType.primary,
+                              type: ButtonType.primary,
 
-                              width: 204,
+                              width: 204.w,
 
-                              onPressed:
-                                  _handleLogin,
+                              onPressed: _handleLogin,
                             ),
                           ],
                         ),
@@ -281,33 +239,25 @@ SizedBox(
                     // ==================================================
                     // 64 px below card
                     // ==================================================
-
-                    Container(
-                      height: 64,
-                    ),
+                    const SizedBox(height: 64),
 
                     // ==================================================
                     // Version
                     // ==================================================
-
                     Container(
                       width: double.infinity,
                       alignment: Alignment.center,
 
-                      child: const Text(
+                      child: Text(
                         'نسخه 1.0.0',
 
-                        textAlign:
-                            TextAlign.center,
+                        textAlign: TextAlign.center,
 
                         style: TextStyle(
-                          fontFamily:
-                              'Estedad-VF',
-                          fontSize: 14,
-                          fontWeight:
-                              FontWeight.normal,
-                          color:
-                              Color(0xFFF3F3F7),
+                          fontFamily: 'Estedad-VF',
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.normal,
+                          color: const Color(0xFFF3F3F7),
                         ),
                       ),
                     ),
@@ -315,10 +265,7 @@ SizedBox(
                     // ==================================================
                     // 128 px below version
                     // ==================================================
-
-                    Container(
-                      height: 128,
-                    ),
+                    const SizedBox(height: 128),
                   ],
                 ),
               ),

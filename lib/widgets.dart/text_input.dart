@@ -59,10 +59,16 @@ class AppTextField extends StatefulWidget {
     this.labelStyle,
     this.labelWidth = 140,
     this.labelSpacing = 16,
+
+    // Responsive
+    this.responsive = true,
+    this.mobileBreakpoint = 700,
+    this.mobileLabelSpacing = 8,
+    this.mobileHorizontalPadding = 0,
   }) : assert(
-          controller == null || initialValue == null,
-          'controller و initialValue را هم‌زمان مقدار ندهید.',
-        );
+         controller == null || initialValue == null,
+         'controller و initialValue را هم‌زمان مقدار ندهید.',
+       );
 
   final TextEditingController? controller;
   final FocusNode? focusNode;
@@ -77,7 +83,10 @@ class AppTextField extends StatefulWidget {
   final VoidCallback? onTap;
   final FormFieldValidator<String>? validator;
 
+  /// عرض پیش‌فرض در دسکتاپ
   final double width;
+
+  /// ارتفاع فیلد
   final double height;
 
   final int maxLines;
@@ -108,8 +117,27 @@ class AppTextField extends StatefulWidget {
   final TextStyle? textStyle;
   final TextStyle? labelStyle;
 
+  /// عرض label در دسکتاپ
   final double labelWidth;
+
+  /// فاصله label و input در دسکتاپ
   final double labelSpacing;
+
+  // =========================================================
+  // Responsive properties
+  // =========================================================
+
+  /// اگر false باشد، رفتار قبلی کاملاً حفظ می‌شود.
+  final bool responsive;
+
+  /// زیر این عرض، فیلد وارد حالت موبایل می‌شود.
+  final double mobileBreakpoint;
+
+  /// فاصله label و input در حالت موبایل
+  final double mobileLabelSpacing;
+
+  /// padding افقی اضافی در حالت موبایل
+  final double mobileHorizontalPadding;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -117,13 +145,9 @@ class AppTextField extends StatefulWidget {
 
 class _AppTextFieldState extends State<AppTextField> {
   late final TextEditingController _controller =
-      widget.controller ??
-      TextEditingController(
-        text: widget.initialValue,
-      );
+      widget.controller ?? TextEditingController(text: widget.initialValue);
 
-  late final FocusNode _focusNode =
-      widget.focusNode ?? FocusNode();
+  late final FocusNode _focusNode = widget.focusNode ?? FocusNode();
 
   bool _isHovered = false;
   bool _isFocused = false;
@@ -161,8 +185,7 @@ class _AppTextFieldState extends State<AppTextField> {
   }
 
   bool get _hasError {
-    return widget.errorText != null &&
-        widget.errorText!.isNotEmpty;
+    return widget.errorText != null && widget.errorText!.isNotEmpty;
   }
 
   Color _backgroundColor() {
@@ -205,163 +228,206 @@ class _AppTextFieldState extends State<AppTextField> {
         );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final textStyle = _baseTextStyle().copyWith(
-      color: widget.colors.text,
-    );
+  // =========================================================
+  // TextFormField
+  // =========================================================
+
+  Widget _buildTextField() {
+    final textStyle = _baseTextStyle().copyWith(color: widget.colors.text);
 
     final hintStyle = _baseTextStyle().copyWith(
       color: widget.colors.hint.withValues(alpha: 0.7),
     );
 
-    return MouseRegion(
-      cursor: widget.enabled
-          ? SystemMouseCursors.text
-          : SystemMouseCursors.basic,
+    return AnimatedContainer(
+      duration: widget.animationDuration,
+      curve: Curves.easeOut,
 
-      onEnter: widget.enabled
-          ? (_) {
-              setState(() {
-                _isHovered = true;
-              });
-            }
+      // در Responsive حالت width توسط parent تعیین می‌شود.
+      width: widget.responsive ? double.infinity : widget.width,
+
+      height: widget.maxLines == 1 ? widget.height : null,
+
+      constraints: widget.maxLines != 1
+          ? BoxConstraints(minHeight: widget.height)
           : null,
 
-      onExit: widget.enabled
-          ? (_) {
-              setState(() {
-                _isHovered = false;
-              });
-            }
-          : null,
+      decoration: BoxDecoration(
+        color: _backgroundColor(),
+        borderRadius: BorderRadius.circular(widget.borderRadius),
+      ),
 
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Material(
+        type: MaterialType.transparency,
+        child: TextFormField(
+          controller: _controller,
+          focusNode: _focusNode,
+
+          onChanged: widget.onChanged,
+          onFieldSubmitted: widget.onSubmitted,
+          onTap: widget.onTap,
+
+          validator: widget.validator,
+
+          obscureText: widget.obscureText,
+
+          maxLines: widget.obscureText ? 1 : widget.maxLines,
+
+          enabled: widget.enabled,
+          readOnly: widget.readOnly,
+          autofocus: widget.autofocus,
+
+          keyboardType: widget.keyboardType,
+          textInputAction: widget.textInputAction,
+
+          textAlign: widget.textAlign,
+
+          inputFormatters: widget.inputFormatters,
+
+          cursorColor: widget.colors.text,
+
+          style: textStyle,
+
+          decoration: InputDecoration(
+            hintText: widget.hintText,
+            hintStyle: hintStyle,
+
+            prefixIcon: widget.prefixIcon,
+            suffixIcon: widget.suffixIcon,
+
+            filled: false,
+
+            isCollapsed: false,
+
+            errorText: widget.errorText,
+
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              borderSide: BorderSide.none,
+            ),
+
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              borderSide: BorderSide.none,
+            ),
+
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              borderSide: BorderSide.none,
+            ),
+
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              borderSide: BorderSide.none,
+            ),
+
+            contentPadding: widget.contentPadding,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // =========================================================
+  // Label
+  // =========================================================
+
+  Widget _buildLabel() {
+    if (widget.labelText == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Text(
+      widget.labelText!,
+      textAlign: TextAlign.right,
+      softWrap: true,
+      style: _labelTextStyle().copyWith(color: const Color(0xFF101018)),
+    );
+  }
+
+  // =========================================================
+  // Desktop Layout
+  // =========================================================
+
+  Widget _buildDesktopLayout() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.labelText != null) ...[
+          SizedBox(width: widget.labelWidth, child: _buildLabel()),
+
+          SizedBox(width: widget.labelSpacing),
+        ],
+
+        SizedBox(width: widget.width, child: _buildTextField()),
+      ],
+    );
+  }
+
+  // =========================================================
+  // Mobile Layout
+  // =========================================================
+
+  Widget _buildMobileLayout() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: widget.mobileHorizontalPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (widget.labelText != null) ...[
-            SizedBox(
-              width: widget.labelWidth,
-              child: Text(
-                widget.labelText!,
-                textAlign: TextAlign.right,
-                style: _labelTextStyle().copyWith(
-                  color: const Color(0xFF101018),
-                ),
-              ),
-            ),
+            _buildLabel(),
 
-            SizedBox(
-              width: widget.labelSpacing,
-            ),
+            SizedBox(height: widget.mobileLabelSpacing),
           ],
 
-          AnimatedContainer(
-            duration: widget.animationDuration,
-            curve: Curves.easeOut,
-
-            width: widget.width,
-
-            height: widget.maxLines == 1
-                ? widget.height
-                : null,
-
-            constraints: widget.maxLines != 1
-                ? BoxConstraints(
-                    minHeight: widget.height,
-                  )
-                : null,
-
-            decoration: BoxDecoration(
-              color: _backgroundColor(),
-              borderRadius: BorderRadius.circular(
-                widget.borderRadius,
-              ),
-            ),
-
-            child: Material(
-              type: MaterialType.transparency,
-
-              child: TextFormField(
-                controller: _controller,
-                focusNode: _focusNode,
-
-                onChanged: widget.onChanged,
-                onFieldSubmitted: widget.onSubmitted,
-                onTap: widget.onTap,
-
-                validator: widget.validator,
-
-                obscureText: widget.obscureText,
-
-                maxLines: widget.obscureText
-                    ? 1
-                    : widget.maxLines,
-
-                enabled: widget.enabled,
-                readOnly: widget.readOnly,
-                autofocus: widget.autofocus,
-
-                keyboardType: widget.keyboardType,
-                textInputAction: widget.textInputAction,
-
-                textAlign: widget.textAlign,
-
-                inputFormatters: widget.inputFormatters,
-
-                cursorColor: widget.colors.text,
-
-                style: textStyle,
-
-                decoration: InputDecoration(
-                  hintText: widget.hintText,
-                  hintStyle: hintStyle,
-
-                  prefixIcon: widget.prefixIcon,
-                  suffixIcon: widget.suffixIcon,
-
-                  filled: false,
-
-                  isCollapsed: false,
-
-                  errorText: widget.errorText,
-
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                      widget.borderRadius,
-                    ),
-                    borderSide: BorderSide.none,
-                  ),
-
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                      widget.borderRadius,
-                    ),
-                    borderSide: BorderSide.none,
-                  ),
-
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                      widget.borderRadius,
-                    ),
-                    borderSide: BorderSide.none,
-                  ),
-
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                      widget.borderRadius,
-                    ),
-                    borderSide: BorderSide.none,
-                  ),
-
-                  contentPadding:
-                      widget.contentPadding,
-                ),
-              ),
-            ),
-          ),
+          _buildTextField(),
         ],
       ),
+    );
+  }
+
+  // =========================================================
+  // Build
+  // =========================================================
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+
+        final isMobile =
+            widget.responsive && availableWidth < widget.mobileBreakpoint;
+
+        return MouseRegion(
+          cursor: widget.enabled
+              ? SystemMouseCursors.text
+              : SystemMouseCursors.basic,
+
+          onEnter: widget.enabled
+              ? (_) {
+                  if (!_isHovered) {
+                    setState(() {
+                      _isHovered = true;
+                    });
+                  }
+                }
+              : null,
+
+          onExit: widget.enabled
+              ? (_) {
+                  if (_isHovered) {
+                    setState(() {
+                      _isHovered = false;
+                    });
+                  }
+                }
+              : null,
+
+          child: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
+        );
+      },
     );
   }
 }

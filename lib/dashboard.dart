@@ -14,6 +14,7 @@ import 'widgets.dart/notification.dart';
 import '../documents.dart';
 import '../document_repository.dart';
 import 'package:flutter_application_1/setting.dart/settingview.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -42,10 +43,7 @@ class _DashboardState extends State<Dashboard> {
       return DocumentTableRow.fromOutgoing(
         doc,
 
-        operation: const Icon(
-          Icons.more_horiz,
-          color: Color(0xFF101018),
-        ),
+        operation: const Icon(Icons.more_horiz, color: Color(0xFF101018)),
 
         onEdit: () => _openOutgoingForm(doc),
 
@@ -61,10 +59,7 @@ class _DashboardState extends State<Dashboard> {
       return DocumentTableRow.fromIncoming(
         doc,
 
-        operation: const Icon(
-          Icons.more_horiz,
-          color: Color(0xFF101018),
-        ),
+        operation: const Icon(Icons.more_horiz, color: Color(0xFF101018)),
 
         onEdit: () => _openIncomingForm(doc),
 
@@ -80,10 +75,7 @@ class _DashboardState extends State<Dashboard> {
       return DocumentTableRow.fromContract(
         doc,
 
-        operation: const Icon(
-          Icons.more_horiz,
-          color: Color(0xFF101018),
-        ),
+        operation: const Icon(Icons.more_horiz, color: Color(0xFF101018)),
 
         onEdit: () => _openContractForm(doc),
 
@@ -91,25 +83,18 @@ class _DashboardState extends State<Dashboard> {
       );
     }
 
-    throw ArgumentError(
-      'نوع document ناشناخته است',
-    );
+    throw ArgumentError('نوع document ناشناخته است');
   }
 
   // ============================================================
   // باز کردن فرم نامه صادره برای ویرایش
   // ============================================================
 
-  void _openOutgoingForm(
-    OutgoingLetterDocument doc,
-  ) {
+  void _openOutgoingForm(OutgoingLetterDocument doc) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            OutgoingLetterFormPage(
-          initialDocument: doc,
-        ),
+        builder: (context) => OutgoingLetterFormPage(initialDocument: doc),
       ),
     ).then((_) {
       if (!mounted) return;
@@ -122,16 +107,11 @@ class _DashboardState extends State<Dashboard> {
   // باز کردن فرم نامه وارده برای ویرایش
   // ============================================================
 
-  void _openIncomingForm(
-    IncomingLetterDocument doc,
-  ) {
+  void _openIncomingForm(IncomingLetterDocument doc) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            IncomingLetterFormPage(
-          initialDocument: doc,
-        ),
+        builder: (context) => IncomingLetterFormPage(initialDocument: doc),
       ),
     ).then((_) {
       if (!mounted) return;
@@ -144,16 +124,11 @@ class _DashboardState extends State<Dashboard> {
   // باز کردن فرم قرارداد برای ویرایش
   // ============================================================
 
-  void _openContractForm(
-    ContractDocument doc,
-  ) {
+  void _openContractForm(ContractDocument doc) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            ContractFormPage(
-          initialDocument: doc,
-        ),
+        builder: (context) => ContractFormPage(initialDocument: doc),
       ),
     ).then((_) {
       if (!mounted) return;
@@ -207,7 +182,6 @@ class _DashboardState extends State<Dashboard> {
       // ========================================================
       // Header
       // ========================================================
-
       appBar: AppHeader(
         title: 'داشبورد اصلی',
         leading: HeaderLeading.settings,
@@ -216,8 +190,7 @@ class _DashboardState extends State<Dashboard> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  SettingsViewPage(
+              builder: (context) => SettingsViewPage(
                 username: 'کاربر',
                 email: 'example@email.com',
               ),
@@ -229,11 +202,9 @@ class _DashboardState extends State<Dashboard> {
       // ========================================================
       // Body
       // ========================================================
-
       body: Stack(
         clipBehavior: Clip.none,
         children: [
-
           // ======================================================
           // محتوای اصلی
           // ======================================================
@@ -243,7 +214,6 @@ class _DashboardState extends State<Dashboard> {
 
             child: Column(
               children: [
-
                 // ==================================================
                 // فاصله از Header
                 // ==================================================
@@ -253,14 +223,13 @@ class _DashboardState extends State<Dashboard> {
                 // ==================================================
                 // ثبت سند جدید
                 // ==================================================
-
                 Align(
                   alignment: Alignment.center,
 
                   child: CustomButton(
                     label: '+ ثبت سند جدید',
                     type: ButtonType.primary,
-                    width: 204,
+                    width: 204.w,
                     onPressed: _toggleDocumentMenu,
                   ),
                 ),
@@ -268,27 +237,24 @@ class _DashboardState extends State<Dashboard> {
                 // ==================================================
                 // فاصله
                 // ==================================================
-
                 const SizedBox(height: 32),
 
                 // ==================================================
                 // لیست اسناد
                 // ==================================================
-
                 Align(
                   alignment: Alignment.center,
 
                   child: CustomButton(
                     label: 'لیست اسناد',
                     type: ButtonType.secondary,
-                    width: 204,
+                    width: 204.w,
 
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              const DocumentList(),
+                          builder: (context) => const DocumentList(),
                         ),
                       );
                     },
@@ -298,13 +264,11 @@ class _DashboardState extends State<Dashboard> {
                 // ==================================================
                 // فاصله
                 // ==================================================
-
                 const SizedBox(height: 64),
 
                 // ==================================================
                 // اسناد نیازمند پیگیری
                 // ==================================================
-
                 Align(
                   alignment: Alignment.center,
 
@@ -314,9 +278,7 @@ class _DashboardState extends State<Dashboard> {
                         context,
                         MaterialPageRoute(
                           builder: (context) =>
-                              const DocumentList(
-                            initialPendingOnly: true,
-                          ),
+                              const DocumentList(initialPendingOnly: true),
                         ),
                       );
                     },
@@ -326,20 +288,16 @@ class _DashboardState extends State<Dashboard> {
                 // ==================================================
                 // فاصله
                 // ==================================================
-
                 const SizedBox(height: 64),
 
                 // ==================================================
                 // عنوان آخرین اسناد
                 // ==================================================
-
-                const Align(
+                Align(
                   alignment: Alignment.centerRight,
 
                   child: Padding(
-                    padding: EdgeInsets.only(
-                      right: 32,
-                    ),
+                    padding: EdgeInsets.only(right: 32.w),
 
                     child: Text(
                       'آخرین اسناد',
@@ -349,7 +307,7 @@ class _DashboardState extends State<Dashboard> {
                       style: TextStyle(
                         color: Color(0xFF101018),
                         fontFamily: 'Estedad',
-                        fontSize: 20,
+                        fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -359,13 +317,11 @@ class _DashboardState extends State<Dashboard> {
                 // ==================================================
                 // فاصله عنوان تا جدول
                 // ==================================================
-
                 const SizedBox(height: 32),
 
                 // ==================================================
                 // جدول آخرین ۵ سند
                 // ==================================================
-
                 DocumentTable(
                   rows: rows,
                   rowsPerPage: 5,
@@ -375,7 +331,6 @@ class _DashboardState extends State<Dashboard> {
                 // ==================================================
                 // فاصله پایین صفحه
                 // ==================================================
-
                 const SizedBox(height: 128),
               ],
             ),
@@ -384,7 +339,6 @@ class _DashboardState extends State<Dashboard> {
           // ======================================================
           // لایه بستن منو با کلیک خارج از منو
           // ======================================================
-
           if (_showDocumentMenu)
             Positioned.fill(
               child: GestureDetector(
@@ -398,7 +352,6 @@ class _DashboardState extends State<Dashboard> {
           // ======================================================
           // منوی ثبت سند جدید
           // ======================================================
-
           if (_showDocumentMenu)
             Positioned(
               top: 128,
@@ -407,13 +360,12 @@ class _DashboardState extends State<Dashboard> {
 
               child: Center(
                 child: SizedBox(
-                  width: 204,
+                  width: 204.w,
 
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
 
                     children: [
-
                       // ==========================================
                       // صادره
                       // ==========================================
@@ -440,7 +392,6 @@ class _DashboardState extends State<Dashboard> {
                       // ==========================================
                       // وارده
                       // ==========================================
-
                       DropdownMenuItemWidget(
                         label: 'وارده',
 
@@ -462,7 +413,6 @@ class _DashboardState extends State<Dashboard> {
                       // ==========================================
                       // قرارداد
                       // ==========================================
-
                       DropdownMenuItemWidget(
                         label: 'قرارداد',
                         isLast: true,
@@ -475,8 +425,7 @@ class _DashboardState extends State<Dashboard> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  const ContractFormPage(),
+                              builder: (context) => const ContractFormPage(),
                             ),
                           );
                         },

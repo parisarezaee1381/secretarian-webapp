@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:flutter_application_1/widgets.dart/text_input.dart';
 import 'package:flutter_application_1/widgets.dart/buttons.dart';
@@ -14,12 +15,10 @@ class VerificationCodePage extends StatefulWidget {
   const VerificationCodePage({super.key});
 
   @override
-  State<VerificationCodePage> createState() =>
-      _VerificationCodePageState();
+  State<VerificationCodePage> createState() => _VerificationCodePageState();
 }
 
-class _VerificationCodePageState
-    extends State<VerificationCodePage> {
+class _VerificationCodePageState extends State<VerificationCodePage> {
   final _formKey = GlobalKey<FormState>();
 
   final _code1Controller = TextEditingController();
@@ -57,18 +56,15 @@ class _VerificationCodePageState
       _remainingSeconds = 120;
     });
 
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-      (timer) {
-        if (_remainingSeconds > 0) {
-          setState(() {
-            _remainingSeconds--;
-          });
-        } else {
-          timer.cancel();
-        }
-      },
-    );
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_remainingSeconds > 0) {
+        setState(() {
+          _remainingSeconds--;
+        });
+      } else {
+        timer.cancel();
+      }
+    });
   }
 
   String get _formattedTime {
@@ -106,10 +102,7 @@ class _VerificationCodePageState
   // Code
   // ------------------------------------------------------------
 
-  void _handleCodeChanged(
-    String value,
-    FocusNode? nextFocus,
-  ) {
+  void _handleCodeChanged(String value, FocusNode? nextFocus) {
     if (value.isNotEmpty && nextFocus != null) {
       nextFocus.requestFocus();
     }
@@ -119,9 +112,7 @@ class _VerificationCodePageState
     if (_formKey.currentState?.validate() ?? false) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => const Dashboard(),
-        ),
+        MaterialPageRoute(builder: (context) => const Dashboard()),
       );
     }
   }
@@ -137,9 +128,7 @@ class _VerificationCodePageState
   void _handleBack() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (context) => const ForgotPasswordPage(),
-      ),
+      MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
     );
   }
 
@@ -153,12 +142,14 @@ class _VerificationCodePageState
     required FocusNode? nextFocus,
     required FocusNode? previousFocus,
   }) {
+    // فیلد کد باید مربع بماند، پس عرض و ارتفاع هر دو با .w
+    // مقیاس می‌گیرند (نه .h)، تا نسبت مربعی حفظ شود.
     return AppTextField(
       controller: controller,
       focusNode: focusNode,
 
-      width: 64,
-      height: 64,
+      width: 64.w,
+      height: 64.w,
 
       textAlign: TextAlign.center,
 
@@ -172,10 +163,7 @@ class _VerificationCodePageState
       ],
 
       onChanged: (value) {
-        _handleCodeChanged(
-          value,
-          nextFocus,
-        );
+        _handleCodeChanged(value, nextFocus);
       },
 
       onSubmitted: (_) {
@@ -197,238 +185,164 @@ class _VerificationCodePageState
 
       body: Stack(
         children: [
-
           // ====================================================
           // Background
           // ====================================================
 
-          const Positioned.fill(
-            child: ClipRect(
-              child: Align(
-                alignment: Alignment.center,
-                child: NestedRotatedRectangles(),
-              ),
-            ),
-          ),
+          const Positioned.fill(child: NestedRotatedRectangles()),
 
           // ====================================================
           // Scrollable Main Content
           // ====================================================
-
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                vertical: 32,
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 32),
 
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment:
-                      CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
 
                   children: [
-
                     // ==================================================
                     // 64 px above card
                     // ==================================================
 
-                    Container(
-                      height: 64,
-                    ),
+                    const SizedBox(height: 64),
 
                     // ==================================================
                     // Card
                     // ==================================================
-
                     FakoorLoginCard(
                       child: Form(
                         key: _formKey,
 
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment:
-                              CrossAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
 
                           children: [
-
                             // ========================================
                             // Remaining Time + Resend
                             // ========================================
 
                             Row(
-                              mainAxisSize:
-                                  MainAxisSize.min,
+                              mainAxisSize: MainAxisSize.min,
 
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
 
                               children: [
-
-                                const Text(
+                                Text(
                                   'زمان باقی مانده:',
                                   style: TextStyle(
-                                    fontFamily:
-                                        'Estedad-VF',
-                                    fontSize: 16,
-                                    fontWeight:
-                                        FontWeight.w600,
-                                    color:
-                                        Color(0xFF101018),
+                                    fontFamily: 'Estedad-VF',
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF101018),
                                   ),
                                 ),
 
-                                const SizedBox(
-                                  width: 16,
-                                ),
+                                SizedBox(width: 16.w),
 
                                 Text(
                                   _formattedTime,
-                                  style:
-                                      const TextStyle(
-                                    fontFamily:
-                                        'Estedad-VF',
-                                    fontSize: 16,
-                                    fontWeight:
-                                        FontWeight.w600,
-                                    color:
-                                        Color(0xFF101018),
+                                  style: TextStyle(
+                                    fontFamily: 'Estedad-VF',
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF101018),
                                   ),
                                 ),
 
-                                const SizedBox(
-                                  width: 32,
-                                ),
+                                SizedBox(width: 32.w),
 
                                 CustomButton(
-                                  label:
-                                      'ارسال مجدد',
+                                  label: 'ارسال مجدد',
 
-                                  type:
-                                      ButtonType.tertiary,
+                                  type: ButtonType.tertiary,
 
-                                  width: 140,
+                                  width: 140.w,
 
-                                  onPressed:
-                                      _canResend
-                                          ? _handleResendCode
-                                          : null,
+                                  onPressed: _canResend
+                                      ? _handleResendCode
+                                      : null,
                                 ),
                               ],
                             ),
 
-                            const SizedBox(
-                              height: 24,
-                            ),
+                            const SizedBox(height: 24),
 
                             // ========================================
                             // Verification Code Fields
                             // ========================================
-
                             Row(
-                              mainAxisSize:
-                                  MainAxisSize.min,
+                              mainAxisSize: MainAxisSize.min,
 
                               children: [
+                                _buildCodeField(
+                                  controller: _code1Controller,
+                                  focusNode: _focusNode1,
+                                  nextFocus: _focusNode2,
+                                  previousFocus: null,
+                                ),
+
+                                SizedBox(width: 16.w),
 
                                 _buildCodeField(
-                                  controller:
-                                      _code1Controller,
-                                  focusNode:
-                                      _focusNode1,
-                                  nextFocus:
-                                      _focusNode2,
-                                  previousFocus:
-                                      null,
+                                  controller: _code2Controller,
+                                  focusNode: _focusNode2,
+                                  nextFocus: _focusNode3,
+                                  previousFocus: _focusNode1,
                                 ),
 
-                                const SizedBox(
-                                  width: 16,
-                                ),
+                                SizedBox(width: 16.w),
 
                                 _buildCodeField(
-                                  controller:
-                                      _code2Controller,
-                                  focusNode:
-                                      _focusNode2,
-                                  nextFocus:
-                                      _focusNode3,
-                                  previousFocus:
-                                      _focusNode1,
+                                  controller: _code3Controller,
+                                  focusNode: _focusNode3,
+                                  nextFocus: _focusNode4,
+                                  previousFocus: _focusNode2,
                                 ),
 
-                                const SizedBox(
-                                  width: 16,
-                                ),
+                                SizedBox(width: 16.w),
 
                                 _buildCodeField(
-                                  controller:
-                                      _code3Controller,
-                                  focusNode:
-                                      _focusNode3,
-                                  nextFocus:
-                                      _focusNode4,
-                                  previousFocus:
-                                      _focusNode2,
-                                ),
-
-                                const SizedBox(
-                                  width: 16,
-                                ),
-
-                                _buildCodeField(
-                                  controller:
-                                      _code4Controller,
-                                  focusNode:
-                                      _focusNode4,
-                                  nextFocus:
-                                      null,
-                                  previousFocus:
-                                      _focusNode3,
+                                  controller: _code4Controller,
+                                  focusNode: _focusNode4,
+                                  nextFocus: null,
+                                  previousFocus: _focusNode3,
                                 ),
                               ],
                             ),
 
-                            const SizedBox(
-                              height: 64,
-                            ),
+                            const SizedBox(height: 64),
 
                             // ========================================
                             // Verify Code
                             // ========================================
-
                             CustomButton(
-                              label:
-                                  'تایید کد',
+                              label: 'تایید کد',
 
-                              type:
-                                  ButtonType.primary,
+                              type: ButtonType.primary,
 
-                              width: 204,
+                              width: 204.w,
 
-                              onPressed:
-                                  _handleVerifyCode,
+                              onPressed: _handleVerifyCode,
                             ),
 
-                            const SizedBox(
-                              height: 24,
-                            ),
+                            const SizedBox(height: 24),
 
                             // ========================================
                             // Back
                             // ========================================
-
                             CustomButton(
-                              label:
-                                  'بازگشت',
+                              label: 'بازگشت',
 
-                              type:
-                                  ButtonType.tertiary,
+                              type: ButtonType.tertiary,
 
-                              width: 204,
+                              width: 204.w,
 
-                              onPressed:
-                                  _handleBack,
+                              onPressed: _handleBack,
                             ),
                           ],
                         ),
@@ -438,33 +352,25 @@ class _VerificationCodePageState
                     // ==================================================
                     // 64 px below card
                     // ==================================================
-
-                    Container(
-                      height: 64,
-                    ),
+                    const SizedBox(height: 64),
 
                     // ==================================================
                     // Version
                     // ==================================================
-
                     Container(
                       width: double.infinity,
                       alignment: Alignment.center,
 
-                      child: const Text(
+                      child: Text(
                         'نسخه 1.0.0',
 
-                        textAlign:
-                            TextAlign.center,
+                        textAlign: TextAlign.center,
 
                         style: TextStyle(
-                          fontFamily:
-                              'Estedad-VF',
-                          fontSize: 14,
-                          fontWeight:
-                              FontWeight.normal,
-                          color:
-                              Color(0xFFF3F3F7),
+                          fontFamily: 'Estedad-VF',
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.normal,
+                          color: const Color(0xFFF3F3F7),
                         ),
                       ),
                     ),
@@ -472,10 +378,7 @@ class _VerificationCodePageState
                     // ==================================================
                     // 128 px below version
                     // ==================================================
-
-                    Container(
-                      height: 128,
-                    ),
+                    const SizedBox(height: 128),
                   ],
                 ),
               ),
