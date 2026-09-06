@@ -7,7 +7,7 @@ class AttachedItem {
   final bool isImage;
 
   AttachedItem({required this.name, this.bytes, this.path})
-      : isImage = _checkIsImage(name);
+    : isImage = _checkIsImage(name);
 
   static bool _checkIsImage(String name) {
     final ext = name.contains('.') ? name.split('.').last.toLowerCase() : '';

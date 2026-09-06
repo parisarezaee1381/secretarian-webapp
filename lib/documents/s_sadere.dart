@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:flutter_application_1/documents.dart';
 import 'package:flutter_application_1/widgets.dart/pdf_save.dart';
@@ -113,9 +112,11 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
   // ============================================================
   // Responsive Constants
+  //
+  // دقیقاً هم‌راستا با ContractFormPage
   // ============================================================
 
-  static const double _desktopContentWidth = 1440;
+  static const double _desktopContentWidth = 900;
   static const double _fieldWidth = 548;
   static const double _labelWidth = 150;
   static const double _mobileBreakpoint = 700;
@@ -154,6 +155,15 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       _followUpBy = doc.followUpBy;
 
       _isFileSwitchOn = doc.saveFile;
+      _isFileSwitchOn = doc.saveFile;
+
+      _currentAttachments = doc.attachments.map((attachment) {
+        return AttachedItem(
+          name: attachment.name,
+          path: attachment.path,
+          bytes: attachment.bytes,
+        );
+      }).toList();
     }
   }
 
@@ -285,6 +295,16 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
     try {
       // ========================================================
+
+      // 0. مصرف واقعی شماره نامه
+
+      // ========================================================
+
+      if (widget.initialDocument == null) {
+        letterNumberController.text = await LetterNumberGenerator.instance
+            .generate(LetterNumberType.outgoing);
+      }
+      // ========================================================
       // 1. ساخت Document اولیه
       // ========================================================
 
@@ -295,11 +315,14 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
         letterNumber: letterNumberController.text.trim(),
         date: dateController.text,
+
         subject: subjectController.text.trim(),
+
         tags: List<String>.from(tags),
 
         organization: organizationController.text.trim(),
         recipient: recipientController.text.trim(),
+
         signer: signerController.text.trim(),
         actionBy: actionByController.text.trim(),
 
@@ -359,11 +382,13 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
         letterNumber: document.letterNumber,
         date: document.date,
+
         subject: document.subject,
         tags: document.tags,
 
         organization: document.organization,
         recipient: document.recipient,
+
         signer: document.signer,
         actionBy: document.actionBy,
 
@@ -468,9 +493,9 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       child: Text(
         text,
         textAlign: TextAlign.right,
-        style: TextStyle(
-          color: const Color(0xFF101018),
-          fontSize: 15.sp,
+        style: const TextStyle(
+          color: Color(0xFF101018),
+          fontSize: 15,
           fontWeight: FontWeight.w600,
           fontFamily: 'Estedad',
         ),
@@ -500,13 +525,13 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
       labelText: compact ? null : label,
 
-      labelWidth: compact ? 0 : _labelWidth.w,
+      labelWidth: compact ? 0 : _labelWidth,
 
       labelSpacing: 0,
 
-      width: compact ? double.infinity : _fieldWidth.w,
+      width: compact ? double.infinity : _fieldWidth,
 
-      height: 64.w,
+      height: 64,
 
       textInputAction: nextFocusNode != null
           ? TextInputAction.next
@@ -527,6 +552,10 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       },
     );
 
+    // ==========================================================
+    // Desktop
+    // ==========================================================
+
     if (!compact) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -535,12 +564,12 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
           if (errorText != null || showLimitWarning)
             Padding(
-              padding: EdgeInsets.only(top: 4.w, right: _labelWidth.w),
+              padding: const EdgeInsets.only(top: 4, right: _labelWidth),
               child: Text(
                 errorText ?? 'حداکثر 55 کاراکتر مجاز است',
-                style: TextStyle(
-                  color: const Color(0xFFA85838),
-                  fontSize: 12.sp,
+                style: const TextStyle(
+                  color: Color(0xFFA85838),
+                  fontSize: 12,
                   fontFamily: 'Estedad',
                 ),
               ),
@@ -549,23 +578,27 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       );
     }
 
+    // ==========================================================
+    // Mobile
+    // ==========================================================
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildMobileLabel(label),
 
-        SizedBox(height: 8.w),
+        const SizedBox(height: 8),
 
         field,
 
         if (errorText != null || showLimitWarning)
           Padding(
-            padding: EdgeInsets.only(top: 4.w),
+            padding: const EdgeInsets.only(top: 4),
             child: Text(
               errorText ?? 'حداکثر 55 کاراکتر مجاز است',
-              style: TextStyle(
-                color: const Color(0xFFA85838),
-                fontSize: 12.sp,
+              style: const TextStyle(
+                color: Color(0xFFA85838),
+                fontSize: 12,
                 fontFamily: 'Estedad',
               ),
             ),
@@ -578,14 +611,18 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
   // Section Label
   // ============================================================
 
-  Widget _buildSectionLabel(String text, {double width = _labelWidth}) {
+  // ============================================================
+  // Section Label واقعی
+  // ============================================================
+
+  Widget _buildSectionLabelText(String text, {double width = _labelWidth}) {
     return SizedBox(
-      width: width.w,
+      width: width,
       child: Text(
         text,
-        style: TextStyle(
-          color: const Color(0xFF101018),
-          fontSize: 16.sp,
+        style: const TextStyle(
+          color: Color(0xFF101018),
+          fontSize: 16,
           fontWeight: FontWeight.w600,
           fontFamily: 'Estedad',
         ),
@@ -595,7 +632,8 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
   // ============================================================
   // Letter Number + Date
-  // مثل ContractFormPage
+  //
+  // دقیقاً مثل ContractFormPage
   // ============================================================
 
   Widget _buildTopFields({required bool compact}) {
@@ -605,18 +643,18 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
         children: [
           _buildMobileLabel('شماره نامه:'),
 
-          SizedBox(height: 8.w),
+          const SizedBox(height: 8),
 
           LetterNumberField(
             controller: letterNumberController,
             type: LetterNumberType.outgoing,
           ),
 
-          SizedBox(height: 24.w),
+          const SizedBox(height: 24),
 
           _buildMobileLabel('تاریخ:'),
 
-          SizedBox(height: 8.w),
+          const SizedBox(height: 8),
 
           SmartDateField(
             controller: dateController,
@@ -635,7 +673,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
           type: LetterNumberType.outgoing,
         ),
 
-        SizedBox(height: 32.w),
+        const SizedBox(height: 32),
 
         SmartDateField(
           controller: dateController,
@@ -648,6 +686,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
   // ============================================================
   // Registration Date
+  //
   // دقیقاً مثل ContractFormPage
   // ============================================================
 
@@ -658,7 +697,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
         children: [
           _buildMobileLabel('تاریخ ثبت:'),
 
-          SizedBox(height: 8.w),
+          const SizedBox(height: 8),
 
           SmartDateField(controller: registrationDateController, label: ''),
         ],
@@ -679,9 +718,9 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     final input = AppTextField(
       controller: _tagInputController,
 
-      width: compact ? double.infinity : _fieldWidth.w,
+      width: compact ? double.infinity : _fieldWidth,
 
-      height: 64.w,
+      height: 64,
 
       onSubmitted: (_) => _addTag(),
 
@@ -692,47 +731,45 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     );
 
     final tagsWidget = SizedBox(
-      width: compact ? double.infinity : _fieldWidth.w,
+      width: compact ? double.infinity : _fieldWidth,
 
       child: Wrap(
-        spacing: 8.w,
-        runSpacing: 8.w,
+        spacing: 8,
+        runSpacing: 8,
 
         children: tags.asMap().entries.map((entry) {
           final index = entry.key;
           final tag = entry.value;
 
           return Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.w),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
 
             decoration: BoxDecoration(
               color: const Color(0xFF828288),
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(8),
             ),
 
             child: Row(
               mainAxisSize: MainAxisSize.min,
-
               children: [
                 Text(
                   tag,
-                  style: TextStyle(
-                    color: const Color(0xFFF3F3F7),
-                    fontSize: 14.sp,
+                  style: const TextStyle(
+                    color: Color(0xFFF3F3F7),
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     fontFamily: 'Estedad',
                   ),
                 ),
 
-                SizedBox(width: 8.w),
+                const SizedBox(width: 8),
 
                 GestureDetector(
                   onTap: () => _removeTag(index),
-
-                  child: Icon(
+                  child: const Icon(
                     Icons.close,
-                    size: 16.sp,
-                    color: const Color(0xFFF3F3F7),
+                    size: 16,
+                    color: Color(0xFFF3F3F7),
                   ),
                 ),
               ],
@@ -742,37 +779,39 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       ),
     );
 
+    // ==========================================================
+    // Mobile
+    // ==========================================================
+
     if (compact) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildMobileLabel('کلمات کلیدی:'),
 
-          SizedBox(height: 8.w),
+          const SizedBox(height: 8),
 
           input,
 
-          SizedBox(height: 12.w),
+          const SizedBox(height: 12),
 
           tagsWidget,
         ],
       );
     }
 
+    // ==========================================================
+    // Desktop
+    // ==========================================================
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionLabel('کلمات کلیدی:'),
+        _buildSectionLabelText('کلمات کلیدی:'),
 
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            input,
-
-            SizedBox(height: 12.w),
-
-            tagsWidget,
-          ],
+          children: [input, const SizedBox(height: 12), tagsWidget],
         ),
       ],
     );
@@ -785,7 +824,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
   Widget _buildDivider({required bool compact}) {
     return Column(
       children: [
-        SizedBox(height: compact ? 28.w : 32.w),
+        SizedBox(height: compact ? 28 : 32),
 
         Container(
           width: double.infinity,
@@ -793,7 +832,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
           color: const Color(0xFF828288),
         ),
 
-        SizedBox(height: compact ? 40.w : 64.w),
+        SizedBox(height: compact ? 40 : 64),
       ],
     );
   }
@@ -810,19 +849,13 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     if (compact) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildMobileLabel(label),
-
-          SizedBox(height: 12.w),
-
-          child,
-        ],
+        children: [_buildMobileLabel(label), const SizedBox(height: 12), child],
       );
     }
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
-      children: [_buildSectionLabel(label), child],
+      children: [_buildSectionLabelText(label), child],
     );
   }
 
@@ -838,19 +871,13 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     if (compact) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildMobileLabel(label),
-
-          SizedBox(height: 12.w),
-
-          child,
-        ],
+        children: [_buildMobileLabel(label), const SizedBox(height: 12), child],
       );
     }
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
-      children: [_buildSectionLabel(label), child],
+      children: [_buildSectionLabelText(label), child],
     );
   }
 
@@ -870,7 +897,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
                 onPressed: _submitForm,
               ),
 
-              SizedBox(height: 16.w),
+              const SizedBox(height: 16),
 
               CustomButton(
                 label: 'انصراف',
@@ -886,16 +913,16 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
               CustomButton(
                 label: 'ثبت',
                 type: ButtonType.primary,
-                width: 204.w,
+                width: 204,
                 onPressed: _submitForm,
               ),
 
-              SizedBox(width: 16.w),
+              const SizedBox(width: 16),
 
               CustomButton(
                 label: 'انصراف',
                 type: ButtonType.tertiary,
-                width: 204.w,
+                width: 204,
                 onPressed: _cancelForm,
               ),
             ],
@@ -910,12 +937,13 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
       children: [
         AttachmentsPanel(
+          initialItems: _currentAttachments,
           onChanged: (items) {
             _currentAttachments = items;
           },
         ),
 
-        SizedBox(height: 48.w),
+        const SizedBox(height: 48),
 
         buttons,
       ],
@@ -936,7 +964,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
         _buildTopFields(compact: compact),
 
-        SizedBox(height: 32.w),
+        const SizedBox(height: 32),
 
         // ======================================================
         // Subject
@@ -950,7 +978,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
           compact: compact,
         ),
 
-        SizedBox(height: 32.w),
+        const SizedBox(height: 32),
 
         // ======================================================
         // Tags
@@ -974,7 +1002,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
           compact: compact,
         ),
 
-        SizedBox(height: 32.w),
+        const SizedBox(height: 32),
 
         // ======================================================
         // Recipient
@@ -988,7 +1016,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
           compact: compact,
         ),
 
-        SizedBox(height: 32.w),
+        const SizedBox(height: 32),
 
         // ======================================================
         // Signer
@@ -1002,7 +1030,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
           compact: compact,
         ),
 
-        SizedBox(height: 32.w),
+        const SizedBox(height: 32),
 
         // ======================================================
         // Action By
@@ -1033,14 +1061,14 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
           compact: compact,
         ),
 
-        SizedBox(height: 32.w),
+        const SizedBox(height: 32),
 
         // ======================================================
         // Registration Date
         // ======================================================
         _buildRegistrationDate(compact: compact),
 
-        SizedBox(height: 32.w),
+        const SizedBox(height: 32),
 
         // ======================================================
         // Archive Folder
@@ -1053,7 +1081,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
           compact: compact,
         ),
 
-        SizedBox(height: 32.w),
+        const SizedBox(height: 32),
 
         // ======================================================
         // Priority
@@ -1077,12 +1105,12 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
               }
             },
 
-            width: 216.w,
-            height: 64.w,
+            width: 216,
+            height: 64,
           ),
         ),
 
-        SizedBox(height: 32.w),
+        const SizedBox(height: 32),
 
         // ======================================================
         // Send Method
@@ -1104,12 +1132,12 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
               }
             },
 
-            width: 216.w,
-            height: 64.w,
+            width: 216,
+            height: 64,
           ),
         ),
 
-        SizedBox(height: 32.w),
+        const SizedBox(height: 32),
 
         // ======================================================
         // Follow Up
@@ -1137,7 +1165,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
           ),
         ),
 
-        SizedBox(height: 16.w),
+        const SizedBox(height: 16),
 
         // ======================================================
         // Save File
@@ -1184,10 +1212,10 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
               final compact = screenWidth < _mobileBreakpoint;
 
               final horizontalPadding = compact
-                  ? 16.w
-                  : screenWidth < 1000.w
-                  ? 24.w
-                  : 32.w;
+                  ? 16.0
+                  : screenWidth < 1000
+                  ? 24.0
+                  : 32.0;
 
               return Column(
                 children: [
@@ -1208,16 +1236,16 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
                       padding: EdgeInsets.only(
                         left: horizontalPadding,
                         right: horizontalPadding,
-                        top: compact ? 32.w : 64.w,
-                        bottom: 64.w,
+                        top: compact ? 32 : 64,
+                        bottom: 64,
                       ),
 
                       child: Align(
                         alignment: AlignmentDirectional.topStart,
 
                         child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: _desktopContentWidth.w,
+                          constraints: const BoxConstraints(
+                            maxWidth: _desktopContentWidth,
                           ),
 
                           child: Column(
@@ -1233,11 +1261,11 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
                               // ====================================
                               // Attachments
                               // ====================================
-                              SizedBox(height: compact ? 40.w : 48.w),
+                              SizedBox(height: compact ? 40 : 48),
 
                               _buildAttachmentsPanel(compact: compact),
 
-                              SizedBox(height: compact ? 40.w : 64.w),
+                              SizedBox(height: compact ? 40 : 64),
                             ],
                           ),
                         ),

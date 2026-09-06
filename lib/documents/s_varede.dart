@@ -118,6 +118,15 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
       _followUpBy = doc.followUpBy;
 
       _isFileSwitchOn = doc.saveFile;
+      _isFileSwitchOn = doc.saveFile;
+
+      _currentAttachments = doc.attachments.map((attachment) {
+        return AttachedItem(
+          name: attachment.name,
+          path: attachment.path,
+          bytes: attachment.bytes,
+        );
+      }).toList();
     }
   }
 
@@ -234,6 +243,16 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
     bool pdfSaved = false;
 
     try {
+      // ========================================================
+
+      // 0. مصرف واقعی شماره نامه
+
+      // ========================================================
+
+      if (widget.initialDocument == null) {
+        letterNumberController.text = await LetterNumberGenerator.instance
+            .generate(LetterNumberType.incoming);
+      }
       // =====================================================
       // 1. ساخت Document اولیه
       // =====================================================
@@ -417,6 +436,7 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         AttachmentsPanel(
+          initialItems: _currentAttachments,
           onChanged: (items) {
             _currentAttachments = items;
           },
@@ -915,6 +935,9 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
                           SmartDateField(
                             controller: registrationDateController,
                             label: 'تاریخ ثبت:',
+                            fieldWidth: 548.w,
+                            labelWidth: 150.w,
+                            mobileBreakpoint: 700.w,
                           ),
 
                           SizedBox(height: 32.w),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_application_1/documents/s_varede.dart';
 
 import 'widgets.dart/header.dart';
@@ -12,7 +13,6 @@ import '../documents.dart';
 
 import 'documents/s_sadere.dart';
 import 'documents/s_gharardad.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class DocumentList extends StatefulWidget {
   const DocumentList({super.key, this.initialPendingOnly = false});
@@ -25,6 +25,7 @@ class DocumentList extends StatefulWidget {
 
 class _DocumentListState extends State<DocumentList> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+
   FilterValues? _filterValues;
 
   Set<DocumentType> _selectedTypes = {};
@@ -39,70 +40,171 @@ class _DocumentListState extends State<DocumentList> {
     _pendingOnly = widget.initialPendingOnly;
   }
 
+  // ============================================================
+  // Responsive Helpers
+  // ============================================================
+
+  bool _isMobile(BuildContext context) {
+    return MediaQuery.sizeOf(context).width < 600;
+  }
+
+  bool _isTablet(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+
+    return width >= 600 && width < 1000;
+  }
+
+  double _horizontalPadding(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+
+    if (width < 600) {
+      return 16.w;
+    }
+
+    if (width < 1000) {
+      return 24.w;
+    }
+
+    return 32.w;
+  }
+
+  // ============================================================
+  // Document Helpers
+  // ============================================================
+
   String _docLetterNumber(dynamic doc) {
-    if (doc is OutgoingLetterDocument) return doc.letterNumber;
-    if (doc is IncomingLetterDocument) return doc.letterNumber;
-    if (doc is ContractDocument) return doc.letterNumber;
+    if (doc is OutgoingLetterDocument) {
+      return doc.letterNumber;
+    }
+
+    if (doc is IncomingLetterDocument) {
+      return doc.letterNumber;
+    }
+
+    if (doc is ContractDocument) {
+      return doc.letterNumber;
+    }
+
     return '';
   }
 
   String _docDate(dynamic doc) {
-    if (doc is OutgoingLetterDocument) return doc.date;
-    if (doc is IncomingLetterDocument) return doc.date;
-    if (doc is ContractDocument) return doc.date;
+    if (doc is OutgoingLetterDocument) {
+      return doc.date;
+    }
+
+    if (doc is IncomingLetterDocument) {
+      return doc.date;
+    }
+
+    if (doc is ContractDocument) {
+      return doc.date;
+    }
+
     return '';
   }
 
   String _docSubject(dynamic doc) {
-    if (doc is OutgoingLetterDocument) return doc.subject;
-    if (doc is IncomingLetterDocument) return doc.subject;
-    if (doc is ContractDocument) return doc.subject;
+    if (doc is OutgoingLetterDocument) {
+      return doc.subject;
+    }
+
+    if (doc is IncomingLetterDocument) {
+      return doc.subject;
+    }
+
+    if (doc is ContractDocument) {
+      return doc.subject;
+    }
+
     return '';
   }
 
   String _docOrganization(dynamic doc) {
-    if (doc is OutgoingLetterDocument) return doc.organization;
-    if (doc is IncomingLetterDocument) return doc.organization;
-    if (doc is ContractDocument) return doc.organization;
+    if (doc is OutgoingLetterDocument) {
+      return doc.organization;
+    }
+
+    if (doc is IncomingLetterDocument) {
+      return doc.organization;
+    }
+
+    if (doc is ContractDocument) {
+      return doc.organization;
+    }
+
     return '';
   }
 
   String _docPriority(dynamic doc) {
-    if (doc is OutgoingLetterDocument) return doc.priority;
-    if (doc is IncomingLetterDocument) return doc.priority;
-    if (doc is ContractDocument) return 'عادی';
+    if (doc is OutgoingLetterDocument) {
+      return doc.priority;
+    }
+
+    if (doc is IncomingLetterDocument) {
+      return doc.priority;
+    }
+
+    if (doc is ContractDocument) {
+      return 'عادی';
+    }
+
     return '';
   }
 
   List<String> _docTags(dynamic doc) {
-    if (doc is OutgoingLetterDocument) return doc.tags;
-    if (doc is IncomingLetterDocument) return doc.tags;
-    if (doc is ContractDocument) return doc.tags;
+    if (doc is OutgoingLetterDocument) {
+      return doc.tags;
+    }
+
+    if (doc is IncomingLetterDocument) {
+      return doc.tags;
+    }
+
+    if (doc is ContractDocument) {
+      return doc.tags;
+    }
+
     return const [];
   }
 
   bool _docNeedsFollowUp(dynamic doc) {
-    if (doc is OutgoingLetterDocument) return doc.needsFollowUp;
-    if (doc is IncomingLetterDocument) return doc.needsFollowUp;
+    if (doc is OutgoingLetterDocument) {
+      return doc.needsFollowUp;
+    }
+
+    if (doc is IncomingLetterDocument) {
+      return doc.needsFollowUp;
+    }
+
     return false;
   }
 
+  // ============================================================
+  // Documents
+  // ============================================================
+
   List<dynamic> get _typedDocuments {
     final repo = DocumentRepository.instance;
+
     final types = _selectedTypes.isEmpty
         ? DocumentType.values.toSet()
         : _selectedTypes;
 
     final docs = <dynamic>[];
+
     if (types.contains(DocumentType.outgoing)) {
       docs.addAll(repo.outgoingLetters);
     }
+
     if (types.contains(DocumentType.incoming)) {
       docs.addAll(repo.incomingLetters);
     }
+
     if (types.contains(DocumentType.contract)) {
       docs.addAll(repo.contracts);
     }
+
     return docs;
   }
 
@@ -138,17 +240,24 @@ class _DocumentListState extends State<DocumentList> {
 
     if (f.keywords.isNotEmpty) {
       final tags = _docTags(doc);
+
       final matchesAllKeywords = f.keywords.every(
         (keyword) => tags.any((tag) => tag.contains(keyword)),
       );
-      if (!matchesAllKeywords) return false;
+
+      if (!matchesAllKeywords) {
+        return false;
+      }
     }
 
     return true;
   }
 
   bool _matchesPending(dynamic doc) {
-    if (!_pendingOnly) return true;
+    if (!_pendingOnly) {
+      return true;
+    }
+
     return _docNeedsFollowUp(doc);
   }
 
@@ -157,38 +266,83 @@ class _DocumentListState extends State<DocumentList> {
       if (_filterValues != null && !_matchesFilter(doc, _filterValues!)) {
         return false;
       }
+
       return _matchesPending(doc);
     }).toList();
   }
 
+  // ============================================================
+  // Table Row
+  // ============================================================
+
   DocumentTableRow _mapToRow(dynamic doc) {
     const operation = Icon(Icons.more_horiz, color: Color(0xFF101018));
+
     if (doc is OutgoingLetterDocument) {
       return DocumentTableRow.fromOutgoing(
         doc,
         operation: operation,
-        onEdit: () => _openOutgoingForm(doc), // ← اضافه شد
-        onAddAttachment: () => _openOutgoingForm(doc), // ← اضافه شد
+        onEdit: () => _openOutgoingForm(doc),
+        onAddAttachment: () => _openOutgoingForm(doc),
+        onDelete: () => _deleteOutgoing(doc),
       );
-    } else if (doc is IncomingLetterDocument) {
+    }
+
+    if (doc is IncomingLetterDocument) {
       return DocumentTableRow.fromIncoming(
         doc,
         operation: operation,
-        onEdit: () => _openincomingForm(doc), // ← اضافه شد
-        onAddAttachment: () => _openincomingForm(doc), // ← اضافه شد
+        onEdit: () => _openincomingForm(doc),
+        onAddAttachment: () => _openincomingForm(doc),
+        onDelete: () => _deleteIncoming(doc),
       );
-    } else if (doc is ContractDocument) {
+    }
+
+    if (doc is ContractDocument) {
       return DocumentTableRow.fromContract(
         doc,
         operation: operation,
-        onEdit: () => _opencontractForm(doc), // ← اضافه شد
-        onAddAttachment: () => _opencontractForm(doc), // ← اضافه شد
+        onEdit: () => _opencontractForm(doc),
+        onAddAttachment: () => _opencontractForm(doc),
+        onDelete: () => _deleteContract(doc),
       );
     }
+
     throw ArgumentError('نوع سند ناشناخته');
   }
 
-  // این متد جدید رو هم اضافه کنید
+  // ============================================================
+  // Delete
+  // ============================================================
+
+  Future<void> _deleteOutgoing(OutgoingLetterDocument doc) async {
+    await DocumentRepository.instance.deleteOutgoing(doc.id);
+
+    if (!mounted) return;
+
+    setState(() {});
+  }
+
+  Future<void> _deleteIncoming(IncomingLetterDocument doc) async {
+    await DocumentRepository.instance.deleteIncoming(doc.id);
+
+    if (!mounted) return;
+
+    setState(() {});
+  }
+
+  Future<void> _deleteContract(ContractDocument doc) async {
+    await DocumentRepository.instance.deleteContract(doc.id);
+
+    if (!mounted) return;
+
+    setState(() {});
+  }
+
+  // ============================================================
+  // Open Forms
+  // ============================================================
+
   void _openOutgoingForm(OutgoingLetterDocument doc) {
     Navigator.push(
       context,
@@ -216,17 +370,28 @@ class _DocumentListState extends State<DocumentList> {
     ).then((_) => setState(() {}));
   }
 
+  // ============================================================
+  // Remove Filter
+  // ============================================================
+
   void _removeFilterField(String field, {String? keyword}) {
     final f = _filterValues;
+
     if (f == null) return;
 
     final updated = FilterValues(
       letterNumber: field == 'letterNumber' ? '' : f.letterNumber,
+
       fromDate: field == 'fromDate' ? '' : f.fromDate,
+
       toDate: field == 'toDate' ? '' : f.toDate,
+
       title: field == 'title' ? '' : f.title,
+
       organization: field == 'organization' ? '' : f.organization,
+
       priority: field == 'priority' ? null : f.priority,
+
       keywords: field == 'keyword'
           ? f.keywords.where((k) => k != keyword).toList()
           : f.keywords,
@@ -234,18 +399,31 @@ class _DocumentListState extends State<DocumentList> {
 
     setState(() {
       _filterValues = updated.isEmpty ? null : updated;
+
       _currentPage = 1;
     });
   }
+
+  // ============================================================
+  // Filter Chip
+  // ============================================================
 
   Widget _filterChip(String label, VoidCallback onDeleted) {
     return Chip(
       label: Text(
         label,
-        style: const TextStyle(color: Color(0xFFF3F3F7), fontFamily: 'Estedad'),
+        style: TextStyle(
+          color: const Color(0xFFF3F3F7),
+          fontFamily: 'Estedad',
+          fontSize: 13.sp,
+        ),
       ),
       backgroundColor: const Color(0xFF3863A8),
-      deleteIcon: Icon(Icons.close, size: 16.w, color: Color(0xFFF3F3F7)),
+      deleteIcon: Icon(
+        Icons.close,
+        size: 16.sp,
+        color: const Color(0xFFF3F3F7),
+      ),
       onDeleted: onDeleted,
     );
   }
@@ -274,7 +452,10 @@ class _DocumentListState extends State<DocumentList> {
     }
 
     final f = _filterValues;
-    if (f == null) return chips;
+
+    if (f == null) {
+      return chips;
+    }
 
     if (f.letterNumber.isNotEmpty) {
       chips.add(
@@ -284,6 +465,7 @@ class _DocumentListState extends State<DocumentList> {
         ),
       );
     }
+
     if (f.fromDate.isNotEmpty) {
       chips.add(
         _filterChip(
@@ -292,6 +474,7 @@ class _DocumentListState extends State<DocumentList> {
         ),
       );
     }
+
     if (f.toDate.isNotEmpty) {
       chips.add(
         _filterChip(
@@ -300,11 +483,13 @@ class _DocumentListState extends State<DocumentList> {
         ),
       );
     }
+
     if (f.title.isNotEmpty) {
       chips.add(
         _filterChip('عنوان: ${f.title}', () => _removeFilterField('title')),
       );
     }
+
     if (f.organization.isNotEmpty) {
       chips.add(
         _filterChip(
@@ -313,6 +498,7 @@ class _DocumentListState extends State<DocumentList> {
         ),
       );
     }
+
     if (f.priority != null) {
       chips.add(
         _filterChip(
@@ -321,6 +507,7 @@ class _DocumentListState extends State<DocumentList> {
         ),
       );
     }
+
     for (final keyword in f.keywords) {
       chips.add(
         _filterChip(
@@ -336,24 +523,129 @@ class _DocumentListState extends State<DocumentList> {
   bool get _hasAnyActiveFilter =>
       _selectedTypes.isNotEmpty || _pendingOnly || _filterValues != null;
 
+  // ============================================================
+  // Pending Button
+  // ============================================================
+
+  Widget _buildPendingButton(BuildContext context) {
+    final isMobile = _isMobile(context);
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: _horizontalPadding(context)),
+      child: Align(
+        alignment: Alignment.center,
+        child: SizedBox(
+          width: isMobile ? double.infinity : null,
+          child: PendingLettersButton(
+            onPressed: () {
+              setState(() {
+                _pendingOnly = !_pendingOnly;
+
+                _currentPage = 1;
+              });
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // Document Type Buttons
+  // ============================================================
+
+  Widget _buildDocumentTypeButtons(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: _horizontalPadding(context)),
+      child: DocumentTypeFilterButtons(
+        initialSelected: _selectedTypes,
+        onChanged: (selected) {
+          setState(() {
+            _selectedTypes = selected;
+
+            _currentPage = 1;
+          });
+        },
+      ),
+    );
+  }
+
+  // ============================================================
+  // Filter Button
+  // ============================================================
+
+  Widget _buildFilterButton(BuildContext context) {
+    final isMobile = _isMobile(context);
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: _horizontalPadding(context)),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: CustomButton(
+          label: 'فیلتر',
+          type: ButtonType.primary,
+          icon: Icon(Icons.filter_alt, size: 20.sp),
+          width: isMobile ? double.infinity : 144.w,
+          onPressed: () {
+            _scaffoldKey.currentState?.openDrawer();
+          },
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // Active Filter Chips
+  // ============================================================
+
+  Widget _buildActiveFilters(BuildContext context) {
+    if (!_hasAnyActiveFilter) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: _horizontalPadding(context)),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: Wrap(
+          alignment: WrapAlignment.end,
+          spacing: 8.w,
+          runSpacing: 8.h,
+          children: _buildActiveFilterChips(),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // BUILD
+  // ============================================================
+
   @override
   Widget build(BuildContext context) {
     final rows = _filteredDocuments.map(_mapToRow).toList();
+
     const rowsPerPage = 10;
+
     final totalPages = (rows.length / rowsPerPage).ceil().clamp(1, 999);
 
     return Scaffold(
       key: _scaffoldKey,
+
       backgroundColor: const Color(0xFFF5F4F4),
+
       appBar: const AppHeader(title: 'لیست اسناد', leading: HeaderLeading.back),
+
       drawer: FilterPanel(
         initialValues: _filterValues,
+
         onApply: (values) {
           setState(() {
             _filterValues = values;
             _currentPage = 1;
           });
         },
+
         onClear: () {
           setState(() {
             _filterValues = null;
@@ -361,93 +653,103 @@ class _DocumentListState extends State<DocumentList> {
           });
         },
       ),
+
       body: SafeArea(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Column(
-            children: [
-              const SizedBox(height: 64),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
 
-              Align(
-                alignment: Alignment.center,
-                child: PendingLettersButton(
-                  onPressed: () {
-                    setState(() {
-                      _pendingOnly = !_pendingOnly;
-                      _currentPage = 1;
-                    });
-                  },
-                ),
-              ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
 
-              const SizedBox(height: 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
 
-              DocumentTypeFilterButtons(
-                initialSelected: _selectedTypes,
-                onChanged: (selected) {
-                  setState(() {
-                    _selectedTypes = selected;
-                    _currentPage = 1;
-                  });
-                },
-              ),
+                  children: [
+                    // ------------------------------------------------
+                    // Top spacing
+                    // ------------------------------------------------
 
-              const SizedBox(height: 64),
-
-              Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: EdgeInsets.only(right: 32.w),
-                  child: CustomButton(
-                    label: 'فیلتر',
-                    type: ButtonType.primary,
-                    icon: const Icon(Icons.filter_alt),
-                    width: 144.w,
-                    onPressed: () {
-                      _scaffoldKey.currentState?.openDrawer();
-                    },
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              if (_hasAnyActiveFilter) ...[
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 32.w),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Wrap(
-                      alignment: WrapAlignment.end,
-                      spacing: 8.w,
-                      runSpacing: 8,
-                      children: _buildActiveFilterChips(),
+                    SizedBox(
+                      height: _isMobile(context)
+                          ? 24.h
+                          : _isTablet(context)
+                          ? 40.h
+                          : 64.h,
                     ),
-                  ),
+
+                    // ------------------------------------------------
+                    // Pending
+                    // ------------------------------------------------
+                    _buildPendingButton(context),
+
+                    SizedBox(height: _isMobile(context) ? 20.h : 32.h),
+
+                    // ------------------------------------------------
+                    // Document Types
+                    // ------------------------------------------------
+                    _buildDocumentTypeButtons(context),
+
+                    SizedBox(height: _isMobile(context) ? 32.h : 64.h),
+
+                    // ------------------------------------------------
+                    // Filter Button
+                    // ------------------------------------------------
+                    _buildFilterButton(context),
+
+                    SizedBox(height: _isMobile(context) ? 20.h : 32.h),
+
+                    // ------------------------------------------------
+                    // Active Filters
+                    // ------------------------------------------------
+                    _buildActiveFilters(context),
+
+                    if (_hasAnyActiveFilter)
+                      SizedBox(height: _isMobile(context) ? 16.h : 24.h),
+
+                    // ------------------------------------------------
+                    // Document Table
+                    //
+                    // خود DocumentTable دارای
+                    // horizontal scroll است.
+                    // بنابراین اینجا دوباره
+                    // SingleChildScrollView افقی
+                    // قرار نمی‌دهیم.
+                    // ------------------------------------------------
+                    DocumentTable(
+                      rows: rows,
+                      rowsPerPage: rowsPerPage,
+                      showPagination: true,
+                      currentPage: _currentPage,
+                      totalPages: totalPages,
+
+                      onPreviousPage: () {
+                        if (_currentPage > 1) {
+                          setState(() => _currentPage--);
+                        }
+                      },
+
+                      onNextPage: () {
+                        if (_currentPage < totalPages) {
+                          setState(() => _currentPage++);
+                        }
+                      },
+
+                      onPageSelected: (page) {
+                        setState(() => _currentPage = page);
+                      },
+                    ),
+
+                    // ------------------------------------------------
+                    // Bottom spacing
+                    // ------------------------------------------------
+                    SizedBox(height: _isMobile(context) ? 64.h : 128.h),
+                  ],
                 ),
-                const SizedBox(height: 16),
-              ],
-
-              DocumentTable(
-                rows: rows,
-                rowsPerPage: rowsPerPage,
-                showPagination: true,
-                currentPage: _currentPage,
-                totalPages: totalPages,
-                onPreviousPage: () {
-                  setState(() => _currentPage--);
-                },
-                onNextPage: () {
-                  setState(() => _currentPage++);
-                },
-                onPageSelected: (page) {
-                  setState(() => _currentPage = page);
-                },
               ),
-
-              const SizedBox(height: 128),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

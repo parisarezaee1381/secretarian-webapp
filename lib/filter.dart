@@ -284,11 +284,11 @@ class _FilterPanelState extends State<FilterPanel> {
                                   label: Text(
                                     tag,
                                     style: const TextStyle(
-                                      color: Color(0xFF828288),
+                                      color: Color(0xFFF3F3F7),
                                       fontFamily: 'Estedad',
                                     ),
                                   ),
-                                  backgroundColor: const Color(0xFF3863A8),
+                                  backgroundColor: const Color(0xFF828288),
                                   deleteIcon: Icon(
                                     Icons.close,
                                     size: 16.sp,

@@ -4,6 +4,8 @@ import 'package:path_provider/path_provider.dart';
 import 'outgoing_document_db.dart';
 import 'incoming_document_db.dart';
 import 'contract_document_db.dart';
+import 'letter_counter.dart';
+import 'user_db.dart'; // <-- جدید
 
 class DatabaseService {
   DatabaseService._();
@@ -19,14 +21,13 @@ class DatabaseService {
 
     final directory = await getApplicationDocumentsDirectory();
 
-    _isar = await Isar.open(
-   [
-    OutgoingDocumentDbSchema,
-    IncomingDocumentDbSchema,
-    ContractDocumentDbSchema,
-   ],
-  directory: directory.path,
- );
+    _isar = await Isar.open([
+      OutgoingDocumentDbSchema,
+      IncomingDocumentDbSchema,
+      ContractDocumentDbSchema,
+      LetterCounterSchema,
+      UserDbSchema,
+    ], directory: directory.path);
 
     return _isar!;
   }

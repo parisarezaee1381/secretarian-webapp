@@ -4,6 +4,7 @@ import 'package:flutter_application_1/widgets.dart/header.dart';
 import 'package:flutter_application_1/widgets.dart/text_input.dart';
 import 'package:flutter_application_1/widgets.dart/buttons.dart';
 import 'package:flutter_application_1/setting.dart/changepassword.dart';
+import 'package:flutter_application_1/authentication.dart/user_repository.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({
@@ -37,20 +38,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.dispose();
   }
 
-  String? _emailValidator(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'ایمیل را وارد کنید';
-    }
-
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-
-    if (!emailRegex.hasMatch(value.trim())) {
-      return 'فرمت ایمیل صحیح نیست';
-    }
-
-    return null;
-  }
-
   // رفتن به صفحه تغییر رمز عبور
   Future<void> _handleChangePassword() async {
     final result = await Navigator.of(context).push<bool>(
@@ -66,9 +53,30 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  void _handleSave() {
-    if (_formKey.currentState?.validate() ?? false) {
-      // منطق ثبت اطلاعات را اینجا اضافه کن
+  Future<void> _handleSave() async {
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+
+    try {
+      await UserRepository.instance.updateUser(
+        username: _usernameController.text.trim(),
+        email: _emailController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('اطلاعات با موفقیت ذخیره شد')),
+      );
+
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
     }
   }
 
@@ -82,7 +90,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       backgroundColor: const Color(0xFFF3F3F7),
 
       appBar: const AppHeader(
-        title: 'ویرایش اطلاعات',
+        title: 'ویرایش تنظیمات',
         leading: HeaderLeading.back,
       ),
 
@@ -119,10 +127,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 // =========================
                 AppTextField(
                   controller: _emailController,
-                  labelText: 'ایمیل',
-                  keyboardType: TextInputType.emailAddress,
+                  labelText: 'رنگ مورد علاقه',
+                  keyboardType: TextInputType.text,
                   textInputAction: TextInputAction.done,
-                  validator: _emailValidator,
                 ),
 
                 const SizedBox(height: 64),

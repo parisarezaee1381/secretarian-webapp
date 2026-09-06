@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:flutter_application_1/documents/s_sadere.dart';
 import 'package:flutter_application_1/documents/s_varede.dart';
@@ -14,7 +15,6 @@ import 'widgets.dart/notification.dart';
 import '../documents.dart';
 import '../document_repository.dart';
 import 'package:flutter_application_1/setting.dart/settingview.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -46,6 +46,7 @@ class _DashboardState extends State<Dashboard> {
         operation: const Icon(Icons.more_horiz, color: Color(0xFF101018)),
 
         onEdit: () => _openOutgoingForm(doc),
+        onDelete: () => _deleteOutgoing(doc),
 
         onAddAttachment: () => _openOutgoingForm(doc),
       );
@@ -62,6 +63,7 @@ class _DashboardState extends State<Dashboard> {
         operation: const Icon(Icons.more_horiz, color: Color(0xFF101018)),
 
         onEdit: () => _openIncomingForm(doc),
+        onDelete: () => _deleteIncoming(doc),
 
         onAddAttachment: () => _openIncomingForm(doc),
       );
@@ -78,12 +80,48 @@ class _DashboardState extends State<Dashboard> {
         operation: const Icon(Icons.more_horiz, color: Color(0xFF101018)),
 
         onEdit: () => _openContractForm(doc),
+        onDelete: () => _deleteContract(doc),
 
         onAddAttachment: () => _openContractForm(doc),
       );
     }
 
     throw ArgumentError('نوع document ناشناخته است');
+  }
+
+  // ============================================================
+  // حذف نامه صادره
+  // ============================================================
+
+  Future<void> _deleteOutgoing(OutgoingLetterDocument doc) async {
+    await DocumentRepository.instance.deleteOutgoing(doc.id);
+
+    if (!mounted) return;
+
+    setState(() {});
+  }
+
+  // =======================================''''''=====================
+  // ح// ============================================================
+
+  Future<void> _deleteIncoming(IncomingLetterDocument doc) async {
+    await DocumentRepository.instance.deleteIncoming(doc.id);
+
+    if (!mounted) return;
+
+    setState(() {});
+  }
+
+  // ============================================================
+  // حذف قرارداد
+  // ============================================================
+
+  Future<void> _deleteContract(ContractDocument doc) async {
+    await DocumentRepository.instance.deleteContract(doc.id);
+
+    if (!mounted) return;
+
+    setState(() {});
   }
 
   // ============================================================
@@ -189,12 +227,7 @@ class _DashboardState extends State<Dashboard> {
         onLeadingPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => SettingsViewPage(
-                username: 'کاربر',
-                email: 'example@email.com',
-              ),
-            ),
+            MaterialPageRoute(builder: (context) => SettingsViewPage()),
           );
         },
       ),
@@ -218,7 +251,7 @@ class _DashboardState extends State<Dashboard> {
                 // فاصله از Header
                 // ==================================================
 
-                const SizedBox(height: 64),
+                SizedBox(height: 64.w),
 
                 // ==================================================
                 // ثبت سند جدید
@@ -237,7 +270,7 @@ class _DashboardState extends State<Dashboard> {
                 // ==================================================
                 // فاصله
                 // ==================================================
-                const SizedBox(height: 32),
+                SizedBox(height: 32.w),
 
                 // ==================================================
                 // لیست اسناد
@@ -264,7 +297,7 @@ class _DashboardState extends State<Dashboard> {
                 // ==================================================
                 // فاصله
                 // ==================================================
-                const SizedBox(height: 64),
+                SizedBox(height: 64.w),
 
                 // ==================================================
                 // اسناد نیازمند پیگیری
@@ -288,7 +321,7 @@ class _DashboardState extends State<Dashboard> {
                 // ==================================================
                 // فاصله
                 // ==================================================
-                const SizedBox(height: 64),
+                SizedBox(height: 64.w),
 
                 // ==================================================
                 // عنوان آخرین اسناد
@@ -305,7 +338,7 @@ class _DashboardState extends State<Dashboard> {
                       textAlign: TextAlign.right,
 
                       style: TextStyle(
-                        color: Color(0xFF101018),
+                        color: const Color(0xFF101018),
                         fontFamily: 'Estedad',
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
@@ -317,7 +350,7 @@ class _DashboardState extends State<Dashboard> {
                 // ==================================================
                 // فاصله عنوان تا جدول
                 // ==================================================
-                const SizedBox(height: 32),
+                SizedBox(height: 32.w),
 
                 // ==================================================
                 // جدول آخرین ۵ سند
@@ -331,7 +364,7 @@ class _DashboardState extends State<Dashboard> {
                 // ==================================================
                 // فاصله پایین صفحه
                 // ==================================================
-                const SizedBox(height: 128),
+                SizedBox(height: 128.w),
               ],
             ),
           ),
@@ -354,7 +387,7 @@ class _DashboardState extends State<Dashboard> {
           // ======================================================
           if (_showDocumentMenu)
             Positioned(
-              top: 128,
+              top: 128.w,
               left: 0,
               right: 0,
 

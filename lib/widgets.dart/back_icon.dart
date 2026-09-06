@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'hoverablecontainer.dart';
-import 'package:flutter_application_1/dashboard.dart'; 
+import 'package:flutter_application_1/dashboard.dart';
 
 class AppBackButton extends StatelessWidget {
   const AppBackButton({
@@ -33,7 +33,8 @@ class AppBackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveTouchSize = touchTargetSize ?? (size < 44 ? 44 : size);
     final isRtl = Directionality.of(context) == TextDirection.rtl;
-    final resolvedIcon = icon ?? (isRtl ? Icons.arrow_forward : Icons.arrow_back);
+    final resolvedIcon =
+        icon ?? (isRtl ? Icons.arrow_forward : Icons.arrow_back);
 
     return HoverableContainer(
       width: effectiveTouchSize,
@@ -43,7 +44,8 @@ class AppBackButton extends StatelessWidget {
       hoverOpacity: hoverBackgroundOpacity,
       isDisabled: isDisabled,
       semanticLabel: semanticLabel,
-      onTap: onPressed ??
+      onTap:
+          onPressed ??
           () {
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => const Dashboard()),
@@ -51,11 +53,7 @@ class AppBackButton extends StatelessWidget {
             );
           },
       child: Center(
-        child: Icon(
-          resolvedIcon,
-          color: iconColor,
-          size: size,
-        ),
+        child: Icon(resolvedIcon, color: iconColor, size: size),
       ),
     );
   }

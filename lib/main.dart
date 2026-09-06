@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:flutter_application_1/authentication.dart/signup.dart';
+import 'package:flutter_application_1/authentication.dart/login.dart';
+import 'package:flutter_application_1/authentication.dart/user_repository.dart';
+
 import 'document_repository.dart';
 
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
@@ -9,29 +13,46 @@ final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // ----------------------------------------------------------
+  // بارگذاری اسناد از دیتابیس
+  // ----------------------------------------------------------
+
   await DocumentRepository.instance.loadOutgoingFromDatabase();
   await DocumentRepository.instance.loadIncomingFromDatabase();
   await DocumentRepository.instance.loadContractsFromDatabase();
 
-  runApp(const MyApp());
+  // ----------------------------------------------------------
+  // بررسی وجود کاربر
+  // ----------------------------------------------------------
+
+  final user = await UserRepository.instance.getUser();
+
+  // ----------------------------------------------------------
+  // اجرای برنامه
+  // ----------------------------------------------------------
+
+  runApp(MyApp(hasUser: user != null));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.hasUser});
+
+  final bool hasUser;
 
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: const Size(
-        1440,
-        1024,
-      ), // ارتفاع اینجا فقط یه عدد فرمالیته‌ست، اهمیتی نداره چون .h استفاده نمی‌کنیم
+      designSize: const Size(1440, 1024),
       minTextAdapt: true,
+
       builder: (context, child) {
         return MaterialApp(
-          home: const RegisterPage(),
+          home: hasUser ? const LoginPage() : const RegisterPage(),
+
           scaffoldMessengerKey: rootScaffoldMessengerKey,
+
           debugShowCheckedModeBanner: false,
+
           builder: (context, child) {
             return Directionality(
               textDirection: TextDirection.rtl,

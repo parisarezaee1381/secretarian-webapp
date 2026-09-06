@@ -5,6 +5,8 @@ import 'package:flutter_application_1/widgets.dart/text_input.dart';
 import 'package:flutter_application_1/widgets.dart/buttons.dart';
 import 'package:flutter_application_1/widgets.dart/card.dart';
 import 'package:flutter_application_1/widgets.dart/rectangles.dart';
+import 'package:flutter_application_1/authentication.dart/user_repository.dart';
+import 'package:flutter_application_1/dashboard.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -17,10 +19,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final TextEditingController _emailController = TextEditingController();
-
-  // ------------------------------------------------------------
-  // Dispose
-  // ------------------------------------------------------------
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -28,43 +27,34 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     super.dispose();
   }
 
-  // ------------------------------------------------------------
-  // Email Validator
-  // ------------------------------------------------------------
-
-  String? _emailValidator(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'ایمیل را وارد کنید';
-    }
-
-    final String email = value.trim();
-
-    final RegExp emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-
-    if (!emailRegex.hasMatch(email)) {
-      return 'فرمت ایمیل صحیح نیست';
-    }
-
-    return null;
-  }
-
-  // ------------------------------------------------------------
-  // Send Code
-  // ------------------------------------------------------------
-
-  void _handleSendCode() {
+  Future<void> _handleSendCode() async {
     final bool isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid || _isSubmitting) return;
 
-    if (!isValid) {
-      return;
+    setState(() => _isSubmitting = true);
+
+    try {
+      final bool exists = await UserRepository.instance.emailExists(
+        email: _emailController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      if (!exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('کلمه وارد شده اشتباه است ')),
+        );
+        return;
+      }
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Dashboard()),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
-
-    // فعلاً منطق ارسال کد اینجا قرار می‌گیرد.
   }
-
-  // ------------------------------------------------------------
-  // Build
-  // ------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -76,15 +66,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
         child: Stack(
           children: [
-            // ====================================================
-            // Background
-            // ====================================================
-
             const Positioned.fill(child: NestedRotatedRectangles()),
 
-            // ====================================================
-            // Scrollable Main Content
-            // ====================================================
             SafeArea(
               child: SingleChildScrollView(
                 padding: EdgeInsets.symmetric(vertical: 32.w),
@@ -95,15 +78,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
 
                     children: [
-                      // ==================================================
-                      // 64 px above card
-                      // ==================================================
-
                       SizedBox(height: 64.w),
 
-                      // ==================================================
-                      // Card
-                      // ==================================================
                       FakoorLoginCard(
                         child: Form(
                           key: _formKey,
@@ -113,27 +89,18 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             crossAxisAlignment: CrossAxisAlignment.center,
 
                             children: [
-                              // ========================================
-                              // Email
-                              // ========================================
-
                               AppTextField(
                                 controller: _emailController,
 
-                                labelText: 'ایمیل',
+                                labelText: 'رنگ مورد علاقه',
 
-                                keyboardType: TextInputType.emailAddress,
+                                keyboardType: TextInputType.text,
 
                                 textInputAction: TextInputAction.done,
-
-                                validator: _emailValidator,
                               ),
 
                               SizedBox(height: 64.w),
 
-                              // ========================================
-                              // Buttons
-                              // ========================================
                               LayoutBuilder(
                                 builder: (context, constraints) {
                                   final double buttonWidth = 204.w;
@@ -143,19 +110,16 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                   final double totalWidth =
                                       (buttonWidth * 2) + buttonSpacing;
 
-                                  // ------------------------------------
-                                  // Desktop / Wide screen
-                                  // ------------------------------------
-
                                   if (constraints.maxWidth >= totalWidth) {
                                     return Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         // ارسال کد
                                         CustomButton(
-                                          label: 'ارسال کد',
+                                          label: 'تایید',
                                           type: ButtonType.primary,
                                           width: buttonWidth,
+                                          isLoading: _isSubmitting,
                                           onPressed: _handleSendCode,
                                         ),
 
@@ -166,6 +130,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                           label: 'بازگشت',
                                           type: ButtonType.tertiary,
                                           width: buttonWidth,
+                                          isLoading: _isSubmitting,
                                           onPressed: () {
                                             Navigator.pop(context);
                                           },
@@ -174,17 +139,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                     );
                                   }
 
-                                  // ------------------------------------
-                                  // Narrow screen
-                                  // ------------------------------------
-
                                   return Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       CustomButton(
-                                        label: 'ارسال کد',
+                                        label: 'تایید',
                                         type: ButtonType.primary,
                                         width: buttonWidth,
+                                        isLoading: _isSubmitting,
                                         onPressed: _handleSendCode,
                                       ),
 
@@ -207,14 +169,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         ),
                       ),
 
-                      // ==================================================
-                      // 64 px below card
-                      // ==================================================
                       SizedBox(height: 64.w),
 
-                      // ==================================================
-                      // Version
-                      // ==================================================
                       SizedBox(
                         width: double.infinity,
                         child: Text(
@@ -231,9 +187,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         ),
                       ),
 
-                      // ==================================================
-                      // 128 px below version
-                      // ==================================================
                       SizedBox(height: 128.w),
                     ],
                   ),

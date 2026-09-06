@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_application_1/widgets.dart/header.dart';
 import 'package:flutter_application_1/widgets.dart/text_input.dart';
 import 'package:flutter_application_1/widgets.dart/buttons.dart';
+import 'package:flutter_application_1/authentication.dart/user_repository.dart';
 
 class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({super.key});
@@ -62,12 +63,39 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     return null;
   }
 
-  void _handleConfirm() {
+  Future<void> _handleConfirm() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
 
-    Navigator.of(context).pop(true);
+    try {
+      final isCorrect = await UserRepository.instance.verifyCurrentPassword(
+        currentPassword: _currentPasswordController.text,
+      );
+
+      if (!mounted) return;
+
+      if (!isCorrect) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('رمز عبور قبلی اشتباه است')),
+        );
+        return;
+      }
+
+      await UserRepository.instance.changePassword(
+        newPassword: _newPasswordController.text,
+      );
+
+      if (!mounted) return;
+
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
   }
 
   void _handleCancel() {

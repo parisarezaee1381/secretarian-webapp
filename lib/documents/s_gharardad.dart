@@ -124,6 +124,15 @@ class _ContractFormPageState extends State<ContractFormPage> {
 
       _isFileSwitchOn = doc.saveFile;
       _selectedFilePath = doc.filePath;
+      _isFileSwitchOn = doc.saveFile;
+
+      _currentAttachments = doc.attachments.map((attachment) {
+        return AttachedItem(
+          name: attachment.name,
+          path: attachment.path,
+          bytes: attachment.bytes,
+        );
+      }).toList();
     }
   }
 
@@ -224,6 +233,16 @@ class _ContractFormPageState extends State<ContractFormPage> {
     bool pdfSaved = false;
 
     try {
+      // ========================================================
+
+      // 0. مصرف واقعی شماره نامه
+
+      // ========================================================
+
+      if (widget.initialDocument == null) {
+        letterNumberController.text = await LetterNumberGenerator.instance
+            .generate(LetterNumberType.contract);
+      }
       // ========================================================
       // 1. ساخت Contract اولیه
       // ========================================================
@@ -788,6 +807,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
           : CrossAxisAlignment.center,
       children: [
         AttachmentsPanel(
+          initialItems: _currentAttachments,
           onChanged: (items) {
             _currentAttachments = items;
           },

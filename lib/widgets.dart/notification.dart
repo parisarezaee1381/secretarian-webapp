@@ -8,10 +8,7 @@ class PendingLettersData {
 }
 
 class PendingLettersButton extends StatelessWidget {
-  const PendingLettersButton({
-    super.key,
-    required this.onPressed,
-  });
+  const PendingLettersButton({super.key, required this.onPressed});
 
   final VoidCallback onPressed;
 

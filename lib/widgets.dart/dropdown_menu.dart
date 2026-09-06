@@ -84,7 +84,8 @@ class _AppDropdownState<T extends Object> extends State<AppDropdown<T>> {
   bool _isOpen = false;
   late T? _selectedValue = widget.value;
 
-  bool get _hasError => widget.errorText != null && widget.errorText!.isNotEmpty;
+  bool get _hasError =>
+      widget.errorText != null && widget.errorText!.isNotEmpty;
 
   @override
   void didUpdateWidget(covariant AppDropdown<T> oldWidget) {
@@ -104,7 +105,8 @@ class _AppDropdownState<T extends Object> extends State<AppDropdown<T>> {
     super.dispose();
   }
 
-  String _labelFor(T item) => widget.itemLabelBuilder?.call(item) ?? item.toString();
+  String _labelFor(T item) =>
+      widget.itemLabelBuilder?.call(item) ?? item.toString();
 
   void _toggleMenu() {
     if (!widget.enabled) return;
@@ -161,7 +163,6 @@ class _AppDropdownState<T extends Object> extends State<AppDropdown<T>> {
       builder: (context) {
         return Stack(
           children: [
-
             Positioned.fill(
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
@@ -171,7 +172,9 @@ class _AppDropdownState<T extends Object> extends State<AppDropdown<T>> {
             CompositedTransformFollower(
               link: _layerLink,
               showWhenUnlinked: false,
-              targetAnchor: isRtl ? Alignment.bottomRight : Alignment.bottomLeft,
+              targetAnchor: isRtl
+                  ? Alignment.bottomRight
+                  : Alignment.bottomLeft,
               followerAnchor: isRtl ? Alignment.topRight : Alignment.topLeft,
               offset: Offset(0, widget.menuGap),
               child: Material(
@@ -187,7 +190,9 @@ class _AppDropdownState<T extends Object> extends State<AppDropdown<T>> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: widget.colors.menuBackground,
-                        borderRadius: BorderRadius.circular(widget.borderRadius),
+                        borderRadius: BorderRadius.circular(
+                          widget.borderRadius,
+                        ),
                         boxShadow: const [
                           BoxShadow(
                             color: Color(0x33000000),
@@ -197,7 +202,9 @@ class _AppDropdownState<T extends Object> extends State<AppDropdown<T>> {
                         ],
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(widget.borderRadius),
+                        borderRadius: BorderRadius.circular(
+                          widget.borderRadius,
+                        ),
                         child: ListView.builder(
                           shrinkWrap: true,
                           padding: EdgeInsets.zero,
@@ -233,14 +240,22 @@ class _AppDropdownState<T extends Object> extends State<AppDropdown<T>> {
       fontFamily: 'Estedad',
     );
 
-    final label = _selectedValue != null ? _labelFor(_selectedValue as T) : null;
+    final label = _selectedValue != null
+        ? _labelFor(_selectedValue as T)
+        : null;
 
     final box = CompositedTransformTarget(
       link: _layerLink,
       child: MouseRegion(
-        cursor: widget.enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
-        onEnter: widget.enabled ? (_) => setState(() => _isHovered = true) : null,
-        onExit: widget.enabled ? (_) => setState(() => _isHovered = false) : null,
+        cursor: widget.enabled
+            ? SystemMouseCursors.click
+            : SystemMouseCursors.basic,
+        onEnter: widget.enabled
+            ? (_) => setState(() => _isHovered = true)
+            : null,
+        onExit: widget.enabled
+            ? (_) => setState(() => _isHovered = false)
+            : null,
         child: Focus(
           focusNode: _focusNode,
           onKeyEvent: (node, event) {

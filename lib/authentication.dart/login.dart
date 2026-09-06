@@ -8,6 +8,9 @@ import 'package:flutter_application_1/widgets.dart/rectangles.dart';
 import 'package:flutter_application_1/dashboard.dart';
 import 'forgetpassword.dart';
 
+import 'package:flutter_application_1/main.dart';
+import 'package:flutter_application_1/authentication.dart/user_repository.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -24,10 +27,7 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _obscurePassword = true;
   bool _isForgotPasswordHovered = false;
-
-  // ------------------------------------------------------------
-  // Dispose
-  // ------------------------------------------------------------
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -37,22 +37,35 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  // ------------------------------------------------------------
-  // Login
-  // ------------------------------------------------------------
+  Future<void> _handleLogin() async {
+    final bool isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid || _isSubmitting) return;
 
-  void _handleLogin() {
-    if (_formKey.currentState?.validate() ?? false) {
+    setState(() => _isSubmitting = true);
+
+    try {
+      final user = await UserRepository.instance.login(
+        username: _usernameController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (!mounted) return;
+
+      if (user == null) {
+        rootScaffoldMessengerKey.currentState?.showSnackBar(
+          const SnackBar(content: Text('نام کاربری یا رمز عبور اشتباه است')),
+        );
+        return;
+      }
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const Dashboard()),
       );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
-
-  // ------------------------------------------------------------
-  // Build
-  // ------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -61,15 +74,8 @@ class _LoginPageState extends State<LoginPage> {
 
       body: Stack(
         children: [
-          // ====================================================
-          // Background
-          // ====================================================
-
           const Positioned.fill(child: NestedRotatedRectangles()),
 
-          // ====================================================
-          // Scrollable Main Content
-          // ====================================================
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(vertical: 32),
@@ -80,15 +86,8 @@ class _LoginPageState extends State<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
 
                   children: [
-                    // ==================================================
-                    // 64 px above card
-                    // ==================================================
-
                     const SizedBox(height: 64),
 
-                    // ==================================================
-                    // Card
-                    // ==================================================
                     FakoorLoginCard(
                       child: Form(
                         key: _formKey,
@@ -98,10 +97,6 @@ class _LoginPageState extends State<LoginPage> {
                           crossAxisAlignment: CrossAxisAlignment.center,
 
                           children: [
-                            // ========================================
-                            // Username
-                            // ========================================
-
                             AppTextField(
                               controller: _usernameController,
 
@@ -122,9 +117,6 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 24),
 
-                            // ========================================
-                            // Password
-                            // ========================================
                             AppTextField(
                               controller: _passwordController,
 
@@ -163,9 +155,6 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 16),
 
-                            // ========================================
-                            // Forgot Password
-                            // ========================================
                             SizedBox(
                               width: 808.w,
                               child: Align(
@@ -219,15 +208,14 @@ class _LoginPageState extends State<LoginPage> {
 
                             const SizedBox(height: 64),
 
-                            // ========================================
-                            // Login Button
-                            // ========================================
                             CustomButton(
                               label: 'ورود',
 
                               type: ButtonType.primary,
 
                               width: 204.w,
+
+                              isLoading: _isSubmitting,
 
                               onPressed: _handleLogin,
                             ),
@@ -236,14 +224,8 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
 
-                    // ==================================================
-                    // 64 px below card
-                    // ==================================================
                     const SizedBox(height: 64),
 
-                    // ==================================================
-                    // Version
-                    // ==================================================
                     Container(
                       width: double.infinity,
                       alignment: Alignment.center,
@@ -262,9 +244,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
 
-                    // ==================================================
-                    // 128 px below version
-                    // ==================================================
                     const SizedBox(height: 128),
                   ],
                 ),

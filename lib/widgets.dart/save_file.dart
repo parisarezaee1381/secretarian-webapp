@@ -5,11 +5,7 @@ class FileSaveWidget extends StatelessWidget {
   final void Function(String path)? onSaved;
   final VoidCallback? onCancel;
 
-  const FileSaveWidget({
-    super.key,
-    this.onSaved,
-    this.onCancel,
-  });
+  const FileSaveWidget({super.key, this.onSaved, this.onCancel});
 
   Future<void> _saveFile() async {
     try {

@@ -7,6 +7,9 @@ import 'package:flutter_application_1/widgets.dart/card.dart';
 import 'package:flutter_application_1/widgets.dart/rectangles.dart';
 import 'package:flutter_application_1/dashboard.dart';
 
+import 'package:flutter_application_1/main.dart';
+import 'package:flutter_application_1/authentication.dart/user_repository.dart';
+
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -28,10 +31,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-
-  // ------------------------------------------------------------
-  // Dispose
-  // ------------------------------------------------------------
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -42,10 +42,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
     super.dispose();
   }
-
-  // ------------------------------------------------------------
-  // Validators
-  // ------------------------------------------------------------
 
   String? _usernameValidator(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -75,42 +71,37 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  String? _emailValidator(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'ایمیل را وارد کنید';
-    }
-
-    final String email = value.trim();
-
-    final RegExp emailRegex = RegExp(r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,4}$');
-
-    if (!emailRegex.hasMatch(email)) {
-      return 'فرمت ایمیل صحیح نیست';
-    }
-
-    return null;
-  }
-
   // ------------------------------------------------------------
   // Register
   // ------------------------------------------------------------
 
-  void _handleRegister() {
+  Future<void> _handleRegister() async {
     final bool isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid || _isSubmitting) return;
 
-    if (!isValid) {
-      return;
+    setState(() => _isSubmitting = true);
+
+    try {
+      await UserRepository.instance.registerUser(
+        username: _usernameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Dashboard()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      rootScaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const Dashboard()),
-    );
   }
-
-  // ------------------------------------------------------------
-  // Password visibility
-  // ------------------------------------------------------------
 
   void _togglePasswordVisibility() {
     setState(() {
@@ -124,10 +115,6 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
-  // ------------------------------------------------------------
-  // Build
-  // ------------------------------------------------------------
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -138,15 +125,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
         child: Stack(
           children: [
-            // ====================================================
-            // Background
-            // ====================================================
-
             const Positioned.fill(child: NestedRotatedRectangles()),
 
-            // ====================================================
-            // Scrollable Main Content
-            // ====================================================
             SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(vertical: 32),
@@ -157,15 +137,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
 
                     children: [
-                      // ==================================================
-                      // 64 px above card
-                      // ==================================================
-
                       const SizedBox(height: 64),
 
-                      // ==================================================
-                      // Card
-                      // ==================================================
                       FakoorLoginCard(
                         child: Form(
                           key: _formKey,
@@ -175,10 +148,6 @@ class _RegisterPageState extends State<RegisterPage> {
                             crossAxisAlignment: CrossAxisAlignment.center,
 
                             children: [
-                              // ========================================
-                              // Username
-                              // ========================================
-
                               AppTextField(
                                 controller: _usernameController,
 
@@ -193,9 +162,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
                               const SizedBox(height: 24),
 
-                              // ========================================
-                              // Password
-                              // ========================================
                               AppTextField(
                                 controller: _passwordController,
 
@@ -224,9 +190,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
                               const SizedBox(height: 24),
 
-                              // ========================================
-                              // Confirm Password
-                              // ========================================
                               AppTextField(
                                 controller: _confirmPasswordController,
 
@@ -261,26 +224,23 @@ class _RegisterPageState extends State<RegisterPage> {
                               AppTextField(
                                 controller: _emailController,
 
-                                labelText: 'ایمیل',
+                                labelText: 'رنگ مورد علاقه',
 
-                                keyboardType: TextInputType.emailAddress,
+                                keyboardType: TextInputType.text,
 
                                 textInputAction: TextInputAction.done,
-
-                                validator: _emailValidator,
                               ),
 
                               const SizedBox(height: 64),
 
-                              // ========================================
-                              // Register Button
-                              // ========================================
                               CustomButton(
                                 label: 'ثبت نام',
 
                                 type: ButtonType.primary,
 
                                 width: 204.w,
+
+                                isLoading: _isSubmitting,
 
                                 onPressed: _handleRegister,
                               ),
@@ -289,14 +249,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ),
 
-                      // ==================================================
-                      // 64 px below card
-                      // ==================================================
                       const SizedBox(height: 64),
 
-                      // ==================================================
-                      // Version
-                      // ==================================================
                       Container(
                         width: double.infinity,
                         alignment: Alignment.center,

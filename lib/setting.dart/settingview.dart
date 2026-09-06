@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:flutter_application_1/widgets.dart/header.dart';
 import 'package:flutter_application_1/widgets.dart/buttons.dart';
 import 'package:flutter_application_1/authentication.dart/login.dart';
 import 'package:flutter_application_1/setting.dart/edit_setting.dart';
+import 'package:flutter_application_1/authentication.dart/user_repository.dart';
 
-class SettingsViewPage extends StatelessWidget {
-  const SettingsViewPage({
-    super.key,
-    required this.username,
-    required this.email,
-  });
+class SettingsViewPage extends StatefulWidget {
+  const SettingsViewPage({super.key});
 
-  final String username;
-  final String email;
+  @override
+  State<SettingsViewPage> createState() => _SettingsViewPageState();
+}
+
+class _SettingsViewPageState extends State<SettingsViewPage> {
+  String _username = '';
+  String _email = '';
+
+  bool _isLoading = true;
 
   static TextStyle get _labelStyle => TextStyle(
     fontFamily: 'Estedad',
@@ -43,6 +48,43 @@ class SettingsViewPage extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    try {
+      final user = await UserRepository.instance.getUser();
+
+      if (!mounted) return;
+
+      if (user == null) {
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      setState(() {
+        _username = user.username;
+        _email = user.email;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('خطا در دریافت اطلاعات کاربر')));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F7),
@@ -56,89 +98,92 @@ class SettingsViewPage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
 
-            // پروژه RTL است:
-            // start = سمت راست
             crossAxisAlignment: CrossAxisAlignment.start,
 
             children: [
-              // =========================
-              // نام کاربری
-              // =========================
-              _buildLabelRow('نام کاربری:', username),
+              if (_isLoading)
+                const Center(child: CircularProgressIndicator())
+              else ...[
+                // =========================
+                // نام کاربری
+                // =========================
+                _buildLabelRow('نام کاربری:', _username),
 
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              // =========================
-              // ایمیل
-              // =========================
-              _buildLabelRow('ایمیل:', email),
+                // =========================
+                // رنگ مورد علاقه
+                // =========================
+                _buildLabelRow('رنگ مورد علاقه:', _email),
 
-              const SizedBox(height: 64),
+                const SizedBox(height: 64),
 
-              // =========================
-              // دکمه ویرایش
-              // وسط چین
-              // =========================
-              Center(
-                child: CustomButton(
-                  label: 'ویرایش',
-                  type: ButtonType.primary,
-                  width: 204.w,
-                  icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditProfilePage(
-                          initialUsername: username,
-                          initialEmail: email,
+                // =========================
+                // دکمه ویرایش
+                // =========================
+                Center(
+                  child: CustomButton(
+                    label: 'ویرایش',
+                    type: ButtonType.primary,
+                    width: 204.w,
+                    icon: const Icon(Icons.edit),
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditProfilePage(
+                            initialUsername: _username,
+                            initialEmail: _email,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+                      );
 
-              const SizedBox(height: 24),
+                      if (!mounted) return;
 
-              // =========================
-              // خروج از حساب
-              // وسط چین
-              // =========================
-              Center(
-                child: CustomButton(
-                  label: 'خروج از حساب',
-                  type: ButtonType.tertiary,
-                  width: 204.w,
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginPage(),
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 64),
-
-              // =========================
-              // نسخه
-              // همراه محتوا اسکرول می‌شود
-              // =========================
-              Center(
-                child: Text(
-                  'نسخه 1.0.0',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Estedad-VF',
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.normal,
-                    color: const Color(0xFF101018),
+                      _loadUser();
+                    },
                   ),
                 ),
-              ),
+
+                const SizedBox(height: 24),
+
+                // =========================
+                // خروج از حساب
+                // =========================
+                Center(
+                  child: CustomButton(
+                    label: 'خروج از حساب',
+                    type: ButtonType.tertiary,
+                    width: 204.w,
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 64),
+
+                // =========================
+                // نسخه
+                // =========================
+                Center(
+                  child: Text(
+                    'نسخه 1.0.0',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Estedad-VF',
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.normal,
+                      color: const Color(0xFF101018),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

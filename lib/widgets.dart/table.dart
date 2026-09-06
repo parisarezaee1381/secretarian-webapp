@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../documents.dart';
+import 'buttons.dart';
 
 class DocumentTable extends StatelessWidget {
-  // عرض ستون‌ها ریسپانسیو است (بر اساس عرض صفحه).
-  // ارتفاع ردیف‌ها و فاصله بین ردیف‌ها ثابت می‌مانند.
+  // این‌ها دیگه static const نیستن چون .w/.sp مقدار const نیست
+  // (به مقداردهی ScreenUtil در ران‌تایم وابسته‌ست)
   static double get columnWidth => 284.w;
-  static const double rowHeight = 64.0;
-  static const double rowSpacing = 16.0;
+  static double get rowHeight => 64.w;
+  static double get rowSpacing => 16.w;
 
   static const Color lightColumnColor = Color(0xFFBBBBC0);
   static const Color darkColumnColor = Color(0xFF828288);
@@ -55,21 +56,18 @@ class DocumentTable extends StatelessWidget {
           children: [
             _buildHeader(),
 
-            const SizedBox(height: rowSpacing),
+            SizedBox(height: rowSpacing),
 
             ...List.generate(visibleRows.length, (index) {
               return Padding(
                 padding: EdgeInsets.only(
                   bottom: index == visibleRows.length - 1 ? 0 : rowSpacing,
                 ),
-                child: _buildDataRow(visibleRows[index]),
+                child: _buildDataRow(context, visibleRows[index]),
               );
             }),
 
-            if (showPagination) ...[
-              const SizedBox(height: 32),
-              _buildPagination(),
-            ],
+            if (showPagination) ...[SizedBox(height: 32.w), _buildPagination()],
           ],
         ),
       ),
@@ -93,7 +91,7 @@ class DocumentTable extends StatelessWidget {
     );
   }
 
-  Widget _buildDataRow(DocumentTableRow row) {
+  Widget _buildDataRow(BuildContext context, DocumentTableRow row) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -106,9 +104,11 @@ class DocumentTable extends StatelessWidget {
         _buildDataCell(text: row.priority, columnIndex: 3),
 
         _buildOperationCell(
+          context,
           hasAttachments: row.hasAttachments,
-          onAddAttachment: row.onAddAttachment,
+          onAddAttachment: row.onAddAttachment, // ← اضافه شد
           onEdit: row.onEdit,
+          onDelete: row.onDelete,
           columnIndex: 4,
         ),
       ],
@@ -154,11 +154,13 @@ class DocumentTable extends StatelessWidget {
     );
   }
 
-  Widget _buildOperationCell({
+  Widget _buildOperationCell(
+    BuildContext context, {
     required bool hasAttachments,
     required int columnIndex,
     VoidCallback? onAddAttachment,
     VoidCallback? onEdit,
+    final Future<void> Function()? onDelete,
   }) {
     return Container(
       width: columnWidth,
@@ -197,9 +199,11 @@ class DocumentTable extends StatelessWidget {
 
           // آیکون حذف
           IconButton(
-            onPressed: () {
-              // بعداً تکمیل می‌شه: حذف سند
-            },
+            onPressed: onDelete == null
+                ? null
+                : () {
+                    _showDeleteConfirmationDialog(context, onDelete);
+                  },
             icon: Icon(Icons.delete_outline, size: 20.sp),
             color: const Color(0xFF3863A8),
             padding: EdgeInsets.zero,
@@ -207,6 +211,82 @@ class DocumentTable extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showDeleteConfirmationDialog(
+    BuildContext context,
+    Future<void> Function() onDelete,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: const Color(0xFFF3F3F7),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: SizedBox(
+            width: 568.w,
+            height: 360.w,
+            child: Padding(
+              padding: EdgeInsets.all(32.w),
+              child: Column(
+                children: [
+                  Text(
+                    'حذف سند',
+                    style: TextStyle(
+                      fontFamily: 'Estedad',
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF101018),
+                    ),
+                  ),
+
+                  SizedBox(height: 32.w),
+
+                  Text(
+                    'آیا از حذف سند مطمئن هستید؟',
+                    style: TextStyle(
+                      fontFamily: 'Estedad',
+                      fontSize: 16.sp,
+                      color: const Color(0xFF101018),
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CustomButton(
+                        label: 'بله',
+                        type: ButtonType.primary,
+                        width: 160.w,
+                        onPressed: () async {
+                          Navigator.of(context).pop();
+                          await onDelete();
+                        },
+                      ),
+
+                      SizedBox(width: 32.w),
+
+                      CustomButton(
+                        label: 'خیر',
+                        type: ButtonType.secondary,
+                        width: 160.w,
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -247,7 +327,7 @@ class DocumentTable extends StatelessWidget {
               borderRadius: BorderRadius.circular(6.r),
               child: Container(
                 width: 36.w,
-                height: 36,
+                height: 36.w,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(6.r),
@@ -287,8 +367,9 @@ class DocumentTableRow {
   final String priority;
   final Widget? operation;
   final bool hasAttachments;
-  final VoidCallback? onAddAttachment;
+  final VoidCallback? onAddAttachment; // ← اضافه شد
   final VoidCallback? onEdit;
+  final Future<void> Function()? onDelete;
 
   const DocumentTableRow({
     required this.number,
@@ -297,8 +378,9 @@ class DocumentTableRow {
     required this.priority,
     this.operation,
     this.hasAttachments = false,
-    this.onAddAttachment,
+    this.onAddAttachment, // ← اضافه شد
     this.onEdit,
+    this.onDelete,
   });
 
   factory DocumentTableRow.fromOutgoing(
@@ -306,6 +388,7 @@ class DocumentTableRow {
     Widget? operation,
     VoidCallback? onEdit,
     VoidCallback? onAddAttachment,
+    Future<void> Function()? onDelete,
   }) {
     return DocumentTableRow(
       number: doc.letterNumber,
@@ -314,16 +397,18 @@ class DocumentTableRow {
       priority: doc.priority,
       operation: operation,
       hasAttachments: doc.attachments.isNotEmpty,
-      onAddAttachment: onAddAttachment,
+      onAddAttachment: onAddAttachment, // ← اضافه شد
       onEdit: onEdit,
+      onDelete: onDelete, // ← اضافه شد
     );
   }
 
   factory DocumentTableRow.fromIncoming(
     IncomingLetterDocument doc, {
     Widget? operation,
-    VoidCallback? onAddAttachment,
+    VoidCallback? onAddAttachment, // ← اضافه شد
     VoidCallback? onEdit,
+    Future<void> Function()? onDelete,
   }) {
     return DocumentTableRow(
       number: doc.letterNumber,
@@ -332,8 +417,9 @@ class DocumentTableRow {
       priority: doc.priority,
       operation: operation,
       hasAttachments: doc.attachments.isNotEmpty,
-      onAddAttachment: onAddAttachment,
+      onAddAttachment: onAddAttachment, // ← اضافه شد
       onEdit: onEdit,
+      onDelete: onDelete,
     );
   }
 
@@ -342,6 +428,7 @@ class DocumentTableRow {
     Widget? operation,
     VoidCallback? onAddAttachment,
     VoidCallback? onEdit,
+    Future<void> Function()? onDelete,
   }) {
     return DocumentTableRow(
       number: doc.letterNumber,
@@ -350,8 +437,9 @@ class DocumentTableRow {
       priority: 'عادی',
       operation: operation,
       hasAttachments: doc.attachments.isNotEmpty,
-      onAddAttachment: onAddAttachment,
+      onAddAttachment: onAddAttachment, // ← اضافه شد
       onEdit: onEdit,
+      onDelete: onDelete,
     );
   }
 }

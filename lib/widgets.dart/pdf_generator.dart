@@ -10,15 +10,10 @@ class DocumentPdfGenerator {
   static const String _fontPath =
       'assets/Estedad/Estedad-VariableFont_wght.ttf';
 
-  static Future<Uint8List> generate(
-    PdfDocumentData data,
-  ) async {
-
+  static Future<Uint8List> generate(PdfDocumentData data) async {
     final fontData = await rootBundle.load(_fontPath);
 
-    final estedad = pw.Font.ttf(
-      fontData.buffer.asByteData(),
-    );
+    final estedad = pw.Font.ttf(fontData.buffer.asByteData());
 
     final pdf = pw.Document();
 
@@ -26,38 +21,22 @@ class DocumentPdfGenerator {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
 
-        margin: const pw.EdgeInsets.fromLTRB(
-          45,
-          45,
-          45,
-          45,
-        ),
+        margin: const pw.EdgeInsets.fromLTRB(45, 45, 45, 45),
 
         textDirection: pw.TextDirection.rtl,
 
-        theme: pw.ThemeData.withFont(
-          base: estedad,
-        ),
+        theme: pw.ThemeData.withFont(base: estedad),
 
         header: (context) {
-          return _buildHeader(
-            data,
-            estedad,
-          );
+          return _buildHeader(data, estedad);
         },
 
         footer: (context) {
-          return _buildFooter(
-            context,
-            estedad,
-          );
+          return _buildFooter(context, estedad);
         },
 
         build: (context) {
-          return _buildContent(
-            data,
-            estedad,
-          );
+          return _buildContent(data, estedad);
         },
       ),
     );
@@ -65,39 +44,20 @@ class DocumentPdfGenerator {
     return pdf.save();
   }
 
-  static List<pw.Widget> _buildContent(
-    PdfDocumentData data,
-    pw.Font font,
-  ) {
+  static List<pw.Widget> _buildContent(PdfDocumentData data, pw.Font font) {
     final widgets = <pw.Widget>[
-
       _buildTwoColumnRow(
-        _field(
-          'شماره نامه',
-          data.letterNumber,
-          font,
-        ),
-        _field(
-          'تاریخ',
-          data.date,
-          font,
-        ),
+        _field('شماره نامه', data.letterNumber, font),
+        _field('تاریخ', data.date, font),
       ),
 
       pw.SizedBox(height: 14),
 
-      _buildFullWidthField(
-        'عنوان/خلاصه نامه',
-        data.subject,
-        font,
-      ),
+      _buildFullWidthField('عنوان/خلاصه نامه', data.subject, font),
 
       pw.SizedBox(height: 14),
 
-      _buildTags(
-        data.tags,
-        font,
-      ),
+      _buildTags(data.tags, font),
 
       pw.SizedBox(height: 24),
 
@@ -105,18 +65,11 @@ class DocumentPdfGenerator {
 
       pw.SizedBox(height: 24),
 
-      _buildFullWidthField(
-        'به سازمان/شرکت',
-        data.organization,
-        font,
-      ),
+      _buildFullWidthField('به سازمان/شرکت', data.organization, font),
 
       pw.SizedBox(height: 14),
 
-      ..._buildTypeSpecificContent(
-        data,
-        font,
-      ),
+      ..._buildTypeSpecificContent(data, font),
 
       pw.SizedBox(height: 24),
 
@@ -124,39 +77,21 @@ class DocumentPdfGenerator {
 
       pw.SizedBox(height: 24),
 
-      _buildFullWidthField(
-        'تاریخ ثبت',
-        data.registrationDate,
-        font,
-      ),
+      _buildFullWidthField('تاریخ ثبت', data.registrationDate, font),
 
       pw.SizedBox(height: 14),
 
       if (data.archiveFolder != null)
-        _buildFullWidthField(
-          'پوشه بایگانی',
-          data.archiveFolder!,
-          font,
-        ),
+        _buildFullWidthField('پوشه بایگانی', data.archiveFolder!, font),
 
-      if (data.archiveFolder != null)
-        pw.SizedBox(height: 14),
+      if (data.archiveFolder != null) pw.SizedBox(height: 14),
 
       if (data.priority != null)
-        _buildFullWidthField(
-          'اولویت',
-          data.priority!,
-          font,
-        ),
+        _buildFullWidthField('اولویت', data.priority!, font),
 
-      if (data.priority != null)
-        pw.SizedBox(height: 14),
+      if (data.priority != null) pw.SizedBox(height: 14),
 
-      if (data.type != PdfDocumentType.contract)
-        _buildFollowUp(
-          data,
-          font,
-        ),
+      if (data.type != PdfDocumentType.contract) _buildFollowUp(data, font),
     ];
 
     return widgets;
@@ -169,19 +104,11 @@ class DocumentPdfGenerator {
     switch (data.type) {
       case PdfDocumentType.outgoing:
         return [
-          _buildFullWidthField(
-            'گیرنده نامه',
-            data.recipient,
-            font,
-          ),
+          _buildFullWidthField('گیرنده نامه', data.recipient, font),
 
           pw.SizedBox(height: 14),
 
-          _buildFullWidthField(
-            'امضا کننده',
-            data.signer ?? '-',
-            font,
-          ),
+          _buildFullWidthField('امضا کننده', data.signer ?? '-', font),
 
           pw.SizedBox(height: 14),
 
@@ -193,20 +120,12 @@ class DocumentPdfGenerator {
 
           pw.SizedBox(height: 14),
 
-          _buildFullWidthField(
-            'نحوه ارسال',
-            data.sendMethod ?? '-',
-            font,
-          ),
+          _buildFullWidthField('نحوه ارسال', data.sendMethod ?? '-', font),
         ];
 
       case PdfDocumentType.incoming:
         return [
-          _buildFullWidthField(
-            'فرستنده',
-            data.sender ?? '-',
-            font,
-          ),
+          _buildFullWidthField('فرستنده', data.sender ?? '-', font),
 
           pw.SizedBox(height: 14),
 
@@ -218,20 +137,12 @@ class DocumentPdfGenerator {
 
           pw.SizedBox(height: 14),
 
-          _buildFullWidthField(
-            'گیرنده نامه',
-            data.recipient,
-            font,
-          ),
+          _buildFullWidthField('گیرنده نامه', data.recipient, font),
         ];
 
       case PdfDocumentType.contract:
         return [
-          _buildFullWidthField(
-            'گیرنده',
-            data.recipient,
-            font,
-          ),
+          _buildFullWidthField('گیرنده', data.recipient, font),
 
           pw.SizedBox(height: 14),
 
@@ -260,14 +171,9 @@ class DocumentPdfGenerator {
     }
   }
 
-  static pw.Widget _buildHeader(
-    PdfDocumentData data,
-    pw.Font font,
-  ) {
+  static pw.Widget _buildHeader(PdfDocumentData data, pw.Font font) {
     return pw.Container(
-      margin: const pw.EdgeInsets.only(
-        bottom: 20,
-      ),
+      margin: const pw.EdgeInsets.only(bottom: 20),
       child: pw.Column(
         children: [
           pw.Center(
@@ -284,23 +190,15 @@ class DocumentPdfGenerator {
 
           pw.SizedBox(height: 10),
 
-          pw.Container(
-            height: 1,
-            color: PdfColors.grey400,
-          ),
+          pw.Container(height: 1, color: PdfColors.grey400),
         ],
       ),
     );
   }
 
-  static pw.Widget _buildFooter(
-    pw.Context context,
-    pw.Font font,
-  ) {
+  static pw.Widget _buildFooter(pw.Context context, pw.Font font) {
     return pw.Container(
-      margin: const pw.EdgeInsets.only(
-        top: 15,
-      ),
+      margin: const pw.EdgeInsets.only(top: 15),
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.center,
         children: [
@@ -327,10 +225,7 @@ class DocumentPdfGenerator {
       width: double.infinity,
       padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
-        border: pw.Border.all(
-          color: PdfColors.grey400,
-          width: 0.7,
-        ),
+        border: pw.Border.all(color: PdfColors.grey400, width: 0.7),
         borderRadius: pw.BorderRadius.circular(5),
       ),
       child: pw.Column(
@@ -352,29 +247,19 @@ class DocumentPdfGenerator {
           pw.Text(
             _safeValue(value),
             textDirection: pw.TextDirection.rtl,
-            style: pw.TextStyle(
-              font: font,
-              fontSize: 10,
-            ),
+            style: pw.TextStyle(font: font, fontSize: 10),
           ),
         ],
       ),
     );
   }
 
-  static pw.Widget _field(
-    String label,
-    String value,
-    pw.Font font,
-  ) {
+  static pw.Widget _field(String label, String value, pw.Font font) {
     return pw.Container(
       width: double.infinity,
       padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
-        border: pw.Border.all(
-          color: PdfColors.grey400,
-          width: 0.7,
-        ),
+        border: pw.Border.all(color: PdfColors.grey400, width: 0.7),
         borderRadius: pw.BorderRadius.circular(5),
       ),
       child: pw.Column(
@@ -396,48 +281,32 @@ class DocumentPdfGenerator {
           pw.Text(
             _safeValue(value),
             textDirection: pw.TextDirection.rtl,
-            style: pw.TextStyle(
-              font: font,
-              fontSize: 10,
-            ),
+            style: pw.TextStyle(font: font, fontSize: 10),
           ),
         ],
       ),
     );
   }
 
-  static pw.Widget _buildTwoColumnRow(
-    pw.Widget first,
-    pw.Widget second,
-  ) {
+  static pw.Widget _buildTwoColumnRow(pw.Widget first, pw.Widget second) {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Expanded(
-          child: first,
-        ),
+        pw.Expanded(child: first),
 
         pw.SizedBox(width: 12),
 
-        pw.Expanded(
-          child: second,
-        ),
+        pw.Expanded(child: second),
       ],
     );
   }
 
-  static pw.Widget _buildTags(
-    List<String> tags,
-    pw.Font font,
-  ) {
+  static pw.Widget _buildTags(List<String> tags, pw.Font font) {
     return pw.Container(
       width: double.infinity,
       padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
-        border: pw.Border.all(
-          color: PdfColors.grey400,
-          width: 0.7,
-        ),
+        border: pw.Border.all(color: PdfColors.grey400, width: 0.7),
         borderRadius: pw.BorderRadius.circular(5),
       ),
       child: pw.Column(
@@ -460,10 +329,7 @@ class DocumentPdfGenerator {
             pw.Text(
               '-',
               textDirection: pw.TextDirection.rtl,
-              style: pw.TextStyle(
-                font: font,
-                fontSize: 10,
-              ),
+              style: pw.TextStyle(font: font, fontSize: 10),
             ),
 
           if (tags.isNotEmpty)
@@ -497,61 +363,39 @@ class DocumentPdfGenerator {
     );
   }
 
-  static pw.Widget _buildFollowUp(
-    PdfDocumentData data,
-    pw.Font font,
-  ) {
+  static pw.Widget _buildFollowUp(PdfDocumentData data, pw.Font font) {
     if (!data.needsFollowUp) {
-      return _buildFullWidthField(
-        'نیاز به پیگیری',
-        'خیر',
-        font,
-      );
+      return _buildFullWidthField('نیاز به پیگیری', 'خیر', font);
     }
 
     final children = <pw.Widget>[
       pw.Text(
         'بله',
         textDirection: pw.TextDirection.rtl,
-        style: pw.TextStyle(
-          font: font,
-          fontSize: 10,
-        ),
+        style: pw.TextStyle(font: font, fontSize: 10),
       ),
     ];
 
-    if (data.followUpDate != null &&
-        data.followUpDate!.trim().isNotEmpty) {
-      children.add(
-        pw.SizedBox(height: 5),
-      );
+    if (data.followUpDate != null && data.followUpDate!.trim().isNotEmpty) {
+      children.add(pw.SizedBox(height: 5));
 
       children.add(
         pw.Text(
           'تاریخ پیگیری: ${data.followUpDate}',
           textDirection: pw.TextDirection.rtl,
-          style: pw.TextStyle(
-            font: font,
-            fontSize: 10,
-          ),
+          style: pw.TextStyle(font: font, fontSize: 10),
         ),
       );
     }
 
-    if (data.followUpBy != null &&
-        data.followUpBy!.trim().isNotEmpty) {
-      children.add(
-        pw.SizedBox(height: 5),
-      );
+    if (data.followUpBy != null && data.followUpBy!.trim().isNotEmpty) {
+      children.add(pw.SizedBox(height: 5));
 
       children.add(
         pw.Text(
           'پیگیری توسط: ${data.followUpBy}',
           textDirection: pw.TextDirection.rtl,
-          style: pw.TextStyle(
-            font: font,
-            fontSize: 10,
-          ),
+          style: pw.TextStyle(font: font, fontSize: 10),
         ),
       );
     }
@@ -560,10 +404,7 @@ class DocumentPdfGenerator {
       width: double.infinity,
       padding: const pw.EdgeInsets.all(12),
       decoration: pw.BoxDecoration(
-        border: pw.Border.all(
-          color: PdfColors.grey400,
-          width: 0.7,
-        ),
+        border: pw.Border.all(color: PdfColors.grey400, width: 0.7),
         borderRadius: pw.BorderRadius.circular(5),
       ),
       child: pw.Column(

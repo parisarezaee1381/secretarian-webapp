@@ -1,13 +1,8 @@
 import '../../documents.dart';
 
-enum PdfDocumentType {
-  outgoing,
-  incoming,
-  contract,
-}
+enum PdfDocumentType { outgoing, incoming, contract }
 
 class PdfDocumentData {
-
   final PdfDocumentType type;
 
   final String letterNumber;
@@ -67,9 +62,7 @@ class PdfDocumentData {
     this.contractActionBy,
   });
 
-  factory PdfDocumentData.fromOutgoing(
-    OutgoingLetterDocument document,
-  ) {
+  factory PdfDocumentData.fromOutgoing(OutgoingLetterDocument document) {
     return PdfDocumentData(
       type: PdfDocumentType.outgoing,
 
@@ -96,9 +89,7 @@ class PdfDocumentData {
     );
   }
 
-  factory PdfDocumentData.fromIncoming(
-    IncomingLetterDocument document,
-  ) {
+  factory PdfDocumentData.fromIncoming(IncomingLetterDocument document) {
     return PdfDocumentData(
       type: PdfDocumentType.incoming,
 
@@ -124,9 +115,7 @@ class PdfDocumentData {
     );
   }
 
-  factory PdfDocumentData.fromContract(
-    ContractDocument document,
-  ) {
+  factory PdfDocumentData.fromContract(ContractDocument document) {
     return PdfDocumentData(
       type: PdfDocumentType.contract,
 

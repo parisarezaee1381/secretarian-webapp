@@ -114,10 +114,11 @@ class _HoverableContainerState extends State<HoverableContainer> {
   Color _backgroundColor() {
     if (widget.isDisabled) return Colors.transparent;
     if (_isPressed) {
-      return (widget.pressedColor ?? widget.hoverColor)
-          .withValues(alpha: widget.pressedColor != null
-              ? widget.pressedOpacity
-              : widget.hoverOpacity * widget.pressedOpacity);
+      return (widget.pressedColor ?? widget.hoverColor).withValues(
+        alpha: widget.pressedColor != null
+            ? widget.pressedOpacity
+            : widget.hoverOpacity * widget.pressedOpacity,
+      );
     }
     if (_isHovered) {
       return widget.hoverColor.withValues(alpha: widget.hoverOpacity);
@@ -175,7 +176,8 @@ class _HoverableContainerState extends State<HoverableContainer> {
                 decoration: BoxDecoration(
                   color: _backgroundColor(),
                   borderRadius: BorderRadius.circular(widget.borderRadius),
-                  border: widget.border ??
+                  border:
+                      widget.border ??
                       (_isFocused
                           ? Border.all(color: widget.hoverColor, width: 2)
                           : null),

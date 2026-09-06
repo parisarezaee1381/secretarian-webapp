@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'buttons.dart';
 
-enum DocumentType {
-  outgoing,
-  incoming,
-  contract,
-}
+enum DocumentType { outgoing, incoming, contract }
 
 extension DocumentTypeLabel on DocumentType {
   String get label {
@@ -37,8 +33,7 @@ class DocumentTypeFilterButtons extends StatefulWidget {
       _DocumentTypeFilterButtonsState();
 }
 
-class _DocumentTypeFilterButtonsState
-    extends State<DocumentTypeFilterButtons> {
+class _DocumentTypeFilterButtonsState extends State<DocumentTypeFilterButtons> {
   late Set<DocumentType> _selected;
 
   @override
