@@ -256,10 +256,6 @@ class _CustomModalState extends State<CustomModal> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ==============================
-                  // عنوان
-                  // ==============================
-
                   _buildTitle(isMobile),
 
                   const SizedBox(height: 8),
@@ -268,16 +264,10 @@ class _CustomModalState extends State<CustomModal> {
 
                   SizedBox(height: isMobile ? 20 : 24),
 
-                  // ==============================
-                  // تاریخ پیگیری
-                  // ==============================
                   _buildDateField(isMobile: isMobile, fieldWidth: fieldWidth),
 
                   SizedBox(height: isMobile ? 20 : 20),
 
-                  // ==============================
-                  // پیگیری توسط
-                  // ==============================
                   _buildFollowUpField(
                     isMobile: isMobile,
                     fieldWidth: fieldWidth,
@@ -285,9 +275,6 @@ class _CustomModalState extends State<CustomModal> {
 
                   SizedBox(height: isMobile ? 28 : 32),
 
-                  // ==============================
-                  // دکمه تایید
-                  // ==============================
                   Center(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(

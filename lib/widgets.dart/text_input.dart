@@ -60,7 +60,6 @@ class AppTextField extends StatefulWidget {
     this.labelWidth = 140,
     this.labelSpacing = 16,
 
-    // Responsive
     this.responsive = true,
     this.mobileBreakpoint = 700,
     this.mobileLabelSpacing = 8,
@@ -83,10 +82,8 @@ class AppTextField extends StatefulWidget {
   final VoidCallback? onTap;
   final FormFieldValidator<String>? validator;
 
-  /// عرض پیش‌فرض در دسکتاپ
   final double width;
 
-  /// ارتفاع فیلد
   final double height;
 
   final int maxLines;
@@ -117,26 +114,16 @@ class AppTextField extends StatefulWidget {
   final TextStyle? textStyle;
   final TextStyle? labelStyle;
 
-  /// عرض label در دسکتاپ
   final double labelWidth;
 
-  /// فاصله label و input در دسکتاپ
   final double labelSpacing;
 
-  // =========================================================
-  // Responsive properties
-  // =========================================================
-
-  /// اگر false باشد، رفتار قبلی کاملاً حفظ می‌شود.
   final bool responsive;
 
-  /// زیر این عرض، فیلد وارد حالت موبایل می‌شود.
   final double mobileBreakpoint;
 
-  /// فاصله label و input در حالت موبایل
   final double mobileLabelSpacing;
 
-  /// padding افقی اضافی در حالت موبایل
   final double mobileHorizontalPadding;
 
   @override
@@ -227,10 +214,6 @@ class _AppTextFieldState extends State<AppTextField> {
           fontFamily: 'Estedad',
         );
   }
-
-  // =========================================================
-  // TextFormField
-  // =========================================================
 
   Widget _buildTextField() {
     final textStyle = _baseTextStyle().copyWith(color: widget.colors.text);
@@ -328,10 +311,6 @@ class _AppTextFieldState extends State<AppTextField> {
     );
   }
 
-  // =========================================================
-  // Label
-  // =========================================================
-
   Widget _buildLabel() {
     if (widget.labelText == null) {
       return const SizedBox.shrink();
@@ -344,10 +323,6 @@ class _AppTextFieldState extends State<AppTextField> {
       style: _labelTextStyle().copyWith(color: const Color(0xFF101018)),
     );
   }
-
-  // =========================================================
-  // Desktop Layout
-  // =========================================================
 
   Widget _buildDesktopLayout() {
     return Row(
@@ -364,10 +339,6 @@ class _AppTextFieldState extends State<AppTextField> {
       ],
     );
   }
-
-  // =========================================================
-  // Mobile Layout
-  // =========================================================
 
   Widget _buildMobileLayout() {
     return Padding(
@@ -386,10 +357,6 @@ class _AppTextFieldState extends State<AppTextField> {
       ),
     );
   }
-
-  // =========================================================
-  // Build
-  // =========================================================
 
   @override
   Widget build(BuildContext context) {

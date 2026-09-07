@@ -91,7 +91,6 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
         final bool isTablet =
             responsive && screenWidth >= 600 && screenWidth < 900;
 
-        // ارتفاع
         final double headerHeight = !responsive
             ? height
             : isMobile
@@ -100,7 +99,6 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             ? 72
             : height;
 
-        // padding
         final double padding = !responsive
             ? horizontalPadding
             : isMobile
@@ -109,7 +107,6 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             ? 16
             : horizontalPadding;
 
-        // لوگو
         final double currentLogoWidth = !responsive
             ? logoWidth
             : isMobile
@@ -138,15 +135,6 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             ? 21
             : 24;
 
-        /*
-         * فضایی که برای دو طرف عنوان رزرو می‌کنیم.
-         *
-         * سمت چپ:
-         * دکمه + فاصله
-         *
-         * سمت راست:
-         * لوگو + فاصله
-         */
         final double leftSpace = leading == HeaderLeading.none
             ? 16
             : iconSize + 24;
@@ -163,10 +151,6 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // -------------------------
-                // دکمه سمت چپ
-                // -------------------------
-
                 Positioned(
                   left: 0,
                   top: 0,
@@ -174,9 +158,6 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                   child: Center(child: _buildLeading(context, iconSize)),
                 ),
 
-                // -------------------------
-                // عنوان
-                // -------------------------
                 Positioned(
                   left: leftSpace,
                   right: rightSpace,
@@ -200,9 +181,6 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
 
-                // -------------------------
-                // لوگو سمت راست
-                // -------------------------
                 Positioned(
                   right: 0,
                   top: 0,

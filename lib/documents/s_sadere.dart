@@ -34,16 +34,8 @@ class OutgoingLetterFormPage extends StatefulWidget {
 }
 
 class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
-  // ============================================================
-  // Follow Up
-  // ============================================================
-
   String? _followUpDate;
   String? _followUpBy;
-
-  // ============================================================
-  // Controllers
-  // ============================================================
 
   final letterNumberController = TextEditingController();
   final dateController = TextEditingController();
@@ -56,10 +48,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
   final registrationNumberController = TextEditingController();
   final archiveFolderController = TextEditingController();
 
-  // ============================================================
-  // Focus Nodes
-  // ============================================================
-
   final _fnSubject = FocusNode();
   final _fnOrganization = FocusNode();
   final _fnRecipient = FocusNode();
@@ -67,10 +55,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
   final _fnActionBy = FocusNode();
   final _fnRegistrationNumber = FocusNode();
   final _fnArchiveFolder = FocusNode();
-
-  // ============================================================
-  // Validation
-  // ============================================================
 
   final Map<String, String?> _errors = {
     'subject': null,
@@ -82,48 +66,22 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     'archiveFolder': null,
   };
 
-  // ============================================================
-  // Priority / Send Method
-  // ============================================================
-
   String selectedPriority = 'عادی';
   String selectedSendMethod = 'ایمیل';
-
-  // ============================================================
-  // Tags
-  // ============================================================
 
   List<String> tags = [];
 
   final _tagInputController = TextEditingController();
 
-  // ============================================================
-  // Switches
-  // ============================================================
-
   bool _isSwitchOn = false;
   bool _isFileSwitchOn = false;
 
-  // ============================================================
-  // Attachments
-  // ============================================================
-
   List<AttachedItem> _currentAttachments = [];
-
-  // ============================================================
-  // Responsive Constants
-  //
-  // دقیقاً هم‌راستا با ContractFormPage
-  // ============================================================
 
   static const double _desktopContentWidth = 900;
   static const double _fieldWidth = 548;
   static const double _labelWidth = 150;
   static const double _mobileBreakpoint = 700;
-
-  // ============================================================
-  // Init
-  // ============================================================
 
   @override
   void initState() {
@@ -167,10 +125,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     }
   }
 
-  // ============================================================
-  // Dispose
-  // ============================================================
-
   @override
   void dispose() {
     letterNumberController.dispose();
@@ -197,10 +151,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     super.dispose();
   }
 
-  // ============================================================
-  // Tags
-  // ============================================================
-
   void _addTag() {
     final text = _tagInputController.text.trim();
 
@@ -220,10 +170,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     });
   }
 
-  // ============================================================
-  // Follow Up Modal
-  // ============================================================
-
   void _showModal() {
     showDialog(
       context: context,
@@ -238,10 +184,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       }
     });
   }
-
-  // ============================================================
-  // Validation
-  // ============================================================
 
   bool _validateForm() {
     final newErrors = <String, String?>{
@@ -281,10 +223,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     return newErrors.values.every((error) => error == null);
   }
 
-  // ============================================================
-  // Submit
-  // ============================================================
-
   Future<void> _submitForm() async {
     if (!_validateForm()) {
       return;
@@ -294,19 +232,10 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     bool pdfSaved = false;
 
     try {
-      // ========================================================
-
-      // 0. مصرف واقعی شماره نامه
-
-      // ========================================================
-
       if (widget.initialDocument == null) {
         letterNumberController.text = await LetterNumberGenerator.instance
             .generate(LetterNumberType.outgoing);
       }
-      // ========================================================
-      // 1. ساخت Document اولیه
-      // ========================================================
 
       final document = OutgoingLetterDocument(
         id:
@@ -351,10 +280,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
         }).toList(),
       );
 
-      // ========================================================
-      // 2. ذخیره PDF
-      // ========================================================
-
       if (_isFileSwitchOn) {
         final pdfData = PdfDocumentData.fromOutgoing(document);
 
@@ -372,10 +297,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
           pdfSaved = true;
         }
       }
-
-      // ========================================================
-      // 3. ساخت Document نهایی
-      // ========================================================
 
       final finalDocument = OutgoingLetterDocument(
         id: document.id,
@@ -413,10 +334,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
         attachments: document.attachments,
       );
 
-      // ========================================================
-      // 4. Repository
-      // ========================================================
-
       if (widget.initialDocument != null) {
         await DocumentRepository.instance.updateOutgoing(
           widget.initialDocument!.id,
@@ -425,10 +342,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       } else {
         await DocumentRepository.instance.addOutgoing(finalDocument);
       }
-
-      // ========================================================
-      // 5. Success Message
-      // ========================================================
 
       rootScaffoldMessengerKey.currentState?.showSnackBar(
         SnackBar(
@@ -440,10 +353,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
           backgroundColor: const Color(0xFF3863A8),
         ),
       );
-
-      // ========================================================
-      // 6. View Page
-      // ========================================================
 
       if (!mounted) {
         return;
@@ -468,10 +377,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     }
   }
 
-  // ============================================================
-  // Cancel
-  // ============================================================
-
   void _cancelForm() {
     rootScaffoldMessengerKey.currentState?.showSnackBar(
       const SnackBar(
@@ -482,10 +387,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
     Navigator.popUntil(context, (route) => route.isFirst);
   }
-
-  // ============================================================
-  // Mobile Label
-  // ============================================================
 
   Widget _buildMobileLabel(String text) {
     return Align(
@@ -502,10 +403,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       ),
     );
   }
-
-  // ============================================================
-  // Form Row
-  // ============================================================
 
   Widget _buildFormRow(
     String label,
@@ -552,10 +449,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       },
     );
 
-    // ==========================================================
-    // Desktop
-    // ==========================================================
-
     if (!compact) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -577,10 +470,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
         ],
       );
     }
-
-    // ==========================================================
-    // Mobile
-    // ==========================================================
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -607,14 +496,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     );
   }
 
-  // ============================================================
-  // Section Label
-  // ============================================================
-
-  // ============================================================
-  // Section Label واقعی
-  // ============================================================
-
   Widget _buildSectionLabelText(String text, {double width = _labelWidth}) {
     return SizedBox(
       width: width,
@@ -629,12 +510,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       ),
     );
   }
-
-  // ============================================================
-  // Letter Number + Date
-  //
-  // دقیقاً مثل ContractFormPage
-  // ============================================================
 
   Widget _buildTopFields({required bool compact}) {
     if (compact) {
@@ -684,12 +559,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     );
   }
 
-  // ============================================================
-  // Registration Date
-  //
-  // دقیقاً مثل ContractFormPage
-  // ============================================================
-
   Widget _buildRegistrationDate({required bool compact}) {
     if (compact) {
       return Column(
@@ -709,10 +578,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       label: 'تاریخ ثبت:',
     );
   }
-
-  // ============================================================
-  // Tags
-  // ============================================================
 
   Widget _buildTagsSection({required bool compact}) {
     final input = AppTextField(
@@ -779,10 +644,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       ),
     );
 
-    // ==========================================================
-    // Mobile
-    // ==========================================================
-
     if (compact) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -800,10 +661,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       );
     }
 
-    // ==========================================================
-    // Desktop
-    // ==========================================================
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -816,10 +673,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       ],
     );
   }
-
-  // ============================================================
-  // Divider
-  // ============================================================
 
   Widget _buildDivider({required bool compact}) {
     return Column(
@@ -836,10 +689,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       ],
     );
   }
-
-  // ============================================================
-  // Dropdown Row
-  // ============================================================
 
   Widget _buildDropdownRow({
     required String label,
@@ -859,10 +708,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     );
   }
 
-  // ============================================================
-  // Switch Row
-  // ============================================================
-
   Widget _buildSwitchRow({
     required String label,
     required Widget child,
@@ -880,10 +725,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       children: [_buildSectionLabelText(label), child],
     );
   }
-
-  // ============================================================
-  // Attachments
-  // ============================================================
 
   Widget _buildAttachmentsPanel({required bool compact}) {
     final buttons = compact
@@ -950,25 +791,14 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     );
   }
 
-  // ============================================================
-  // Main Form
-  // ============================================================
-
   Widget _buildForm({required bool compact}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // ======================================================
-        // Letter Number + Date
-        // ======================================================
-
         _buildTopFields(compact: compact),
 
         const SizedBox(height: 32),
 
-        // ======================================================
-        // Subject
-        // ======================================================
         _buildFormRow(
           'عنوان/خلاصه نامه:',
           subjectController,
@@ -980,19 +810,10 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
         const SizedBox(height: 32),
 
-        // ======================================================
-        // Tags
-        // ======================================================
         _buildTagsSection(compact: compact),
 
-        // ======================================================
-        // Divider
-        // ======================================================
         _buildDivider(compact: compact),
 
-        // ======================================================
-        // Organization
-        // ======================================================
         _buildFormRow(
           'به سازمان/شرکت:',
           organizationController,
@@ -1004,9 +825,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
         const SizedBox(height: 32),
 
-        // ======================================================
-        // Recipient
-        // ======================================================
         _buildFormRow(
           'گیرنده نامه:',
           recipientController,
@@ -1018,9 +836,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
         const SizedBox(height: 32),
 
-        // ======================================================
-        // Signer
-        // ======================================================
         _buildFormRow(
           'امضا کننده:',
           signerController,
@@ -1032,9 +847,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
         const SizedBox(height: 32),
 
-        // ======================================================
-        // Action By
-        // ======================================================
         _buildFormRow(
           'اقدام کننده:',
           actionByController,
@@ -1044,14 +856,8 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
           compact: compact,
         ),
 
-        // ======================================================
-        // Divider
-        // ======================================================
         _buildDivider(compact: compact),
 
-        // ======================================================
-        // Registration Number
-        // ======================================================
         _buildFormRow(
           'شماره ثبت دبیرخانه:',
           registrationNumberController,
@@ -1063,16 +869,10 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
         const SizedBox(height: 32),
 
-        // ======================================================
-        // Registration Date
-        // ======================================================
         _buildRegistrationDate(compact: compact),
 
         const SizedBox(height: 32),
 
-        // ======================================================
-        // Archive Folder
-        // ======================================================
         _buildFormRow(
           'پوشه بایگانی:',
           archiveFolderController,
@@ -1083,9 +883,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
         const SizedBox(height: 32),
 
-        // ======================================================
-        // Priority
-        // ======================================================
         _buildDropdownRow(
           label: 'اولویت:',
           compact: compact,
@@ -1112,9 +909,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
         const SizedBox(height: 32),
 
-        // ======================================================
-        // Send Method
-        // ======================================================
         _buildDropdownRow(
           label: 'نحوه ارسال:',
           compact: compact,
@@ -1139,9 +933,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
         const SizedBox(height: 32),
 
-        // ======================================================
-        // Follow Up
-        // ======================================================
         _buildSwitchRow(
           label: 'نیاز به پیگیری:',
           compact: compact,
@@ -1167,9 +958,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
         const SizedBox(height: 16),
 
-        // ======================================================
-        // Save File
-        // ======================================================
         _buildSwitchRow(
           label: 'ذخیره فایل:',
           compact: compact,
@@ -1187,10 +975,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       ],
     );
   }
-
-  // ============================================================
-  // Build
-  // ============================================================
 
   @override
   Widget build(BuildContext context) {
@@ -1219,18 +1003,11 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
               return Column(
                 children: [
-                  // ==================================================
-                  // Header
-                  // ==================================================
-
                   const AppHeader(
                     title: 'ثبت نامه صادره',
                     leading: HeaderLeading.back,
                   ),
 
-                  // ==================================================
-                  // Scrollable Content
-                  // ==================================================
                   Expanded(
                     child: SingleChildScrollView(
                       padding: EdgeInsets.only(
@@ -1252,15 +1029,8 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
 
                             children: [
-                              // ====================================
-                              // Form
-                              // ====================================
-
                               _buildForm(compact: compact),
 
-                              // ====================================
-                              // Attachments
-                              // ====================================
                               SizedBox(height: compact ? 40 : 48),
 
                               _buildAttachmentsPanel(compact: compact),
@@ -1281,10 +1051,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     );
   }
 }
-
-// ============================================================================
-// Outgoing Letter Data
-// ============================================================================
 
 class OutgoingLetterData {
   final String letterNumber;

@@ -40,10 +40,6 @@ class _DocumentListState extends State<DocumentList> {
     _pendingOnly = widget.initialPendingOnly;
   }
 
-  // ============================================================
-  // Responsive Helpers
-  // ============================================================
-
   bool _isMobile(BuildContext context) {
     return MediaQuery.sizeOf(context).width < 600;
   }
@@ -67,10 +63,6 @@ class _DocumentListState extends State<DocumentList> {
 
     return 32.w;
   }
-
-  // ============================================================
-  // Document Helpers
-  // ============================================================
 
   String _docLetterNumber(dynamic doc) {
     if (doc is OutgoingLetterDocument) {
@@ -180,10 +172,6 @@ class _DocumentListState extends State<DocumentList> {
     return false;
   }
 
-  // ============================================================
-  // Documents
-  // ============================================================
-
   List<dynamic> get _typedDocuments {
     final repo = DocumentRepository.instance;
 
@@ -271,10 +259,6 @@ class _DocumentListState extends State<DocumentList> {
     }).toList();
   }
 
-  // ============================================================
-  // Table Row
-  // ============================================================
-
   DocumentTableRow _mapToRow(dynamic doc) {
     const operation = Icon(Icons.more_horiz, color: Color(0xFF101018));
 
@@ -311,10 +295,6 @@ class _DocumentListState extends State<DocumentList> {
     throw ArgumentError('نوع سند ناشناخته');
   }
 
-  // ============================================================
-  // Delete
-  // ============================================================
-
   Future<void> _deleteOutgoing(OutgoingLetterDocument doc) async {
     await DocumentRepository.instance.deleteOutgoing(doc.id);
 
@@ -338,10 +318,6 @@ class _DocumentListState extends State<DocumentList> {
 
     setState(() {});
   }
-
-  // ============================================================
-  // Open Forms
-  // ============================================================
 
   void _openOutgoingForm(OutgoingLetterDocument doc) {
     Navigator.push(
@@ -369,10 +345,6 @@ class _DocumentListState extends State<DocumentList> {
       ),
     ).then((_) => setState(() {}));
   }
-
-  // ============================================================
-  // Remove Filter
-  // ============================================================
 
   void _removeFilterField(String field, {String? keyword}) {
     final f = _filterValues;
@@ -403,10 +375,6 @@ class _DocumentListState extends State<DocumentList> {
       _currentPage = 1;
     });
   }
-
-  // ============================================================
-  // Filter Chip
-  // ============================================================
 
   Widget _filterChip(String label, VoidCallback onDeleted) {
     return Chip(
@@ -523,10 +491,6 @@ class _DocumentListState extends State<DocumentList> {
   bool get _hasAnyActiveFilter =>
       _selectedTypes.isNotEmpty || _pendingOnly || _filterValues != null;
 
-  // ============================================================
-  // Pending Button
-  // ============================================================
-
   Widget _buildPendingButton(BuildContext context) {
     final isMobile = _isMobile(context);
 
@@ -550,10 +514,6 @@ class _DocumentListState extends State<DocumentList> {
     );
   }
 
-  // ============================================================
-  // Document Type Buttons
-  // ============================================================
-
   Widget _buildDocumentTypeButtons(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: _horizontalPadding(context)),
@@ -569,10 +529,6 @@ class _DocumentListState extends State<DocumentList> {
       ),
     );
   }
-
-  // ============================================================
-  // Filter Button
-  // ============================================================
 
   Widget _buildFilterButton(BuildContext context) {
     final isMobile = _isMobile(context);
@@ -594,10 +550,6 @@ class _DocumentListState extends State<DocumentList> {
     );
   }
 
-  // ============================================================
-  // Active Filter Chips
-  // ============================================================
-
   Widget _buildActiveFilters(BuildContext context) {
     if (!_hasAnyActiveFilter) {
       return const SizedBox.shrink();
@@ -616,10 +568,6 @@ class _DocumentListState extends State<DocumentList> {
       ),
     );
   }
-
-  // ============================================================
-  // BUILD
-  // ============================================================
 
   @override
   Widget build(BuildContext context) {
@@ -667,10 +615,6 @@ class _DocumentListState extends State<DocumentList> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
 
                   children: [
-                    // ------------------------------------------------
-                    // Top spacing
-                    // ------------------------------------------------
-
                     SizedBox(
                       height: _isMobile(context)
                           ? 24.h
@@ -679,44 +623,23 @@ class _DocumentListState extends State<DocumentList> {
                           : 64.h,
                     ),
 
-                    // ------------------------------------------------
-                    // Pending
-                    // ------------------------------------------------
                     _buildPendingButton(context),
 
                     SizedBox(height: _isMobile(context) ? 20.h : 32.h),
 
-                    // ------------------------------------------------
-                    // Document Types
-                    // ------------------------------------------------
                     _buildDocumentTypeButtons(context),
 
                     SizedBox(height: _isMobile(context) ? 32.h : 64.h),
 
-                    // ------------------------------------------------
-                    // Filter Button
-                    // ------------------------------------------------
                     _buildFilterButton(context),
 
                     SizedBox(height: _isMobile(context) ? 20.h : 32.h),
 
-                    // ------------------------------------------------
-                    // Active Filters
-                    // ------------------------------------------------
                     _buildActiveFilters(context),
 
                     if (_hasAnyActiveFilter)
                       SizedBox(height: _isMobile(context) ? 16.h : 24.h),
 
-                    // ------------------------------------------------
-                    // Document Table
-                    //
-                    // خود DocumentTable دارای
-                    // horizontal scroll است.
-                    // بنابراین اینجا دوباره
-                    // SingleChildScrollView افقی
-                    // قرار نمی‌دهیم.
-                    // ------------------------------------------------
                     DocumentTable(
                       rows: rows,
                       rowsPerPage: rowsPerPage,
@@ -741,9 +664,6 @@ class _DocumentListState extends State<DocumentList> {
                       },
                     ),
 
-                    // ------------------------------------------------
-                    // Bottom spacing
-                    // ------------------------------------------------
                     SizedBox(height: _isMobile(context) ? 64.h : 128.h),
                   ],
                 ),

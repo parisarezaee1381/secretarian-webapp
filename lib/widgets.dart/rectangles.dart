@@ -54,23 +54,12 @@ class NestedRotatedRectangles extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.hardEdge,
         children: [
-          // =========================================================
-          // مکعب اول
-          // سمت راست
-          // 64 پیکسل از بالا
-          // =========================================================
-
           Positioned(
             top: 64,
             right: -540 * scale,
             child: _buildCube(scale: scale, rotationDegrees: -45),
           ),
 
-          // =========================================================
-          // مکعب دوم
-          // سمت چپ
-          // دقیقاً زیر مکعب اول
-          // =========================================================
           Positioned(
             top: 448,
             left: -540 * scale,

@@ -59,7 +59,6 @@ class DropdownMenuItemWidget extends StatefulWidget {
 
   final TextStyle? textStyle;
 
-  /// اگر false باشد، اندازه‌های قبلی بدون تغییر استفاده می‌شوند.
   final bool responsive;
 
   @override
@@ -191,10 +190,6 @@ class _DropdownMenuItemWidgetState extends State<DropdownMenuItemWidget> {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
 
-        /*
-         * اگر parent عرض نامحدود بدهد،
-         * از اندازه‌ی پیش‌فرض استفاده می‌کنیم.
-         */
         final effectiveWidth = width.isFinite ? width : widget.height;
 
         final effectiveHeight = _responsiveHeight(effectiveWidth);

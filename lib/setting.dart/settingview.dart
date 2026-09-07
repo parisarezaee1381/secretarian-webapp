@@ -104,23 +104,14 @@ class _SettingsViewPageState extends State<SettingsViewPage> {
               if (_isLoading)
                 const Center(child: CircularProgressIndicator())
               else ...[
-                // =========================
-                // نام کاربری
-                // =========================
                 _buildLabelRow('نام کاربری:', _username),
 
                 const SizedBox(height: 24),
 
-                // =========================
-                // رنگ مورد علاقه
-                // =========================
                 _buildLabelRow('رنگ مورد علاقه:', _email),
 
                 const SizedBox(height: 64),
 
-                // =========================
-                // دکمه ویرایش
-                // =========================
                 Center(
                   child: CustomButton(
                     label: 'ویرایش',
@@ -147,9 +138,6 @@ class _SettingsViewPageState extends State<SettingsViewPage> {
 
                 const SizedBox(height: 24),
 
-                // =========================
-                // خروج از حساب
-                // =========================
                 Center(
                   child: CustomButton(
                     label: 'خروج از حساب',
@@ -168,9 +156,6 @@ class _SettingsViewPageState extends State<SettingsViewPage> {
 
                 const SizedBox(height: 64),
 
-                // =========================
-                // نسخه
-                // =========================
                 Center(
                   child: Text(
                     'نسخه 1.0.0',

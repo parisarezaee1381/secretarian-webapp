@@ -10,7 +10,6 @@ import 'package:flutter_application_1/widgets.dart/hoverablecontainer.dart';
 class AttachmentsPanel extends StatefulWidget {
   final ValueChanged<List<AttachedItem>> onChanged;
 
-  // پیوست‌هایی که قبلاً برای سند ذخیره شده‌اند
   final List<AttachedItem> initialItems;
 
   const AttachmentsPanel({
@@ -36,7 +35,6 @@ class _AttachmentsPanelState extends State<AttachmentsPanel> {
   void initState() {
     super.initState();
 
-    // دریافت پیوست‌های قبلی هنگام باز شدن صفحه
     _attachedItems = List<AttachedItem>.from(widget.initialItems);
   }
 

@@ -64,19 +64,14 @@ class SmartDateField extends StatelessWidget {
 
   final bool isReadOnly;
 
-  /// عرض فیلد؛ همان عرضی که AppTextField استفاده می‌کند.
   final double fieldWidth;
 
-  /// عرض label در حالت دسکتاپ.
   final double labelWidth;
 
-  /// فاصله label و فیلد.
   final double labelSpacing;
 
-  /// فعال بودن responsive.
   final bool responsive;
 
-  /// breakpoint موبایل.
   final double mobileBreakpoint;
 
   @override

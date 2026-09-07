@@ -159,9 +159,6 @@ class _CustomButtonState extends State<CustomButton> {
   @override
   Widget build(BuildContext context) {
     final effectiveWidth = widget.width ?? 204.w;
-    // ============================================================
-    // مقادیر پیش‌فرض ریسپانسیو (فقط زمانی که مقدار صریحی داده نشده)
-    // ============================================================
 
     final effectivePadding =
         widget.padding ?? EdgeInsets.symmetric(vertical: 16, horizontal: 32.w);

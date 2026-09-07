@@ -19,10 +19,6 @@ class FakoorLoginCard extends StatelessWidget {
         final bool isTablet =
             responsive && screenWidth >= 600 && screenWidth < 900;
 
-        // --------------------------------
-        // Card Width
-        // --------------------------------
-
         final double cardWidth = !responsive
             ? 808
             : isMobile
@@ -31,10 +27,6 @@ class FakoorLoginCard extends StatelessWidget {
             ? screenWidth - 64
             : 808;
 
-        // --------------------------------
-        // Padding
-        // --------------------------------
-
         final double verticalPadding = !responsive
             ? 64
             : isMobile
@@ -42,10 +34,6 @@ class FakoorLoginCard extends StatelessWidget {
             : isTablet
             ? 48
             : 64;
-
-        // --------------------------------
-        // Logo
-        // --------------------------------
 
         final double logoWidth = !responsive
             ? 120
@@ -63,10 +51,6 @@ class FakoorLoginCard extends StatelessWidget {
             ? 58
             : 64;
 
-        // --------------------------------
-        // Title
-        // --------------------------------
-
         final double titleFontSize = !responsive
             ? 20
             : isMobile
@@ -74,10 +58,6 @@ class FakoorLoginCard extends StatelessWidget {
             : isTablet
             ? 19
             : 20;
-
-        // --------------------------------
-        // Spacing
-        // --------------------------------
 
         final double logoTitleSpacing = isMobile ? 24 : 32;
 
@@ -100,10 +80,6 @@ class FakoorLoginCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // -------------------------
-                  // Logo
-                  // -------------------------
-
                   Image.asset(
                     'assets/images/logo.png',
                     width: logoWidth,
@@ -113,9 +89,6 @@ class FakoorLoginCard extends StatelessWidget {
 
                   SizedBox(height: logoTitleSpacing),
 
-                  // -------------------------
-                  // Title
-                  // -------------------------
                   Text(
                     'سیستم دبیرخانه فکور',
                     textAlign: TextAlign.center,
@@ -129,9 +102,6 @@ class FakoorLoginCard extends StatelessWidget {
                     ),
                   ),
 
-                  // -------------------------
-                  // Content
-                  // -------------------------
                   if (child != null) ...[
                     SizedBox(height: titleContentSpacing),
                     child!,

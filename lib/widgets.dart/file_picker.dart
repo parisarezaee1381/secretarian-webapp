@@ -14,7 +14,7 @@ class _FileSavePickerPageState extends State<FileSavePickerPage> {
   @override
   void initState() {
     super.initState();
-    // بعد از اولین فریم دیالوگ رو باز می‌کنیم تا context کامل آماده باشه
+
     WidgetsBinding.instance.addPostFrameCallback((_) => _openPicker());
   }
 
@@ -39,7 +39,6 @@ class _FileSavePickerPageState extends State<FileSavePickerPage> {
 
   @override
   Widget build(BuildContext context) {
-    // چون این صفحه فقط واسطه‌ست، یه لودینگ ساده کافیه
     return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

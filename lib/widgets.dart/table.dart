@@ -4,8 +4,6 @@ import '../documents.dart';
 import 'buttons.dart';
 
 class DocumentTable extends StatelessWidget {
-  // این‌ها دیگه static const نیستن چون .w/.sp مقدار const نیست
-  // (به مقداردهی ScreenUtil در ران‌تایم وابسته‌ست)
   static double get columnWidth => 284.w;
   static double get rowHeight => 64.w;
   static double get rowSpacing => 16.w;
@@ -170,9 +168,6 @@ class DocumentTable extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // آیکون پیوست: اگر پیوست وجود داشته باشه، آیکون گیره
-          // (غیرقابل‌کلیک) نشون داده می‌شه. در غیر این صورت، آیکون
-          // + آبی و قابل‌کلیک برای افزودن پیوست نشون داده می‌شه.
           if (hasAttachments)
             Icon(Icons.attach_file, size: 20.sp, color: const Color(0xFF3863A8))
           else
@@ -197,7 +192,6 @@ class DocumentTable extends StatelessWidget {
 
           SizedBox(width: 12.w),
 
-          // آیکون حذف
           IconButton(
             onPressed: onDelete == null
                 ? null
@@ -304,7 +298,6 @@ class DocumentTable extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // دکمه صفحه قبل
         IconButton(
           onPressed: currentPage > 1 ? onPreviousPage : null,
           icon: Icon(Icons.chevron_left, size: 24.sp),
@@ -313,7 +306,6 @@ class DocumentTable extends StatelessWidget {
 
         SizedBox(width: 8.w),
 
-        // شماره صفحات
         ...List.generate(totalPages, (index) {
           final pageNumber = index + 1;
           final isCurrentPage = pageNumber == currentPage;
@@ -349,7 +341,6 @@ class DocumentTable extends StatelessWidget {
 
         SizedBox(width: 8.w),
 
-        // دکمه صفحه بعد
         IconButton(
           onPressed: currentPage < totalPages ? onNextPage : null,
           icon: Icon(Icons.chevron_right, size: 24.sp),

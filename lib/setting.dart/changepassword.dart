@@ -125,9 +125,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
-                // =========================
-                // رمز عبور قبلی
-                // =========================
                 AppTextField(
                   controller: _currentPasswordController,
                   labelText: 'رمز عبور قبلی',
@@ -151,9 +148,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
                 const SizedBox(height: 24),
 
-                // =========================
-                // رمز عبور جدید
-                // =========================
                 AppTextField(
                   controller: _newPasswordController,
                   labelText: 'رمز عبور جدید',
@@ -177,9 +171,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
                 const SizedBox(height: 24),
 
-                // =========================
-                // تکرار رمز عبور جدید
-                // =========================
                 AppTextField(
                   controller: _confirmPasswordController,
                   labelText: 'تکرار رمز عبور جدید',
@@ -203,10 +194,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
                 const SizedBox(height: 64),
 
-                // =========================
-                // تأیید و لغو
-                // وسط چین
-                // =========================
                 Center(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -232,10 +219,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
                 const SizedBox(height: 64),
 
-                // =========================
-                // نسخه
-                // همراه محتوا اسکرول می‌شود
-                // =========================
                 Center(
                   child: Text(
                     'نسخه 1.0.0',

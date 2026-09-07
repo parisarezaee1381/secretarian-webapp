@@ -25,8 +25,6 @@ class LetterNumberGenerator {
     }
   }
 
-  /// فقط شماره بعدی را برمی‌گرداند.
-  /// این متد هیچ تغییری در Isar ایجاد نمی‌کند.
   Future<String> getNextNumber(LetterNumberType type) async {
     final isar = await DatabaseService.instance.database;
 
@@ -48,9 +46,6 @@ class LetterNumberGenerator {
     return '$nextNumber/${_suffixFor(type)}/$year';
   }
 
-  /// شماره را واقعاً مصرف می‌کند و در Isar ثبت می‌کند.
-  ///
-  /// این متد باید فقط هنگام ذخیره نهایی نامه صدا زده شود.
   Future<String> generate(LetterNumberType type) async {
     final isar = await DatabaseService.instance.database;
 

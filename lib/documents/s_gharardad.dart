@@ -30,10 +30,6 @@ class ContractFormPage extends StatefulWidget {
 }
 
 class _ContractFormPageState extends State<ContractFormPage> {
-  // ============================================================
-  // Controllers
-  // ============================================================
-
   final letterNumberController = TextEditingController();
   final dateController = TextEditingController();
   final registrationDateController = TextEditingController();
@@ -44,20 +40,12 @@ class _ContractFormPageState extends State<ContractFormPage> {
   final registrationNumberController = TextEditingController();
   final archiveFolderController = TextEditingController();
 
-  // ============================================================
-  // Focus Nodes
-  // ============================================================
-
   final _fnSubject = FocusNode();
   final _fnOrganization = FocusNode();
   final _fnRecipient = FocusNode();
   final _fnActionBy = FocusNode();
   final _fnRegistrationNumber = FocusNode();
   final _fnArchiveFolder = FocusNode();
-
-  // ============================================================
-  // Validation
-  // ============================================================
 
   final Map<String, String?> _errors = {
     'subject': null,
@@ -68,38 +56,18 @@ class _ContractFormPageState extends State<ContractFormPage> {
     'archiveFolder': null,
   };
 
-  // ============================================================
-  // Tags
-  // ============================================================
-
   List<String> tags = [];
   final _tagInputController = TextEditingController();
-
-  // ============================================================
-  // File
-  // ============================================================
 
   bool _isFileSwitchOn = false;
   String? _selectedFilePath;
 
-  // ============================================================
-  // Attachments
-  // ============================================================
-
   List<AttachedItem> _currentAttachments = [];
-
-  // ============================================================
-  // Responsive constants
-  // ============================================================
 
   static const double _desktopContentWidth = 900;
   static const double _fieldWidth = 548;
   static const double _labelWidth = 150;
   static const double _mobileBreakpoint = 700;
-
-  // ============================================================
-  // Init
-  // ============================================================
 
   @override
   void initState() {
@@ -136,10 +104,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
     }
   }
 
-  // ============================================================
-  // Dispose
-  // ============================================================
-
   @override
   void dispose() {
     letterNumberController.dispose();
@@ -164,10 +128,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
     super.dispose();
   }
 
-  // ============================================================
-  // Tags
-  // ============================================================
-
   void _addTag() {
     final text = _tagInputController.text.trim();
 
@@ -186,10 +146,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
       tags.removeAt(index);
     });
   }
-
-  // ============================================================
-  // Validation
-  // ============================================================
 
   bool _validateForm() {
     final newErrors = <String, String?>{
@@ -220,10 +176,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
     return newErrors.values.every((error) => error == null);
   }
 
-  // ============================================================
-  // Submit
-  // ============================================================
-
   Future<void> _submitForm() async {
     if (!_validateForm()) {
       return;
@@ -233,19 +185,10 @@ class _ContractFormPageState extends State<ContractFormPage> {
     bool pdfSaved = false;
 
     try {
-      // ========================================================
-
-      // 0. مصرف واقعی شماره نامه
-
-      // ========================================================
-
       if (widget.initialDocument == null) {
         letterNumberController.text = await LetterNumberGenerator.instance
             .generate(LetterNumberType.contract);
       }
-      // ========================================================
-      // 1. ساخت Contract اولیه
-      // ========================================================
 
       final document = ContractDocument(
         id:
@@ -277,10 +220,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
         }).toList(),
       );
 
-      // ========================================================
-      // 2. ذخیره PDF
-      // ========================================================
-
       if (_isFileSwitchOn) {
         final pdfData = PdfDocumentData.fromContract(document);
 
@@ -298,10 +237,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
           pdfSaved = true;
         }
       }
-
-      // ========================================================
-      // 3. Document نهایی
-      // ========================================================
 
       final finalDocument = ContractDocument(
         id: document.id,
@@ -325,10 +260,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
         attachments: document.attachments,
       );
 
-      // ========================================================
-      // 4. Repository
-      // ========================================================
-
       if (widget.initialDocument != null) {
         await DocumentRepository.instance.updateContract(
           widget.initialDocument!.id,
@@ -337,10 +268,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
       } else {
         await DocumentRepository.instance.addContract(finalDocument);
       }
-
-      // ========================================================
-      // 5. Success message
-      // ========================================================
 
       rootScaffoldMessengerKey.currentState?.showSnackBar(
         SnackBar(
@@ -352,10 +279,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
           backgroundColor: const Color(0xFF3863A8),
         ),
       );
-
-      // ========================================================
-      // 6. View page
-      // ========================================================
 
       if (!mounted) {
         return;
@@ -380,10 +303,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
     }
   }
 
-  // ============================================================
-  // Cancel
-  // ============================================================
-
   void _cancelForm() {
     rootScaffoldMessengerKey.currentState?.showSnackBar(
       const SnackBar(
@@ -394,10 +313,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
 
     Navigator.popUntil(context, (route) => route.isFirst);
   }
-
-  // ============================================================
-  // Responsive field
-  // ============================================================
 
   Widget _buildFormRow(
     String label,
@@ -479,10 +394,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
     );
   }
 
-  // ============================================================
-  // Section label
-  // ============================================================
-
   Widget _buildSectionLabel(
     String text, {
     required bool compact,
@@ -521,10 +432,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
       ),
     );
   }
-
-  // ============================================================
-  // Letter number + date
-  // ============================================================
 
   Widget _buildTopFields({required bool compact}) {
     if (compact) {
@@ -571,10 +478,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
       ],
     );
   }
-
-  // ============================================================
-  // Tags
-  // ============================================================
 
   Widget _buildTagsSection({required bool compact}) {
     final input = AppTextField(
@@ -659,10 +562,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
     );
   }
 
-  // ============================================================
-  // Divider
-  // ============================================================
-
   Widget _buildDivider({required bool compact}) {
     return Column(
       children: [
@@ -678,10 +577,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
       ],
     );
   }
-
-  // ============================================================
-  // File section
-  // ============================================================
 
   Widget _buildFileSection({required bool compact}) {
     final switchWidget = AppSwitch(
@@ -757,10 +652,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
     );
   }
 
-  // ============================================================
-  // Attachments
-  // ============================================================
-
   Widget _buildAttachmentsPanel({required bool compact}) {
     final buttons = compact
         ? Column(
@@ -819,10 +710,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
       ],
     );
   }
-
-  // ============================================================
-  // Main form
-  // ============================================================
 
   Widget _buildForm({required bool compact}) {
     return Column(
@@ -910,10 +797,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
     );
   }
 
-  // ============================================================
-  // Registration date
-  // ============================================================
-
   Widget _buildRegistrationDate({required bool compact}) {
     if (compact) {
       return Column(
@@ -931,10 +814,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
       label: 'تاریخ ثبت:',
     );
   }
-
-  // ============================================================
-  // Build
-  // ============================================================
 
   @override
   Widget build(BuildContext context) {
@@ -961,18 +840,11 @@ class _ContractFormPageState extends State<ContractFormPage> {
 
               return Column(
                 children: [
-                  // ==================================================
-                  // Header
-                  // ==================================================
-
                   const AppHeader(
                     title: 'ثبت قرارداد',
                     leading: HeaderLeading.back,
                   ),
 
-                  // ==================================================
-                  // Scrollable content
-                  // ==================================================
                   Expanded(
                     child: SingleChildScrollView(
                       padding: EdgeInsets.only(
@@ -993,15 +865,8 @@ class _ContractFormPageState extends State<ContractFormPage> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
 
                             children: [
-                              // ==================================================
-                              // Form
-                              // ==================================================
-
                               _buildForm(compact: compact),
 
-                              // ==================================================
-                              // Attachments
-                              // ==================================================
                               SizedBox(height: compact ? 40 : 48),
 
                               _buildAttachmentsPanel(compact: compact),
@@ -1022,10 +887,6 @@ class _ContractFormPageState extends State<ContractFormPage> {
     );
   }
 }
-
-// ============================================================================
-// Contract Data
-// ============================================================================
 
 class ContractData {
   final String letterNumber;

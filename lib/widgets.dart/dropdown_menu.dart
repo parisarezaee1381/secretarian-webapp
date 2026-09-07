@@ -53,17 +53,13 @@ class AppDropdown<T extends Object> extends StatefulWidget {
   final T? value;
   final String? hintText;
 
-  /// برای ساختن برچسب نمایشی هر آیتم. اگر ندهید، از `toString()` استفاده
-  /// می‌شود.
   final String Function(T item)? itemLabelBuilder;
 
   final double width;
   final double height;
 
-  /// حداکثر ارتفاع پنل منو؛ در صورت طولانی‌تر بودن لیست، اسکرول می‌خورد.
   final double maxMenuHeight;
 
-  /// فاصله‌ی عمودی بین دکمه و پنل منو.
   final double menuGap;
 
   final bool enabled;

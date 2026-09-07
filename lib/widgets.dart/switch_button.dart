@@ -19,7 +19,6 @@ class AppSwitchColors {
   final Color thumb;
   final Color thumbDisabled;
 
-  /// شفافیتی که هنگام hover روی رنگ track اعمال می‌شود.
   final double hoverOpacity;
 }
 
@@ -42,8 +41,6 @@ class AppSwitch extends StatefulWidget {
     this.animationDuration = const Duration(milliseconds: 300),
     this.colors = const AppSwitchColors(),
 
-    /// اگر false باشد اندازه‌های width و height
-    /// دقیقاً مانند قبل استفاده می‌شوند.
     this.responsive = true,
   });
 
@@ -64,7 +61,6 @@ class AppSwitch extends StatefulWidget {
   final Duration animationDuration;
   final AppSwitchColors colors;
 
-  /// فعال/غیرفعال کردن رفتار responsive.
   final bool responsive;
 
   @override
@@ -123,12 +119,6 @@ class _AppSwitchState extends State<AppSwitch> {
     return _isInteractive ? widget.colors.thumb : widget.colors.thumbDisabled;
   }
 
-  /// نسبت پیش‌فرض Switch:
-  ///
-  /// 128 / 64 = 2
-  ///
-  /// بنابراین هنگام responsive شدن نیز
-  /// همین نسبت حفظ می‌شود.
   double _responsiveWidth(BoxConstraints constraints) {
     if (!widget.responsive) {
       return widget.width;
@@ -146,10 +136,8 @@ class _AppSwitchState extends State<AppSwitch> {
       return widget.height;
     }
 
-    // نسبت width / height = 2
     final calculatedHeight = width / 2;
 
-    // جلوگیری از Switch بیش از حد کوچک یا بزرگ
     return calculatedHeight.clamp(24.0, widget.height);
   }
 
@@ -158,7 +146,6 @@ class _AppSwitchState extends State<AppSwitch> {
       return widget.thumbPadding;
     }
 
-    // Padding متناسب با ارتفاع
     final scaledPadding = height * (widget.thumbPadding / widget.height);
 
     return scaledPadding.clamp(2.0, widget.thumbPadding);
@@ -273,8 +260,6 @@ class _AppSwitchState extends State<AppSwitch> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // اگر responsive خاموش باشد،
-        // دقیقاً اندازه‌های قبلی استفاده می‌شوند.
         if (!widget.responsive) {
           return _buildSwitch(
             width: widget.width,
@@ -285,7 +270,6 @@ class _AppSwitchState extends State<AppSwitch> {
 
         final availableWidth = constraints.maxWidth;
 
-        // اگر عرض نامحدود باشد، اندازه پیش‌فرض استفاده می‌شود.
         if (!availableWidth.isFinite) {
           return _buildSwitch(
             width: widget.width,

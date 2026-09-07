@@ -9,16 +9,8 @@ class OutgoingLetterViewPage extends StatelessWidget {
 
   const OutgoingLetterViewPage({super.key, required this.document});
 
-  // ============================================================
-  // Breakpoints
-  // ============================================================
-
   static const double _mobileBreakpoint = 600;
   static const double _tabletBreakpoint = 900;
-
-  // ============================================================
-  // Row
-  // ============================================================
 
   Widget _row(BuildContext context, String label, String value) {
     final width = MediaQuery.sizeOf(context).width;
@@ -108,10 +100,6 @@ class OutgoingLetterViewPage extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // Divider
-  // ============================================================
-
   Widget _divider(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
 
@@ -142,10 +130,6 @@ class OutgoingLetterViewPage extends StatelessWidget {
       ),
     );
   }
-
-  // ============================================================
-  // Action Buttons
-  // ============================================================
 
   Widget _actionButtons(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
@@ -211,10 +195,6 @@ class OutgoingLetterViewPage extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // Main
-  // ============================================================
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -258,10 +238,6 @@ class OutgoingLetterViewPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // =================================================
-                            // اطلاعات اولیه نامه
-                            // =================================================
-
                             _row(context, 'شماره نامه:', document.letterNumber),
 
                             _row(context, 'تاریخ:', document.date),
@@ -280,9 +256,6 @@ class OutgoingLetterViewPage extends StatelessWidget {
 
                             _divider(context),
 
-                            // =================================================
-                            // اطلاعات گیرنده
-                            // =================================================
                             _row(
                               context,
                               'به سازمان/شرکت:',
@@ -297,9 +270,6 @@ class OutgoingLetterViewPage extends StatelessWidget {
 
                             _divider(context),
 
-                            // =================================================
-                            // اطلاعات دبیرخانه
-                            // =================================================
                             _row(
                               context,
                               'شماره ثبت دبیرخانه:',
@@ -322,9 +292,6 @@ class OutgoingLetterViewPage extends StatelessWidget {
 
                             _row(context, 'نحوه ارسال:', document.sendMethod),
 
-                            // =================================================
-                            // پیگیری
-                            // =================================================
                             _row(
                               context,
                               'نیاز به پیگیری:',
@@ -345,9 +312,6 @@ class OutgoingLetterViewPage extends StatelessWidget {
                               ),
                             ],
 
-                            // =================================================
-                            // فایل
-                            // =================================================
                             _row(
                               context,
                               'ذخیره فایل:',
@@ -361,9 +325,6 @@ class OutgoingLetterViewPage extends StatelessWidget {
                                 document.filePath!,
                               ),
 
-                            // =================================================
-                            // پیوست‌ها
-                            // =================================================
                             if (document.attachments.isNotEmpty)
                               _row(
                                 context,
@@ -371,9 +332,6 @@ class OutgoingLetterViewPage extends StatelessWidget {
                                 document.attachments.length.toString(),
                               ),
 
-                            // =================================================
-                            // دکمه‌ها
-                            // =================================================
                             _actionButtons(context),
                           ],
                         ),

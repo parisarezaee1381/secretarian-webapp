@@ -38,7 +38,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.dispose();
   }
 
-  // رفتن به صفحه تغییر رمز عبور
   Future<void> _handleChangePassword() async {
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (context) => const ChangePasswordPage()),
@@ -107,9 +106,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
-                // =========================
-                // نام کاربری
-                // =========================
                 AppTextField(
                   controller: _usernameController,
                   labelText: 'نام کاربری',
@@ -122,9 +118,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
                 const SizedBox(height: 24),
 
-                // =========================
-                // ایمیل
-                // =========================
                 AppTextField(
                   controller: _emailController,
                   labelText: 'رنگ مورد علاقه',
@@ -134,10 +127,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
                 const SizedBox(height: 64),
 
-                // =========================
-                // تغییر رمز عبور
-                // وسط چین
-                // =========================
                 Center(
                   child: CustomButton(
                     label: 'تغییر رمز عبور',
@@ -149,10 +138,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
                 const SizedBox(height: 64),
 
-                // =========================
-                // ثبت و لغو
-                // وسط چین
-                // =========================
                 Center(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -178,10 +163,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
                 const SizedBox(height: 64),
 
-                // =========================
-                // نسخه
-                // همراه محتوا اسکرول می‌شود
-                // =========================
                 Center(
                   child: Text(
                     'نسخه 1.0.0',

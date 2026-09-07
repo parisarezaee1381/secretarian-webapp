@@ -9,17 +9,9 @@ class IncomingLetterViewPage extends StatelessWidget {
 
   const IncomingLetterViewPage({super.key, required this.document});
 
-  // =========================================================
-  // Responsive constants
-  // =========================================================
-
   static const double _desktopContentWidth = 900;
   static const double _labelWidth = 150;
   static const double _fieldWidth = 548;
-
-  // =========================================================
-  // اطلاعات هر ردیف
-  // =========================================================
 
   Widget _row(BuildContext context, String label, String value) {
     final width = MediaQuery.sizeOf(context).width;
@@ -101,10 +93,6 @@ class IncomingLetterViewPage extends StatelessWidget {
     );
   }
 
-  // =========================================================
-  // Divider
-  // =========================================================
-
   Widget _divider(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
 
@@ -130,10 +118,6 @@ class IncomingLetterViewPage extends StatelessWidget {
       ),
     );
   }
-
-  // =========================================================
-  // Action buttons
-  // =========================================================
 
   Widget _actionButtons(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
@@ -199,10 +183,6 @@ class IncomingLetterViewPage extends StatelessWidget {
     );
   }
 
-  // =========================================================
-  // Main
-  // =========================================================
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -211,18 +191,11 @@ class IncomingLetterViewPage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // =================================================
-            // Header
-            // =================================================
-
             const AppHeader(
               title: 'مشاهده نامه وارده',
               leading: HeaderLeading.back,
             ),
 
-            // =================================================
-            // Scrollable content
-            // =================================================
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -246,10 +219,6 @@ class IncomingLetterViewPage extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              // =================================================
-                              // اطلاعات اولیه نامه
-                              // =================================================
-
                               _row(
                                 context,
                                 'شماره نامه:',
@@ -272,9 +241,6 @@ class IncomingLetterViewPage extends StatelessWidget {
 
                               _divider(context),
 
-                              // =================================================
-                              // اطلاعات فرستنده / مخاطب
-                              // =================================================
                               _row(
                                 context,
                                 'به سازمان/شرکت:',
@@ -297,9 +263,6 @@ class IncomingLetterViewPage extends StatelessWidget {
 
                               _divider(context),
 
-                              // =================================================
-                              // اطلاعات دبیرخانه
-                              // =================================================
                               _row(
                                 context,
                                 'تاریخ ثبت:',
@@ -314,9 +277,6 @@ class IncomingLetterViewPage extends StatelessWidget {
 
                               _row(context, 'اولویت:', document.priority),
 
-                              // =================================================
-                              // پیگیری
-                              // =================================================
                               _row(
                                 context,
                                 'نیاز به پیگیری:',
@@ -337,9 +297,6 @@ class IncomingLetterViewPage extends StatelessWidget {
                                 ),
                               ],
 
-                              // =================================================
-                              // فایل
-                              // =================================================
                               _row(
                                 context,
                                 'ذخیره فایل:',
@@ -353,9 +310,6 @@ class IncomingLetterViewPage extends StatelessWidget {
                                   document.filePath!,
                                 ),
 
-                              // =================================================
-                              // پیوست‌ها
-                              // =================================================
                               if (document.attachments.isNotEmpty)
                                 _row(
                                   context,
@@ -363,9 +317,6 @@ class IncomingLetterViewPage extends StatelessWidget {
                                   document.attachments.length.toString(),
                                 ),
 
-                              // =================================================
-                              // Buttons
-                              // =================================================
                               _actionButtons(context),
                             ],
                           ),

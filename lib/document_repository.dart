@@ -56,10 +56,6 @@ class DocumentRepository {
 
   final List<dynamic> allDocuments = [];
 
-  // ------------------------------------------------------------
-  // OUTGOING
-  // ------------------------------------------------------------
-
   Future<void> addOutgoing(OutgoingLetterDocument doc) async {
     outgoingLetters.add(doc);
     allDocuments.add(doc);
@@ -172,9 +168,6 @@ class DocumentRepository {
 
     _recalculatePendingCount();
   }
-  // ------------------------------------------------------------
-  // LOAD OUTGOING FROM ISAR
-  // ------------------------------------------------------------
 
   Future<void> loadOutgoingFromDatabase() async {
     final db = await DatabaseService.instance.database;
@@ -224,10 +217,6 @@ class DocumentRepository {
     _rebuildAllDocuments();
     _recalculatePendingCount();
   }
-
-  // ------------------------------------------------------------
-  // INCOMING
-  // ------------------------------------------------------------
 
   Future<void> addIncoming(IncomingLetterDocument doc) async {
     incomingLetters.add(doc);
@@ -386,10 +375,6 @@ class DocumentRepository {
     _recalculatePendingCount();
   }
 
-  // ------------------------------------------------------------
-  // CONTRACT
-  // ------------------------------------------------------------
-
   Future<void> addContract(ContractDocument doc) async {
     contracts.add(doc);
     allDocuments.add(doc);
@@ -530,10 +515,6 @@ class DocumentRepository {
     _rebuildAllDocuments();
   }
 
-  // ------------------------------------------------------------
-  // ALL DOCUMENTS
-  // ------------------------------------------------------------
-
   void _rebuildAllDocuments() {
     allDocuments
       ..clear()
@@ -549,10 +530,6 @@ class DocumentRepository {
 
     return allDocuments.sublist(allDocuments.length - count).reversed.toList();
   }
-
-  // ------------------------------------------------------------
-  // PENDING
-  // ------------------------------------------------------------
 
   void _recalculatePendingCount() {
     final today = _todayJalaliFormatted();

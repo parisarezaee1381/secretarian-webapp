@@ -10,17 +10,9 @@ class UserRepository {
 
   static final UserRepository instance = UserRepository._internal();
 
-  // ------------------------------------------------------------
-  // Password hashing
-  // ------------------------------------------------------------
-
   String _hash(String raw) {
     return sha256.convert(utf8.encode(raw)).toString();
   }
-
-  // ------------------------------------------------------------
-  // Register
-  // ------------------------------------------------------------
 
   Future<void> registerUser({
     required String username,
@@ -49,10 +41,6 @@ class UserRepository {
       await db.userDbs.put(user);
     });
   }
-
-  // ------------------------------------------------------------
-  // Login
-  // ------------------------------------------------------------
 
   Future<UserDb?> login({
     required String username,

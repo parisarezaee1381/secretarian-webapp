@@ -9,25 +9,13 @@ class ContractViewPage extends StatelessWidget {
 
   const ContractViewPage({super.key, required this.document});
 
-  // =========================================================
-  // Responsive constants
-  // =========================================================
-
   static const double _desktopContentWidth = 900;
   static const double _labelWidth = 150;
   static const double _fieldWidth = 548;
 
-  // =========================================================
-  // Info Row
-  // =========================================================
-
   Widget _row(BuildContext context, String label, String value) {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isMobile = screenWidth < 700;
-
-    // -------------------------
-    // Mobile
-    // -------------------------
 
     if (isMobile) {
       return Padding(
@@ -68,10 +56,6 @@ class ContractViewPage extends StatelessWidget {
       );
     }
 
-    // -------------------------
-    // Tablet / Desktop
-    // -------------------------
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 32),
       child: Row(
@@ -108,17 +92,9 @@ class ContractViewPage extends StatelessWidget {
     );
   }
 
-  // =========================================================
-  // Divider
-  // =========================================================
-
   Widget _divider(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isMobile = screenWidth < 700;
-
-    // -------------------------
-    // Mobile
-    // -------------------------
 
     if (isMobile) {
       return const Padding(
@@ -126,10 +102,6 @@ class ContractViewPage extends StatelessWidget {
         child: Divider(color: Color(0xFF828288), height: 1),
       );
     }
-
-    // -------------------------
-    // Tablet / Desktop
-    // -------------------------
 
     return const Padding(
       padding: EdgeInsets.only(bottom: 64),
@@ -145,17 +117,9 @@ class ContractViewPage extends StatelessWidget {
     );
   }
 
-  // =========================================================
-  // Action Buttons
-  // =========================================================
-
   Widget _actionButtons(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isMobile = screenWidth < 600;
-
-    // -------------------------
-    // Mobile
-    // -------------------------
 
     if (isMobile) {
       return Padding(
@@ -187,10 +151,6 @@ class ContractViewPage extends StatelessWidget {
       );
     }
 
-    // -------------------------
-    // Tablet / Desktop
-    // -------------------------
-
     return Padding(
       padding: const EdgeInsets.only(top: 32, bottom: 128),
       child: Row(
@@ -220,10 +180,6 @@ class ContractViewPage extends StatelessWidget {
     );
   }
 
-  // =========================================================
-  // Build
-  // =========================================================
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -232,18 +188,11 @@ class ContractViewPage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // =================================================
-            // Header
-            // =================================================
-
             const AppHeader(
               title: 'مشاهده قرارداد',
               leading: HeaderLeading.back,
             ),
 
-            // =================================================
-            // Content
-            // =================================================
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -267,10 +216,6 @@ class ContractViewPage extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              // =================================================
-                              // اطلاعات اولیه قرارداد
-                              // =================================================
-
                               _row(
                                 context,
                                 'شماره نامه:',
@@ -293,9 +238,6 @@ class ContractViewPage extends StatelessWidget {
 
                               _divider(context),
 
-                              // =================================================
-                              // طرفین قرارداد
-                              // =================================================
                               _row(
                                 context,
                                 'شرکت طرف قرارداد:',
@@ -312,9 +254,6 @@ class ContractViewPage extends StatelessWidget {
 
                               _divider(context),
 
-                              // =================================================
-                              // اطلاعات قرارداد
-                              // =================================================
                               _row(
                                 context,
                                 'موضوع قرارداد:',
@@ -333,9 +272,6 @@ class ContractViewPage extends StatelessWidget {
                                 document.referenceContractNumber,
                               ),
 
-                              // =================================================
-                              // فایل
-                              // =================================================
                               _row(
                                 context,
                                 'ذخیره فایل:',
@@ -349,9 +285,6 @@ class ContractViewPage extends StatelessWidget {
                                   document.filePath!,
                                 ),
 
-                              // =================================================
-                              // پیوست‌ها
-                              // =================================================
                               if (document.attachments.isNotEmpty)
                                 _row(
                                   context,
@@ -359,9 +292,6 @@ class ContractViewPage extends StatelessWidget {
                                   document.attachments.length.toString(),
                                 ),
 
-                              // =================================================
-                              // دکمه‌ها
-                              // =================================================
                               _actionButtons(context),
                             ],
                           ),
