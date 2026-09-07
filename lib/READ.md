@@ -207,7 +207,7 @@ Contact
 
 For questions or project inquiries:
 
-Email: fakourcompany.noreply@gmail.com
+Email: parisarezaee1381@gmail.com
 
 GitHub:
 https://github.com/parisarezaee1381/secretarian-webapp
@@ -311,5 +311,5 @@ https://github.com/parisarezaee1381/secretarian-webapp
 
 
 ## ارتباط با ما
-برای پشتیبانی: [fakourcompany.noreply@gmail.com]  
+برای پشتیبانی: [parisarezaee1381@gmail.com]  
 برای گزارش باگ: [https://github.com/parisarezaee1381/secretarian-webapp]
