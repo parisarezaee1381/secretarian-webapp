@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+cd "/c/Users/Asus/Desktop/Flutter projects/secretarian app/secretarian-webapp" || exit 1
+
+flutter test test/attachments/attached_item_test.dart
+flutter test test/attachments/attachments_panel_test.dart
+flutter test test/attachments/scanner_service_test.dart
+flutter test test/authentication/auth_widgets_test.dart
+flutter test test/button_focus_test.dart
+flutter test test/core/session_controller_test.dart
+flutter test test/data/document_repository_test.dart
+flutter test test/data/letter_number_generator_test.dart
+flutter test test/data/user_repository_test.dart
+flutter test test/document_view_test.dart
+flutter test test/documents/dashboard_test.dart
+flutter test test/documents/document_list_test.dart
+flutter test test/documents/filter_panel_test.dart
+flutter test test/documents/filter_values_test.dart
+flutter test test/documents/letter_forms_test.dart
+flutter test test/documents_test.dart
+flutter test test/domain/documents_extra_test.dart
+flutter test test/dropdown_menu_test.dart
+flutter test test/filter_buttons_test.dart
+flutter test test/follow_up_modal_test.dart
+flutter test test/header_test.dart
+flutter test test/notification_test.dart
+flutter test test/password_hasher_test.dart
+flutter test test/pdf_generator_test.dart
+flutter test test/scanner_pdf_test.dart
+flutter test test/settings/settings_test.dart
+flutter test test/smart_date_field_test.dart
+flutter test test/switch_button_test.dart
+flutter test test/widget_test.dart
+flutter test test/widgets/document_table_test.dart
+flutter test test/widgets/pdf_document_data_test.dart
+flutter test test/widgets/pdf_export_test.dart
+flutter test test/widgets/table_rows_test.dart

@@ -30,9 +30,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   shamsi_date: ^1.1.1
-  isar: ^3.1.0+1
-  isar_flutter_libs: ^3.1.0+1
+  isar_community: ^3.1.0+1
+  isar_community_flutter_libs: ^3.1.0+1
   path_provider: ^2.1.6
   flutter_screenutil: ^5.9.3
   crypto: ^3.0.3
@@ -50,9 +52,11 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  isar_generator: ^3.1.0+1
+  isar_community_generator: ^3.1.0+1
   build_runner: ^2.4.6
 
+  # Test-only: generates PNG fixtures for the scanner PDF test.
+  image: ^4.9.2
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

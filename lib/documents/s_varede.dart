@@ -2,32 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:flutter_application_1/widgets.dart/pdf_document.dart';
-import 'package:flutter_application_1/widgets.dart/pdf_save.dart';
-import '../document_repository.dart';
+import 'package:flutter_application_1/widgets/pdf_document.dart';
+import 'package:flutter_application_1/widgets/pdf_save.dart';
+import '../core/app_constants.dart';
+import '../data/document_repository.dart';
 
-import '../widgets.dart/smart_date_field.dart';
-import '../widgets.dart/modal.dart';
-import '../widgets.dart/letter_number_generator.dart';
-import '../attachments.dart/attached_item.dart';
-import '../attachments.dart/attachments_panel.dart';
+import '../widgets/smart_date_field.dart';
+import '../widgets/modal.dart';
+import '../widgets/letter_number_generator.dart';
+import '../attachments/attached_item.dart';
+import '../attachments/attachments_panel.dart';
 
-import 'package:flutter_application_1/documents.dart';
+import 'package:flutter_application_1/domain/documents.dart';
 import 'package:flutter_application_1/documents/m_varede.dart';
 
-import '../widgets.dart/switch_button.dart';
-import '../widgets.dart/buttons.dart';
-import '../widgets.dart/text_input.dart';
-import '../widgets.dart/dropdown_menu.dart';
-import '../widgets.dart/header.dart';
-
-final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
-    GlobalKey<ScaffoldMessengerState>();
+import '../widgets/switch_button.dart';
+import '../widgets/buttons.dart';
+import '../widgets/text_input.dart';
+import '../widgets/dropdown_menu.dart';
+import '../widgets/header.dart';
+import 'package:flutter_application_1/core/theme.dart';
 
 class IncomingLetterFormPage extends StatefulWidget {
-  const IncomingLetterFormPage({super.key, this.initialDocument});
+  const IncomingLetterFormPage({
+    super.key,
+    this.initialDocument,
+    this.openToAttachments = false,
+  });
 
   final IncomingLetterDocument? initialDocument;
+
+  /// When true, the form scrolls down to the attachments panel on open.
+  final bool openToAttachments;
 
   @override
   State<IncomingLetterFormPage> createState() => _IncomingLetterFormPageState();
@@ -39,25 +45,24 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
   final registrationDateController = TextEditingController();
   final subjectController = TextEditingController();
   final organizationController = TextEditingController();
+  final senderController = TextEditingController();
+  final senderLetterNumberController = TextEditingController();
   final recipientController = TextEditingController();
-  final signerController = TextEditingController();
-  final actionByController = TextEditingController();
   final archiveFolderController = TextEditingController();
 
   final _fnSubject = FocusNode();
   final _fnOrganization = FocusNode();
+  final _fnSender = FocusNode();
+  final _fnSenderLetterNumber = FocusNode();
   final _fnRecipient = FocusNode();
-  final _fnSigner = FocusNode();
-  final _fnActionBy = FocusNode();
   final _fnArchiveFolder = FocusNode();
 
   final Map<String, String?> _errors = {
-    'letterNumber': null,
     'subject': null,
     'organization': null,
+    'sender': null,
+    'senderLetterNumber': null,
     'recipient': null,
-    'signer': null,
-    'actionBy': null,
     'archiveFolder': null,
   };
 
@@ -76,6 +81,12 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
 
   List<AttachedItem> _currentAttachments = [];
 
+  final _attachmentsKey = GlobalKey();
+
+  /// True while a submit is in flight — guards against double-taps that
+  /// would save the document twice.
+  bool _isSubmitting = false;
+
   @override
   void initState() {
     super.initState();
@@ -88,9 +99,9 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
       registrationDateController.text = doc.registrationDate;
       subjectController.text = doc.subject;
       organizationController.text = doc.organization;
-      recipientController.text = doc.senderLetterNumber;
-      signerController.text = doc.senderLetterNumber;
-      actionByController.text = doc.recipient;
+      senderController.text = doc.sender;
+      senderLetterNumberController.text = doc.senderLetterNumber;
+      recipientController.text = doc.recipient;
       archiveFolderController.text = doc.archiveFolder;
 
       tags = List<String>.from(doc.tags);
@@ -102,7 +113,6 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
       _followUpBy = doc.followUpBy;
 
       _isFileSwitchOn = doc.saveFile;
-      _isFileSwitchOn = doc.saveFile;
 
       _currentAttachments = doc.attachments.map((attachment) {
         return AttachedItem(
@@ -111,6 +121,13 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
           bytes: attachment.bytes,
         );
       }).toList();
+    }
+
+    if (widget.openToAttachments) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = _attachmentsKey.currentContext;
+        if (ctx != null) Scrollable.ensureVisible(ctx);
+      });
     }
   }
 
@@ -121,18 +138,18 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
     registrationDateController.dispose();
     subjectController.dispose();
     organizationController.dispose();
+    senderController.dispose();
+    senderLetterNumberController.dispose();
     recipientController.dispose();
-    signerController.dispose();
-    actionByController.dispose();
     archiveFolderController.dispose();
 
     _tagInputController.dispose();
 
     _fnSubject.dispose();
     _fnOrganization.dispose();
+    _fnSender.dispose();
+    _fnSenderLetterNumber.dispose();
     _fnRecipient.dispose();
-    _fnSigner.dispose();
-    _fnActionBy.dispose();
     _fnArchiveFolder.dispose();
 
     super.dispose();
@@ -154,44 +171,44 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
   }
 
   void _showModal() {
-    showDialog(
+    showDialog<FollowUpResult>(
       context: context,
       builder: (context) => const CustomModal(),
     ).then((result) {
-      if (result != null) {
-        setState(() {
-          _followUpDate = result['date'];
-          _followUpBy = result['followUpBy'];
-          _isSwitchOn = true;
-        });
-      }
+      if (!mounted || result == null) return;
+
+      setState(() {
+        _followUpDate = result.date;
+        _followUpBy = result.followUpBy;
+        _isSwitchOn = true;
+      });
     });
   }
 
   bool _validateForm() {
     final newErrors = <String, String?>{
       'subject': subjectController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
           : null,
 
       'organization': organizationController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
+          : null,
+
+      'sender': senderController.text.trim().isEmpty
+          ? kRequiredFieldMessage
+          : null,
+
+      'senderLetterNumber': senderLetterNumberController.text.trim().isEmpty
+          ? kRequiredFieldMessage
           : null,
 
       'recipient': recipientController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
-          : null,
-
-      'signer': signerController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
-          : null,
-
-      'actionBy': actionByController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
           : null,
 
       'archiveFolder': archiveFolderController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
           : null,
     };
 
@@ -201,7 +218,9 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
   }
 
   Future<void> _submitForm() async {
-    if (!_validateForm()) return;
+    if (_isSubmitting || !_validateForm()) return;
+
+    setState(() => _isSubmitting = true);
 
     String? pdfPath;
     bool pdfSaved = false;
@@ -209,7 +228,7 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
     try {
       if (widget.initialDocument == null) {
         letterNumberController.text = await LetterNumberGenerator.instance
-            .generate(LetterNumberType.incoming);
+            .generate(DocumentType.incoming);
       }
 
       final document = IncomingLetterDocument(
@@ -224,11 +243,11 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
 
         organization: organizationController.text.trim(),
 
-        sender: recipientController.text.trim(),
+        sender: senderController.text.trim(),
 
-        senderLetterNumber: signerController.text.trim(),
+        senderLetterNumber: senderLetterNumberController.text.trim(),
 
-        recipient: actionByController.text.trim(),
+        recipient: recipientController.text.trim(),
 
         registrationDate: registrationDateController.text,
         archiveFolder: archiveFolderController.text.trim(),
@@ -258,43 +277,29 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
             ? '${document.letterNumber.trim()}.pdf'
             : 'نامه-وارده.pdf';
 
-        pdfPath = await SavePdfWidget.chooseSavePath(
+        pdfPath = await PdfSaver.chooseSavePath(
           suggestedFileName: suggestedName,
         );
 
         if (pdfPath != null) {
-          await SavePdfWidget.savePdf(document: pdfData, path: pdfPath);
+          await PdfSaver.savePdf(document: pdfData, path: pdfPath);
 
           pdfSaved = true;
         }
       }
 
-      final finalDocument = IncomingLetterDocument(
-        id: document.id,
+      // Canceling the save dialog during an edit keeps the previously
+      // recorded PDF reference instead of silently dropping it; switching
+      // the option off explicitly clears it.
+      final keepExistingPdf =
+          _isFileSwitchOn &&
+          widget.initialDocument != null &&
+          widget.initialDocument!.saveFile;
 
-        letterNumber: document.letterNumber,
-        date: document.date,
-        subject: document.subject,
-        tags: document.tags,
-
-        organization: document.organization,
-        sender: document.sender,
-        senderLetterNumber: document.senderLetterNumber,
-        recipient: document.recipient,
-
-        registrationDate: document.registrationDate,
-        archiveFolder: document.archiveFolder,
-
-        priority: document.priority,
-
-        needsFollowUp: document.needsFollowUp,
-        followUpDate: document.followUpDate,
-        followUpBy: document.followUpBy,
-
-        saveFile: pdfSaved,
-        filePath: pdfPath,
-
-        attachments: document.attachments,
+      final finalDocument = document.copyWith(
+        saveFile: pdfSaved || keepExistingPdf,
+        filePath:
+            pdfPath ?? (keepExistingPdf ? widget.initialDocument!.filePath : null),
       );
 
       if (widget.initialDocument != null) {
@@ -306,48 +311,102 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
         await DocumentRepository.instance.addIncoming(finalDocument);
       }
 
+      if (!mounted) return;
+
       if (pdfSaved) {
-        rootScaffoldMessengerKey.currentState?.showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('نامه وارده و PDF با موفقیت ذخیره شدند'),
-            backgroundColor: Color(0xFF3863A8),
+            backgroundColor: AppColors.primary,
           ),
         );
       } else {
-        rootScaffoldMessengerKey.currentState?.showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('نامه وارده با موفقیت ذخیره شد'),
-            backgroundColor: Color(0xFF3863A8),
+            backgroundColor: AppColors.primary,
           ),
         );
       }
 
-      if (!mounted) return;
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => IncomingLetterViewPage(document: finalDocument),
-        ),
-      );
+      if (widget.initialDocument != null) {
+        // Editing: hand the saved document back to the view page that opened
+        // us, which refreshes itself — instead of stacking a second view.
+        Navigator.pop(context, finalDocument);
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => IncomingLetterViewPage(document: finalDocument),
+          ),
+        );
+      }
     } catch (e, stackTrace) {
       debugPrint('SUBMIT INCOMING ERROR: $e');
       debugPrint('$stackTrace');
 
-      rootScaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text('خطا در ذخیره نامه وارده: $e'),
-          backgroundColor: const Color(0xFFA85838),
+      if (!mounted) return;
+
+      // The exception itself stays in the debug log; users get a generic
+      // message (the settings screens' convention — never raw error text).
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('خطا در ذخیره نامه وارده'),
+          backgroundColor: AppColors.error,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
-  void _cancelForm() {
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
+  /// True when the user typed into a field, added tags/attachments, or set
+  /// follow-up data. Auto-filled fields (the generated letter number, the
+  /// date pickers) are deliberately not counted, so a pristine create form
+  /// cancels instantly.
+  bool _hasUnsavedContent() {
+    return subjectController.text.isNotEmpty ||
+        organizationController.text.isNotEmpty ||
+        senderController.text.isNotEmpty ||
+        senderLetterNumberController.text.isNotEmpty ||
+        recipientController.text.isNotEmpty ||
+        archiveFolderController.text.isNotEmpty ||
+        tags.isNotEmpty ||
+        _currentAttachments.isNotEmpty ||
+        _isSwitchOn;
+  }
+
+  Future<void> _cancelForm() async {
+    if (_hasUnsavedContent()) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('انصراف از ثبت؟'),
+          content: const Text('اطلاعات واردشده ذخیره نمی‌شود.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('ادامه'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('انصراف'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+    }
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('عملیات لغو شد'),
-        backgroundColor: Color(0xFF828288),
+        backgroundColor: AppColors.mutedText,
       ),
     );
 
@@ -383,6 +442,7 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
                     label: 'ثبت',
                     type: ButtonType.primary,
                     width: buttonWidth,
+                    isLoading: _isSubmitting,
                     onPressed: _submitForm,
                   ),
 
@@ -392,6 +452,7 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
                     label: 'انصراف',
                     type: ButtonType.tertiary,
                     width: buttonWidth,
+                    isDisabled: _isSubmitting,
                     onPressed: _cancelForm,
                   ),
                 ],
@@ -405,6 +466,7 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
                   label: 'ثبت',
                   type: ButtonType.primary,
                   width: buttonWidth,
+                  isLoading: _isSubmitting,
                   onPressed: _submitForm,
                 ),
 
@@ -414,6 +476,7 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
                   label: 'انصراف',
                   type: ButtonType.tertiary,
                   width: buttonWidth,
+                  isDisabled: _isSubmitting,
                   onPressed: _cancelForm,
                 ),
               ],
@@ -433,12 +496,12 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
           children: [
             Expanded(
               flex: 148,
-              child: Container(height: 1, color: const Color(0xFFF3F3F7)),
+              child: Container(height: 1, color: AppColors.background),
             ),
 
             Expanded(
               flex: 548,
-              child: Container(height: 1, color: const Color(0xFF828288)),
+              child: Container(height: 1, color: AppColors.mutedText),
             ),
           ],
         ),
@@ -499,9 +562,8 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
               errorText ?? 'حداکثر 55 کاراکتر مجاز است',
 
               style: TextStyle(
-                color: const Color(0xFFA85838),
+                color: AppColors.error,
                 fontSize: 12.sp,
-                fontFamily: 'Estedad',
               ),
             ),
           ),
@@ -515,10 +577,9 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
       child: Text(
         text,
         style: TextStyle(
-          color: const Color(0xFF101018),
+          color: AppColors.text,
           fontSize: 16.sp,
           fontWeight: FontWeight.w600,
-          fontFamily: 'Estedad',
         ),
       ),
     );
@@ -571,7 +632,7 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
           suffixIcon: IconButton(
             icon: const Icon(
               Icons.add_circle_outline,
-              color: Color(0xFFF3F3F7),
+              color: AppColors.background,
             ),
             onPressed: _addTag,
           ),
@@ -593,7 +654,7 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.w),
 
                 decoration: BoxDecoration(
-                  color: const Color(0xFF828288),
+                  color: AppColors.mutedText,
                   borderRadius: BorderRadius.circular(8.r),
                 ),
 
@@ -603,10 +664,9 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
                     Text(
                       tag,
                       style: TextStyle(
-                        color: const Color(0xFFF3F3F7),
+                        color: AppColors.background,
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
-                        fontFamily: 'Estedad',
                       ),
                     ),
 
@@ -617,7 +677,7 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
                       child: Icon(
                         Icons.close,
                         size: 16.sp,
-                        color: const Color(0xFFF3F3F7),
+                        color: AppColors.background,
                       ),
                     ),
                   ],
@@ -691,7 +751,7 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
       behavior: HitTestBehavior.translucent,
 
       child: Scaffold(
-        backgroundColor: const Color(0xFFF3F3F7),
+        backgroundColor: AppColors.background,
 
         body: Column(
           children: [
@@ -720,7 +780,7 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
                         children: [
                           LetterNumberField(
                             controller: letterNumberController,
-                            type: LetterNumberType.incoming,
+                            type: DocumentType.incoming,
                           ),
 
                           SizedBox(height: 32.w),
@@ -751,7 +811,7 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
                             'به سازمان/شرکت:',
                             organizationController,
                             focusNode: _fnOrganization,
-                            nextFocusNode: _fnRecipient,
+                            nextFocusNode: _fnSender,
                             errorKey: 'organization',
                           ),
 
@@ -759,30 +819,30 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
 
                           _buildFormRow(
                             'شخص ارسال کننده:',
-                            recipientController,
-                            focusNode: _fnRecipient,
-                            nextFocusNode: _fnSigner,
-                            errorKey: 'recipient',
+                            senderController,
+                            focusNode: _fnSender,
+                            nextFocusNode: _fnSenderLetterNumber,
+                            errorKey: 'sender',
                           ),
 
                           SizedBox(height: 32.w),
 
                           _buildFormRow(
                             'شماره نامه فرستنده:',
-                            signerController,
-                            focusNode: _fnSigner,
-                            nextFocusNode: _fnActionBy,
-                            errorKey: 'signer',
+                            senderLetterNumberController,
+                            focusNode: _fnSenderLetterNumber,
+                            nextFocusNode: _fnRecipient,
+                            errorKey: 'senderLetterNumber',
                           ),
 
                           SizedBox(height: 32.w),
 
                           _buildFormRow(
                             'مخاطب:',
-                            actionByController,
-                            focusNode: _fnActionBy,
+                            recipientController,
+                            focusNode: _fnRecipient,
                             nextFocusNode: _fnArchiveFolder,
-                            errorKey: 'actionBy',
+                            errorKey: 'recipient',
                           ),
 
                           _buildDivider(),
@@ -809,12 +869,12 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
                           _buildDropdownRow(
                             label: 'اولویت:',
                             child: AppDropdown<String>(
-                              items: const ['عادی', 'فوری'],
+                              items: kPriorityOptions,
 
                               value: selectedPriority,
 
                               itemLabelBuilder: (item) =>
-                                  item == 'فوری' ? '🔴 $item' : item,
+                                  item == kUrgentPriority ? '🔴 $item' : item,
 
                               onChanged: (value) {
                                 if (value != null) {
@@ -867,7 +927,12 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
 
                           SizedBox(height: 48.w),
 
-                          Center(child: _buildAttachmentsPanel()),
+                          Center(
+                            child: KeyedSubtree(
+                              key: _attachmentsKey,
+                              child: _buildAttachmentsPanel(),
+                            ),
+                          ),
 
                           SizedBox(height: 64.w),
                         ],
@@ -882,44 +947,4 @@ class _IncomingLetterFormPageState extends State<IncomingLetterFormPage> {
       ),
     );
   }
-}
-
-class IncomingLetterData {
-  final String letterNumber;
-  final String date;
-  final String subject;
-  final List<String> tags;
-  final String organization;
-  final String sender;
-  final String senderLetterNumber;
-  final String recipient;
-  final String registrationDate;
-  final String archiveFolder;
-  final String priority;
-  final bool needsFollowUp;
-  final String? followUpDate;
-  final String? followUpBy;
-  final bool saveFile;
-  final String? savedFileName;
-  final List<AttachedItem> attachments;
-
-  const IncomingLetterData({
-    required this.letterNumber,
-    required this.date,
-    required this.subject,
-    required this.tags,
-    required this.organization,
-    required this.sender,
-    required this.senderLetterNumber,
-    required this.recipient,
-    required this.registrationDate,
-    required this.archiveFolder,
-    required this.priority,
-    required this.needsFollowUp,
-    this.followUpDate,
-    this.followUpBy,
-    required this.saveFile,
-    this.savedFileName,
-    required this.attachments,
-  });
 }

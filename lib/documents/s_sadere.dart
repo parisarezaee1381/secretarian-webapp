@@ -1,33 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:flutter_application_1/documents.dart';
-import 'package:flutter_application_1/widgets.dart/pdf_save.dart';
-import '../document_repository.dart';
+import 'package:flutter_application_1/domain/documents.dart';
+import 'package:flutter_application_1/widgets/pdf_save.dart';
+import '../core/app_constants.dart';
+import '../data/document_repository.dart';
 
-import '../widgets.dart/smart_date_field.dart';
-import '../widgets.dart/modal.dart';
-import '../widgets.dart/letter_number_generator.dart';
-import '../attachments.dart/attached_item.dart';
-import '../attachments.dart/attachments_panel.dart';
+import '../widgets/smart_date_field.dart';
+import '../widgets/modal.dart';
+import '../widgets/letter_number_generator.dart';
+import '../attachments/attached_item.dart';
+import '../attachments/attachments_panel.dart';
 
 import 'package:flutter_application_1/documents/m_sadere.dart';
 
-import '../widgets.dart/switch_button.dart';
-import '../widgets.dart/buttons.dart';
-import '../widgets.dart/text_input.dart';
-import '../widgets.dart/dropdown_menu.dart';
-import '../widgets.dart/header.dart';
+import '../widgets/switch_button.dart';
+import '../widgets/buttons.dart';
+import '../widgets/text_input.dart';
+import '../widgets/dropdown_menu.dart';
+import '../widgets/header.dart';
 
-import 'package:flutter_application_1/widgets.dart/pdf_document.dart';
-
-final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
-    GlobalKey<ScaffoldMessengerState>();
+import 'package:flutter_application_1/widgets/pdf_document.dart';
+import 'package:flutter_application_1/core/theme.dart';
 
 class OutgoingLetterFormPage extends StatefulWidget {
-  const OutgoingLetterFormPage({super.key, this.initialDocument});
+  const OutgoingLetterFormPage({
+    super.key,
+    this.initialDocument,
+    this.openToAttachments = false,
+  });
 
   final OutgoingLetterDocument? initialDocument;
+
+  /// When true, the form scrolls down to the attachments panel on open.
+  final bool openToAttachments;
 
   @override
   State<OutgoingLetterFormPage> createState() => _OutgoingLetterFormPageState();
@@ -78,10 +84,19 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
   List<AttachedItem> _currentAttachments = [];
 
+  final _attachmentsKey = GlobalKey();
+
+  /// True while a submit is in flight — guards against double-taps that
+  /// would save the document twice.
+  bool _isSubmitting = false;
+
   static const double _desktopContentWidth = 900;
   static const double _fieldWidth = 548;
   static const double _labelWidth = 150;
-  static const double _mobileBreakpoint = 700;
+
+  /// Shared with the view pages (`kWideLayoutBreakpoint`) so a form and its
+  /// view switch layouts at the same width.
+  static const double _mobileBreakpoint = kWideLayoutBreakpoint;
 
   @override
   void initState() {
@@ -113,7 +128,6 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       _followUpBy = doc.followUpBy;
 
       _isFileSwitchOn = doc.saveFile;
-      _isFileSwitchOn = doc.saveFile;
 
       _currentAttachments = doc.attachments.map((attachment) {
         return AttachedItem(
@@ -122,6 +136,13 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
           bytes: attachment.bytes,
         );
       }).toList();
+    }
+
+    if (widget.openToAttachments) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = _attachmentsKey.currentContext;
+        if (ctx != null) Scrollable.ensureVisible(ctx);
+      });
     }
   }
 
@@ -171,48 +192,48 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
   }
 
   void _showModal() {
-    showDialog(
+    showDialog<FollowUpResult>(
       context: context,
       builder: (context) => const CustomModal(),
     ).then((result) {
-      if (result != null) {
-        setState(() {
-          _followUpDate = result['date'];
-          _followUpBy = result['followUpBy'];
-          _isSwitchOn = true;
-        });
-      }
+      if (!mounted || result == null) return;
+
+      setState(() {
+        _followUpDate = result.date;
+        _followUpBy = result.followUpBy;
+        _isSwitchOn = true;
+      });
     });
   }
 
   bool _validateForm() {
     final newErrors = <String, String?>{
       'subject': subjectController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
           : null,
 
       'organization': organizationController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
           : null,
 
       'recipient': recipientController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
           : null,
 
       'signer': signerController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
           : null,
 
       'actionBy': actionByController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
           : null,
 
       'registrationNumber': registrationNumberController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
           : null,
 
       'archiveFolder': archiveFolderController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
           : null,
     };
 
@@ -224,9 +245,11 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
   }
 
   Future<void> _submitForm() async {
-    if (!_validateForm()) {
+    if (_isSubmitting || !_validateForm()) {
       return;
     }
+
+    setState(() => _isSubmitting = true);
 
     String? pdfPath;
     bool pdfSaved = false;
@@ -234,7 +257,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
     try {
       if (widget.initialDocument == null) {
         letterNumberController.text = await LetterNumberGenerator.instance
-            .generate(LetterNumberType.outgoing);
+            .generate(DocumentType.outgoing);
       }
 
       final document = OutgoingLetterDocument(
@@ -287,51 +310,29 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
             ? '${document.letterNumber.trim()}.pdf'
             : 'نامه-صادره.pdf';
 
-        pdfPath = await SavePdfWidget.chooseSavePath(
+        pdfPath = await PdfSaver.chooseSavePath(
           suggestedFileName: suggestedName,
         );
 
         if (pdfPath != null) {
-          await SavePdfWidget.savePdf(document: pdfData, path: pdfPath);
+          await PdfSaver.savePdf(document: pdfData, path: pdfPath);
 
           pdfSaved = true;
         }
       }
 
-      final finalDocument = OutgoingLetterDocument(
-        id: document.id,
+      // Canceling the save dialog during an edit keeps the previously
+      // recorded PDF reference instead of silently dropping it; switching
+      // the option off explicitly clears it.
+      final keepExistingPdf =
+          _isFileSwitchOn &&
+          widget.initialDocument != null &&
+          widget.initialDocument!.saveFile;
 
-        letterNumber: document.letterNumber,
-        date: document.date,
-
-        subject: document.subject,
-        tags: document.tags,
-
-        organization: document.organization,
-        recipient: document.recipient,
-
-        signer: document.signer,
-        actionBy: document.actionBy,
-
-        registrationNumber: document.registrationNumber,
-
-        registrationDate: document.registrationDate,
-
-        archiveFolder: document.archiveFolder,
-
-        priority: document.priority,
-        sendMethod: document.sendMethod,
-
-        needsFollowUp: document.needsFollowUp,
-
-        followUpDate: document.followUpDate,
-
-        followUpBy: document.followUpBy,
-
-        saveFile: pdfSaved,
-        filePath: pdfPath,
-
-        attachments: document.attachments,
+      final finalDocument = document.copyWith(
+        saveFile: pdfSaved || keepExistingPdf,
+        filePath:
+            pdfPath ?? (keepExistingPdf ? widget.initialDocument!.filePath : null),
       );
 
       if (widget.initialDocument != null) {
@@ -343,45 +344,98 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
         await DocumentRepository.instance.addOutgoing(finalDocument);
       }
 
-      rootScaffoldMessengerKey.currentState?.showSnackBar(
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             pdfSaved
                 ? 'نامه و PDF با موفقیت ذخیره شدند'
                 : 'نامه با موفقیت ذخیره شد',
           ),
-          backgroundColor: const Color(0xFF3863A8),
+          backgroundColor: AppColors.primary,
         ),
       );
 
-      if (!mounted) {
-        return;
+      if (widget.initialDocument != null) {
+        // Editing: hand the saved document back to the view page that opened
+        // us, which refreshes itself — instead of stacking a second view.
+        Navigator.pop(context, finalDocument);
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OutgoingLetterViewPage(document: finalDocument),
+          ),
+        );
       }
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OutgoingLetterViewPage(document: finalDocument),
-        ),
-      );
     } catch (e, stackTrace) {
       debugPrint('SUBMIT ERROR: $e');
       debugPrint('$stackTrace');
 
-      rootScaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text('خطا در ذخیره نامه: $e'),
-          backgroundColor: const Color(0xFFA85838),
+      if (!mounted) return;
+
+      // The exception itself stays in the debug log; users get a generic
+      // message (the settings screens' convention — never raw error text).
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('خطا در ذخیره نامه'),
+          backgroundColor: AppColors.error,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
-  void _cancelForm() {
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
+  /// True when the user typed into a field, added tags/attachments, or set
+  /// follow-up data. Auto-filled fields (the generated letter number, the
+  /// date pickers) are deliberately not counted, so a pristine create form
+  /// cancels instantly.
+  bool _hasUnsavedContent() {
+    return subjectController.text.isNotEmpty ||
+        organizationController.text.isNotEmpty ||
+        recipientController.text.isNotEmpty ||
+        signerController.text.isNotEmpty ||
+        actionByController.text.isNotEmpty ||
+        registrationNumberController.text.isNotEmpty ||
+        archiveFolderController.text.isNotEmpty ||
+        tags.isNotEmpty ||
+        _currentAttachments.isNotEmpty ||
+        _isSwitchOn;
+  }
+
+  Future<void> _cancelForm() async {
+    if (_hasUnsavedContent()) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('انصراف از ثبت؟'),
+          content: const Text('اطلاعات واردشده ذخیره نمی‌شود.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('ادامه'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('انصراف'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+    }
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('عملیات لغو شد'),
-        backgroundColor: Color(0xFF828288),
+        backgroundColor: AppColors.mutedText,
       ),
     );
 
@@ -395,10 +449,9 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
         text,
         textAlign: TextAlign.right,
         style: const TextStyle(
-          color: Color(0xFF101018),
+          color: AppColors.text,
           fontSize: 15,
           fontWeight: FontWeight.w600,
-          fontFamily: 'Estedad',
         ),
       ),
     );
@@ -461,9 +514,8 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
               child: Text(
                 errorText ?? 'حداکثر 55 کاراکتر مجاز است',
                 style: const TextStyle(
-                  color: Color(0xFFA85838),
+                  color: AppColors.error,
                   fontSize: 12,
-                  fontFamily: 'Estedad',
                 ),
               ),
             ),
@@ -486,9 +538,8 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
             child: Text(
               errorText ?? 'حداکثر 55 کاراکتر مجاز است',
               style: const TextStyle(
-                color: Color(0xFFA85838),
+                color: AppColors.error,
                 fontSize: 12,
-                fontFamily: 'Estedad',
               ),
             ),
           ),
@@ -502,10 +553,9 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       child: Text(
         text,
         style: const TextStyle(
-          color: Color(0xFF101018),
+          color: AppColors.text,
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          fontFamily: 'Estedad',
         ),
       ),
     );
@@ -522,7 +572,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
           LetterNumberField(
             controller: letterNumberController,
-            type: LetterNumberType.outgoing,
+            type: DocumentType.outgoing,
           ),
 
           const SizedBox(height: 24),
@@ -545,7 +595,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       children: [
         LetterNumberField(
           controller: letterNumberController,
-          type: LetterNumberType.outgoing,
+          type: DocumentType.outgoing,
         ),
 
         const SizedBox(height: 32),
@@ -590,7 +640,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       onSubmitted: (_) => _addTag(),
 
       suffixIcon: IconButton(
-        icon: const Icon(Icons.add_circle_outline, color: Color(0xFFF3F3F7)),
+        icon: const Icon(Icons.add_circle_outline, color: AppColors.background),
         onPressed: _addTag,
       ),
     );
@@ -610,7 +660,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
 
             decoration: BoxDecoration(
-              color: const Color(0xFF828288),
+              color: AppColors.mutedText,
               borderRadius: BorderRadius.circular(8),
             ),
 
@@ -620,10 +670,9 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
                 Text(
                   tag,
                   style: const TextStyle(
-                    color: Color(0xFFF3F3F7),
+                    color: AppColors.background,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    fontFamily: 'Estedad',
                   ),
                 ),
 
@@ -634,7 +683,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
                   child: const Icon(
                     Icons.close,
                     size: 16,
-                    color: Color(0xFFF3F3F7),
+                    color: AppColors.background,
                   ),
                 ),
               ],
@@ -682,7 +731,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
         Container(
           width: double.infinity,
           height: 1,
-          color: const Color(0xFF828288),
+          color: AppColors.mutedText,
         ),
 
         SizedBox(height: compact ? 40 : 64),
@@ -735,6 +784,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
                 label: 'ثبت',
                 type: ButtonType.primary,
                 width: double.infinity,
+                isLoading: _isSubmitting,
                 onPressed: _submitForm,
               ),
 
@@ -744,6 +794,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
                 label: 'انصراف',
                 type: ButtonType.tertiary,
                 width: double.infinity,
+                isDisabled: _isSubmitting,
                 onPressed: _cancelForm,
               ),
             ],
@@ -755,6 +806,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
                 label: 'ثبت',
                 type: ButtonType.primary,
                 width: 204,
+                isLoading: _isSubmitting,
                 onPressed: _submitForm,
               ),
 
@@ -764,6 +816,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
                 label: 'انصراف',
                 type: ButtonType.tertiary,
                 width: 204,
+                isDisabled: _isSubmitting,
                 onPressed: _cancelForm,
               ),
             ],
@@ -888,11 +941,12 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
           compact: compact,
 
           child: AppDropdown<String>(
-            items: const ['عادی', 'فوری'],
+            items: kPriorityOptions,
 
             value: selectedPriority,
 
-            itemLabelBuilder: (item) => item == 'فوری' ? '🔴 $item' : item,
+            itemLabelBuilder: (item) =>
+                item == kUrgentPriority ? '🔴 $item' : item,
 
             onChanged: (value) {
               if (value != null) {
@@ -986,7 +1040,7 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       behavior: HitTestBehavior.translucent,
 
       child: Scaffold(
-        backgroundColor: const Color(0xFFF3F3F7),
+        backgroundColor: AppColors.background,
 
         body: SafeArea(
           child: LayoutBuilder(
@@ -1033,7 +1087,10 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
 
                               SizedBox(height: compact ? 40 : 48),
 
-                              _buildAttachmentsPanel(compact: compact),
+                              KeyedSubtree(
+                                key: _attachmentsKey,
+                                child: _buildAttachmentsPanel(compact: compact),
+                              ),
 
                               SizedBox(height: compact ? 40 : 64),
                             ],
@@ -1050,54 +1107,4 @@ class _OutgoingLetterFormPageState extends State<OutgoingLetterFormPage> {
       ),
     );
   }
-}
-
-class OutgoingLetterData {
-  final String letterNumber;
-  final String date;
-  final String subject;
-  final List<String> tags;
-
-  final String organization;
-  final String recipient;
-  final String signer;
-  final String actionBy;
-
-  final String registrationNumber;
-  final String registrationDate;
-  final String archiveFolder;
-
-  final String priority;
-  final String sendMethod;
-
-  final bool needsFollowUp;
-  final String? followUpDate;
-  final String? followUpBy;
-
-  final bool saveFile;
-  final String? savedFileName;
-
-  final List<AttachedItem> attachments;
-
-  const OutgoingLetterData({
-    required this.letterNumber,
-    required this.date,
-    required this.subject,
-    required this.tags,
-    required this.organization,
-    required this.recipient,
-    required this.signer,
-    required this.actionBy,
-    required this.registrationNumber,
-    required this.registrationDate,
-    required this.archiveFolder,
-    required this.priority,
-    required this.sendMethod,
-    required this.needsFollowUp,
-    this.followUpDate,
-    this.followUpBy,
-    required this.saveFile,
-    this.savedFileName,
-    required this.attachments,
-  });
 }

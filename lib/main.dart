@@ -1,66 +1,38 @@
+import 'dart:async';
+import 'dart:ui' show PlatformDispatcher;
+
+import 'package:flutter/foundation.dart' show FlutterExceptionHandler;
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:flutter_application_1/authentication.dart/signup.dart';
-import 'package:flutter_application_1/authentication.dart/login.dart';
-import 'package:flutter_application_1/authentication.dart/user_repository.dart';
+import 'app.dart';
+import 'core/session.dart';
 
-import 'document_repository.dart';
-
-final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
-    GlobalKey<ScaffoldMessengerState>();
-
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ----------------------------------------------------------
-  // بارگذاری اسناد از دیتابیس
-  // ----------------------------------------------------------
+  _installErrorHandlers();
 
-  await DocumentRepository.instance.loadOutgoingFromDatabase();
-  await DocumentRepository.instance.loadIncomingFromDatabase();
-  await DocumentRepository.instance.loadContractsFromDatabase();
+  final SessionController session = SessionController.instance;
 
-  // ----------------------------------------------------------
-  // بررسی وجود کاربر
-  // ----------------------------------------------------------
+  // Starts the database work and returns immediately: the gate shows a loading
+  // screen until it resolves, or the error screen if it fails or times out.
+  unawaited(session.start());
 
-  final user = await UserRepository.instance.getUser();
-
-  // ----------------------------------------------------------
-  // اجرای برنامه
-  // ----------------------------------------------------------
-
-  runApp(MyApp(hasUser: user != null));
+  runApp(SecretarianApp(controller: session));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key, required this.hasUser});
+/// Makes failures that escape a widget or an async gap visible, instead of
+/// leaving them in the console with nothing on screen.
+void _installErrorHandlers() {
+  final FlutterExceptionHandler? previous = FlutterError.onError;
 
-  final bool hasUser;
+  FlutterError.onError = (FlutterErrorDetails details) {
+    previous?.call(details);
+    debugPrint('Uncaught framework error: ${details.exceptionAsString()}');
+  };
 
-  @override
-  Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      designSize: const Size(1440, 1024),
-      minTextAdapt: true,
-
-      builder: (context, child) {
-        return MaterialApp(
-          home: hasUser ? const LoginPage() : const RegisterPage(),
-
-          scaffoldMessengerKey: rootScaffoldMessengerKey,
-
-          debugShowCheckedModeBanner: false,
-
-          builder: (context, child) {
-            return Directionality(
-              textDirection: TextDirection.rtl,
-              child: child ?? const SizedBox(),
-            );
-          },
-        );
-      },
-    );
-  }
+  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+    debugPrint('Uncaught async error: $error\n$stack');
+    return true;
+  };
 }

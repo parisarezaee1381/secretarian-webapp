@@ -1,29 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_application_1/widgets.dart/pdf_document.dart';
-import 'package:flutter_application_1/widgets.dart/pdf_save.dart';
-import '../document_repository.dart';
+import 'package:flutter_application_1/widgets/pdf_document.dart';
+import 'package:flutter_application_1/widgets/pdf_save.dart';
+import '../core/app_constants.dart';
+import '../data/document_repository.dart';
 
-import '../widgets.dart/smart_date_field.dart';
-import '../widgets.dart/letter_number_generator.dart';
-import '../attachments.dart/attached_item.dart';
-import '../attachments.dart/attachments_panel.dart';
+import '../widgets/smart_date_field.dart';
+import '../widgets/letter_number_generator.dart';
+import '../attachments/attached_item.dart';
+import '../attachments/attachments_panel.dart';
 
-import 'package:flutter_application_1/documents.dart';
+import 'package:flutter_application_1/domain/documents.dart';
 import 'package:flutter_application_1/documents/m_gharardad.dart';
 
-import '../widgets.dart/switch_button.dart';
-import '../widgets.dart/buttons.dart';
-import '../widgets.dart/text_input.dart';
-import '../widgets.dart/header.dart';
-
-final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
-    GlobalKey<ScaffoldMessengerState>();
+import '../widgets/switch_button.dart';
+import '../widgets/buttons.dart';
+import '../widgets/text_input.dart';
+import '../widgets/header.dart';
+import 'package:flutter_application_1/core/theme.dart';
 
 class ContractFormPage extends StatefulWidget {
-  const ContractFormPage({super.key, this.initialDocument});
+  const ContractFormPage({
+    super.key,
+    this.initialDocument,
+    this.openToAttachments = false,
+  });
 
   final ContractDocument? initialDocument;
+
+  /// When true, the form scrolls down to the attachments panel on open.
+  final bool openToAttachments;
 
   @override
   State<ContractFormPage> createState() => _ContractFormPageState();
@@ -37,23 +43,23 @@ class _ContractFormPageState extends State<ContractFormPage> {
   final organizationController = TextEditingController();
   final recipientController = TextEditingController();
   final actionByController = TextEditingController();
-  final registrationNumberController = TextEditingController();
-  final archiveFolderController = TextEditingController();
+  final contractSubjectController = TextEditingController();
+  final referenceContractNumberController = TextEditingController();
 
   final _fnSubject = FocusNode();
   final _fnOrganization = FocusNode();
   final _fnRecipient = FocusNode();
   final _fnActionBy = FocusNode();
-  final _fnRegistrationNumber = FocusNode();
-  final _fnArchiveFolder = FocusNode();
+  final _fnContractSubject = FocusNode();
+  final _fnReferenceContractNumber = FocusNode();
 
   final Map<String, String?> _errors = {
     'subject': null,
     'organization': null,
     'recipient': null,
     'actionBy': null,
-    'registrationNumber': null,
-    'archiveFolder': null,
+    'contractSubject': null,
+    'referenceContractNumber': null,
   };
 
   List<String> tags = [];
@@ -64,10 +70,19 @@ class _ContractFormPageState extends State<ContractFormPage> {
 
   List<AttachedItem> _currentAttachments = [];
 
+  final _attachmentsKey = GlobalKey();
+
+  /// True while a submit is in flight — guards against double-taps that
+  /// would save the document twice.
+  bool _isSubmitting = false;
+
   static const double _desktopContentWidth = 900;
   static const double _fieldWidth = 548;
   static const double _labelWidth = 150;
-  static const double _mobileBreakpoint = 700;
+
+  /// Shared with the view pages (`kWideLayoutBreakpoint`) so a form and its
+  /// view switch layouts at the same width.
+  static const double _mobileBreakpoint = kWideLayoutBreakpoint;
 
   @override
   void initState() {
@@ -85,14 +100,13 @@ class _ContractFormPageState extends State<ContractFormPage> {
       recipientController.text = doc.recipient;
       actionByController.text = doc.actionBy;
 
-      registrationNumberController.text = doc.contractSubject;
-      archiveFolderController.text = doc.referenceContractNumber;
+      contractSubjectController.text = doc.contractSubject;
+      referenceContractNumberController.text = doc.referenceContractNumber;
 
       tags = List<String>.from(doc.tags);
 
       _isFileSwitchOn = doc.saveFile;
       _selectedFilePath = doc.filePath;
-      _isFileSwitchOn = doc.saveFile;
 
       _currentAttachments = doc.attachments.map((attachment) {
         return AttachedItem(
@@ -101,6 +115,13 @@ class _ContractFormPageState extends State<ContractFormPage> {
           bytes: attachment.bytes,
         );
       }).toList();
+    }
+
+    if (widget.openToAttachments) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = _attachmentsKey.currentContext;
+        if (ctx != null) Scrollable.ensureVisible(ctx);
+      });
     }
   }
 
@@ -113,8 +134,8 @@ class _ContractFormPageState extends State<ContractFormPage> {
     organizationController.dispose();
     recipientController.dispose();
     actionByController.dispose();
-    registrationNumberController.dispose();
-    archiveFolderController.dispose();
+    contractSubjectController.dispose();
+    referenceContractNumberController.dispose();
 
     _tagInputController.dispose();
 
@@ -122,8 +143,8 @@ class _ContractFormPageState extends State<ContractFormPage> {
     _fnOrganization.dispose();
     _fnRecipient.dispose();
     _fnActionBy.dispose();
-    _fnRegistrationNumber.dispose();
-    _fnArchiveFolder.dispose();
+    _fnContractSubject.dispose();
+    _fnReferenceContractNumber.dispose();
 
     super.dispose();
   }
@@ -150,22 +171,22 @@ class _ContractFormPageState extends State<ContractFormPage> {
   bool _validateForm() {
     final newErrors = <String, String?>{
       'subject': subjectController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
           : null,
       'organization': organizationController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
           : null,
       'recipient': recipientController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
           : null,
       'actionBy': actionByController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+          ? kRequiredFieldMessage
           : null,
-      'registrationNumber': registrationNumberController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+      'contractSubject': contractSubjectController.text.trim().isEmpty
+          ? kRequiredFieldMessage
           : null,
-      'archiveFolder': archiveFolderController.text.trim().isEmpty
-          ? 'لطفا این فیلد را پر کنید'
+      'referenceContractNumber': referenceContractNumberController.text.trim().isEmpty
+          ? kRequiredFieldMessage
           : null,
     };
 
@@ -177,9 +198,11 @@ class _ContractFormPageState extends State<ContractFormPage> {
   }
 
   Future<void> _submitForm() async {
-    if (!_validateForm()) {
+    if (_isSubmitting || !_validateForm()) {
       return;
     }
+
+    setState(() => _isSubmitting = true);
 
     String? pdfPath;
     bool pdfSaved = false;
@@ -187,7 +210,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
     try {
       if (widget.initialDocument == null) {
         letterNumberController.text = await LetterNumberGenerator.instance
-            .generate(LetterNumberType.contract);
+            .generate(DocumentType.contract);
       }
 
       final document = ContractDocument(
@@ -204,9 +227,9 @@ class _ContractFormPageState extends State<ContractFormPage> {
         recipient: recipientController.text.trim(),
         actionBy: actionByController.text.trim(),
 
-        contractSubject: registrationNumberController.text.trim(),
+        contractSubject: contractSubjectController.text.trim(),
         registrationDate: registrationDateController.text,
-        referenceContractNumber: archiveFolderController.text.trim(),
+        referenceContractNumber: referenceContractNumberController.text.trim(),
 
         saveFile: _isFileSwitchOn,
         filePath: null,
@@ -227,37 +250,29 @@ class _ContractFormPageState extends State<ContractFormPage> {
             ? '${document.letterNumber.trim()}.pdf'
             : 'قرارداد.pdf';
 
-        pdfPath = await SavePdfWidget.chooseSavePath(
+        pdfPath = await PdfSaver.chooseSavePath(
           suggestedFileName: suggestedName,
         );
 
         if (pdfPath != null) {
-          await SavePdfWidget.savePdf(document: pdfData, path: pdfPath);
+          await PdfSaver.savePdf(document: pdfData, path: pdfPath);
 
           pdfSaved = true;
         }
       }
 
-      final finalDocument = ContractDocument(
-        id: document.id,
+      // Canceling the save dialog during an edit keeps the previously
+      // recorded PDF reference instead of silently dropping it; switching
+      // the option off explicitly clears it.
+      final keepExistingPdf =
+          _isFileSwitchOn &&
+          widget.initialDocument != null &&
+          widget.initialDocument!.saveFile;
 
-        letterNumber: document.letterNumber,
-        date: document.date,
-        subject: document.subject,
-        tags: document.tags,
-
-        organization: document.organization,
-        recipient: document.recipient,
-        actionBy: document.actionBy,
-
-        contractSubject: document.contractSubject,
-        registrationDate: document.registrationDate,
-        referenceContractNumber: document.referenceContractNumber,
-
-        saveFile: pdfSaved,
-        filePath: pdfPath,
-
-        attachments: document.attachments,
+      final finalDocument = document.copyWith(
+        saveFile: pdfSaved || keepExistingPdf,
+        filePath:
+            pdfPath ?? (keepExistingPdf ? widget.initialDocument!.filePath : null),
       );
 
       if (widget.initialDocument != null) {
@@ -269,45 +284,95 @@ class _ContractFormPageState extends State<ContractFormPage> {
         await DocumentRepository.instance.addContract(finalDocument);
       }
 
-      rootScaffoldMessengerKey.currentState?.showSnackBar(
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             pdfSaved
                 ? 'قرارداد و PDF با موفقیت ذخیره شدند'
                 : 'قرارداد با موفقیت ذخیره شد',
           ),
-          backgroundColor: const Color(0xFF3863A8),
+          backgroundColor: AppColors.primary,
         ),
       );
 
-      if (!mounted) {
-        return;
+      if (widget.initialDocument != null) {
+        // Editing: hand the saved document back to the view page that opened
+        // us, which refreshes itself — instead of stacking a second view.
+        Navigator.pop(context, finalDocument);
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ContractViewPage(document: finalDocument),
+          ),
+        );
       }
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ContractViewPage(document: finalDocument),
-        ),
-      );
     } catch (e, stackTrace) {
       debugPrint('SUBMIT CONTRACT ERROR: $e');
       debugPrint('$stackTrace');
 
-      rootScaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text('خطا در ذخیره قرارداد: $e'),
-          backgroundColor: const Color(0xFFA85838),
+      if (!mounted) return;
+
+      // The exception itself stays in the debug log; users get a generic
+      // message (the settings screens' convention — never raw error text).
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('خطا در ذخیره قرارداد'),
+          backgroundColor: AppColors.error,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
-  void _cancelForm() {
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
+  /// True when the user typed into a field or added tags/attachments.
+  /// Auto-filled fields (the generated letter number, the date pickers) are
+  /// deliberately not counted, so a pristine create form cancels instantly.
+  bool _hasUnsavedContent() {
+    return subjectController.text.isNotEmpty ||
+        organizationController.text.isNotEmpty ||
+        recipientController.text.isNotEmpty ||
+        actionByController.text.isNotEmpty ||
+        contractSubjectController.text.isNotEmpty ||
+        referenceContractNumberController.text.isNotEmpty ||
+        tags.isNotEmpty ||
+        _currentAttachments.isNotEmpty;
+  }
+
+  Future<void> _cancelForm() async {
+    if (_hasUnsavedContent()) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('انصراف از ثبت؟'),
+          content: const Text('اطلاعات واردشده ذخیره نمی‌شود.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('ادامه'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('انصراف'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+    }
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('عملیات لغو شد'),
-        backgroundColor: Color(0xFF828288),
+        backgroundColor: AppColors.mutedText,
       ),
     );
 
@@ -331,7 +396,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
       focusNode: focusNode,
       labelText: compact ? null : label,
       labelWidth: compact ? 0 : _labelWidth,
-      labelSpacing: compact ? 0 : 0,
+      labelSpacing: 0,
       width: compact ? double.infinity : _fieldWidth,
       height: 64,
       textInputAction: nextFocusNode != null
@@ -361,9 +426,8 @@ class _ContractFormPageState extends State<ContractFormPage> {
               child: Text(
                 errorText ?? 'حداکثر 55 کاراکتر مجاز است',
                 style: const TextStyle(
-                  color: Color(0xFFA85838),
+                  color: AppColors.error,
                   fontSize: 12,
-                  fontFamily: 'Estedad',
                 ),
               ),
             ),
@@ -384,9 +448,8 @@ class _ContractFormPageState extends State<ContractFormPage> {
             child: Text(
               errorText ?? 'حداکثر 55 کاراکتر مجاز است',
               style: const TextStyle(
-                color: Color(0xFFA85838),
+                color: AppColors.error,
                 fontSize: 12,
-                fontFamily: 'Estedad',
               ),
             ),
           ),
@@ -408,10 +471,9 @@ class _ContractFormPageState extends State<ContractFormPage> {
       child: Text(
         text,
         style: const TextStyle(
-          color: Color(0xFF101018),
+          color: AppColors.text,
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          fontFamily: 'Estedad',
         ),
       ),
     );
@@ -424,10 +486,9 @@ class _ContractFormPageState extends State<ContractFormPage> {
         text,
         textAlign: TextAlign.right,
         style: const TextStyle(
-          color: Color(0xFF101018),
+          color: AppColors.text,
           fontSize: 15,
           fontWeight: FontWeight.w600,
-          fontFamily: 'Estedad',
         ),
       ),
     );
@@ -443,7 +504,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
 
           LetterNumberField(
             controller: letterNumberController,
-            type: LetterNumberType.contract,
+            type: DocumentType.contract,
           ),
 
           const SizedBox(height: 24),
@@ -465,7 +526,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
       children: [
         LetterNumberField(
           controller: letterNumberController,
-          type: LetterNumberType.contract,
+          type: DocumentType.contract,
         ),
 
         const SizedBox(height: 32),
@@ -486,7 +547,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
       height: 64,
       onSubmitted: (_) => _addTag(),
       suffixIcon: IconButton(
-        icon: const Icon(Icons.add_circle_outline, color: Color(0xFFF3F3F7)),
+        icon: const Icon(Icons.add_circle_outline, color: AppColors.background),
         onPressed: _addTag,
       ),
     );
@@ -503,7 +564,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF828288),
+              color: AppColors.mutedText,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -512,10 +573,9 @@ class _ContractFormPageState extends State<ContractFormPage> {
                 Text(
                   tag,
                   style: const TextStyle(
-                    color: Color(0xFFF3F3F7),
+                    color: AppColors.background,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    fontFamily: 'Estedad',
                   ),
                 ),
 
@@ -526,7 +586,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
                   child: const Icon(
                     Icons.close,
                     size: 16,
-                    color: Color(0xFFF3F3F7),
+                    color: AppColors.background,
                   ),
                 ),
               ],
@@ -570,7 +630,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
         Container(
           width: double.infinity,
           height: 1,
-          color: const Color(0xFF828288),
+          color: AppColors.mutedText,
         ),
 
         SizedBox(height: compact ? 40 : 64),
@@ -595,7 +655,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
               constraints: const BoxConstraints(maxWidth: 400),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF3863A8),
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -604,9 +664,8 @@ class _ContractFormPageState extends State<ContractFormPage> {
                 overflow: TextOverflow.ellipsis,
                 textDirection: TextDirection.ltr,
                 style: const TextStyle(
-                  color: Color(0xFFF3F3F7),
+                  color: AppColors.background,
                   fontSize: 14,
-                  fontFamily: 'Estedad',
                 ),
               ),
             ),
@@ -661,6 +720,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
                 label: 'ثبت',
                 type: ButtonType.primary,
                 width: double.infinity,
+                isLoading: _isSubmitting,
                 onPressed: _submitForm,
               ),
               const SizedBox(height: 16),
@@ -668,6 +728,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
                 label: 'انصراف',
                 type: ButtonType.tertiary,
                 width: double.infinity,
+                isDisabled: _isSubmitting,
                 onPressed: _cancelForm,
               ),
             ],
@@ -679,6 +740,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
                 label: 'ثبت',
                 type: ButtonType.primary,
                 width: 204,
+                isLoading: _isSubmitting,
                 onPressed: _submitForm,
               ),
               const SizedBox(width: 16),
@@ -686,6 +748,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
                 label: 'انصراف',
                 type: ButtonType.tertiary,
                 width: 204,
+                isDisabled: _isSubmitting,
                 onPressed: _cancelForm,
               ),
             ],
@@ -760,7 +823,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
           'اقدام کننده:',
           actionByController,
           focusNode: _fnActionBy,
-          nextFocusNode: _fnRegistrationNumber,
+          nextFocusNode: _fnContractSubject,
           errorKey: 'actionBy',
           compact: compact,
         ),
@@ -769,10 +832,10 @@ class _ContractFormPageState extends State<ContractFormPage> {
 
         _buildFormRow(
           'موضوع قرارداد:',
-          registrationNumberController,
-          focusNode: _fnRegistrationNumber,
-          nextFocusNode: _fnArchiveFolder,
-          errorKey: 'registrationNumber',
+          contractSubjectController,
+          focusNode: _fnContractSubject,
+          nextFocusNode: _fnReferenceContractNumber,
+          errorKey: 'contractSubject',
           compact: compact,
         ),
 
@@ -784,9 +847,9 @@ class _ContractFormPageState extends State<ContractFormPage> {
 
         _buildFormRow(
           'شماره قرارداد مرجع:',
-          archiveFolderController,
-          focusNode: _fnArchiveFolder,
-          errorKey: 'archiveFolder',
+          referenceContractNumberController,
+          focusNode: _fnReferenceContractNumber,
+          errorKey: 'referenceContractNumber',
           compact: compact,
         ),
 
@@ -823,7 +886,7 @@ class _ContractFormPageState extends State<ContractFormPage> {
       },
       behavior: HitTestBehavior.translucent,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF3F3F7),
+        backgroundColor: AppColors.background,
 
         body: SafeArea(
           child: LayoutBuilder(
@@ -869,7 +932,10 @@ class _ContractFormPageState extends State<ContractFormPage> {
 
                               SizedBox(height: compact ? 40 : 48),
 
-                              _buildAttachmentsPanel(compact: compact),
+                              KeyedSubtree(
+                                key: _attachmentsKey,
+                                child: _buildAttachmentsPanel(compact: compact),
+                              ),
 
                               SizedBox(height: compact ? 40 : 64),
                             ],
@@ -888,34 +954,3 @@ class _ContractFormPageState extends State<ContractFormPage> {
   }
 }
 
-class ContractData {
-  final String letterNumber;
-  final String date;
-  final String subject;
-  final List<String> tags;
-  final String organization;
-  final String recipient;
-  final String actionBy;
-  final String contractSubject;
-  final String registrationDate;
-  final String referenceContractNumber;
-  final bool saveFile;
-  final String? savedFileName;
-  final List<AttachedItem> attachments;
-
-  const ContractData({
-    required this.letterNumber,
-    required this.date,
-    required this.subject,
-    required this.tags,
-    required this.organization,
-    required this.recipient,
-    required this.actionBy,
-    required this.contractSubject,
-    required this.registrationDate,
-    required this.referenceContractNumber,
-    required this.saveFile,
-    this.savedFileName,
-    required this.attachments,
-  });
-}
